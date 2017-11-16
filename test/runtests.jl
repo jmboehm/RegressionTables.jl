@@ -1,6 +1,6 @@
-using RegTables
+using RegressionTables
 
-tests = ["RegTables.jl"
+tests = ["RegressionTables.jl"
 		 ]
 
 println("Running tests:")
