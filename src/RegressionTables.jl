@@ -18,19 +18,45 @@ module RegressionTables
         hline::String   # horizontal line. If character, repeat
         colsep::String  # separator between columns
         linebreak::String   # link break string
+
+        outfile::String    # file to print output into.
+                           # if empty, print to STDOUT.
+
+        encapsulateRegressand::Function     # function that takes a string and
+                                            # min and max column index and returns
+                                            # a formatted string
+
+
     end
 
-    latexSettings = RenderSettings("\hline", " & ", " \\ ")
-    asciiSettings = RenderSettings("-", " ", "\n")
+    #latexSettings = RenderSettings("\\hline", " & ", " \\\\ ", "")
+    #asciiSettings = RenderSettings("-", " ", "\n", "")
 
-    type Regressor
-        name::String
-        estimate::Float64
-        se::Float64
+    function latexOutput(outfile::String = "")
+        latexRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "\\multicolumn{$(colmax-colmin+1)}{c}{$s}"
+        return RenderSettings("\\hline", " & ", " \\\\ ", outfile, latexRegressandTransform)
     end
-    # type Statistic
-    #     label::String
+    function asciiOutput(outfile::String = "")
+        asciiRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "$s"
+        return RenderSettings("-", " ", "\n", outfile, asciiRegressandTransform)
+    end
 
+    # * 5%, ** 1%, *** 0.1%
+    # TODO this should be made exact
+    function default_estim_decoration(s::String, estimate::Float64, se::Float64)
+        t = abs(estimate/se)
+        if (t < 1.645)
+            return "$s"
+        elseif (t < 1.95996)
+            return "$s"
+        elseif (t < 2.57583)
+            return "$s*"
+        elseif (t < 3.29053)
+            return "$s**"
+        else
+            return "$s***"
+        end
+    end
 
     type AbstractTable
         headerString::String
@@ -60,16 +86,16 @@ module RegressionTables
 
     columns(tab::AbstractTable) = size(tab.bodies[1],2)
 
-    type RegressionTable
-        numberofcolumns::Int64
-        lhsnames::Vector{String} # if one, use for all columns, otherwise separate
-        regressors::Vector{Regressor}
-
-        # this contains
-        regressorArray::Array{String, 2}
-        statisticArrays::Vector{Array{String, 2}}
-
-    end
+    # type RegressionTable
+    #     numberofcolumns::Int64
+    #     lhsnames::Vector{String} # if one, use for all columns, otherwise separate
+    #     regressors::Vector{Regressor}
+    #
+    #     # this contains
+    #     regressorArray::Array{String, 2}
+    #     statisticArrays::Vector{Array{String, 2}}
+    #
+    # end
 
     # render a block of an AbstractTable
     function render(io::IO, block::Array{String, 2}, colWidths::Vector{Int64}, align::String, settings::RenderSettings = asciiSettings)
@@ -91,11 +117,12 @@ module RegressionTables
             for col = 1:c
                 # if the string is too long, truncate it
                 # (this sometimes happens with column headers)
-                if length(block[row,col]) > colWidths[col]
-                    printstring = block[row,col][1:colWidths[col]]
-                else
-                    printstring = block[row,col]
-                end
+                # if length(block[row,col]) > colWidths[col]
+                #     printstring = block[row,col][1:colWidths[col]]
+                # else
+                # end
+                printstring = block[row,col]
+
                 if align[col] == 'l'
                     s = s * rpad(printstring,colWidths[col])
                 elseif align[col] == 'r'
@@ -116,7 +143,7 @@ module RegressionTables
     end
 
 
-
+    # render a whole table
     function render(io::IO, tab::AbstractTable, align::String, settings::RenderSettings)
 
         c = columns(tab)
@@ -125,6 +152,7 @@ module RegressionTables
             error("align string has invalid length.")
         end
 
+        # construct column width, first from the maximum of the bodies' column widths.
         colWidths = zeros(Int64, c)
         for colIndex = 1:c
             if (align[colIndex] == 'l') || (align[colIndex] == 'r') || (align[colIndex] == 'c')
@@ -137,6 +165,52 @@ module RegressionTables
             end
         end
 
+        # construct, but not print, the header
+        # header
+        headerLabels = Vector{String}(0)
+        headerWidths = Vector{Int64}(0)
+        headerCellStartEnd = Vector{Vector{Int64}}(0)
+        # first column is empty (top left)
+        push!(headerLabels, "")
+        push!(headerWidths, colWidths[1])
+        push!(headerCellStartEnd, [1,1])
+        # first regression result
+        push!(headerLabels, tab.header[1,2])
+        push!(headerWidths, colWidths[2])
+        push!(headerCellStartEnd, [2,2])
+        if columns(tab)>2
+            for rIndex = 3:size(tab.header,2)
+                if tab.header[1,rIndex] == tab.header[1,rIndex-1]
+                    headerWidths[end] += length(settings.colsep) + colWidths[rIndex]
+                    headerCellStartEnd[end][2] += 1
+                else
+                    push!(headerLabels, tab.header[1,rIndex])
+                    push!(headerWidths, colWidths[rIndex])
+                    push!(headerCellStartEnd, (rIndex, rIndex))
+                end
+            end
+        end
+        # second line -- this needs to be improved TODO
+        headerArray = Array{String}(2,length(headerLabels))
+        headerArray[1,1] = ""
+        for i = 2:size(headerArray,2)
+            headerArray[1,i] = settings.encapsulateRegressand(headerLabels[i],headerCellStartEnd[i][1],headerCellStartEnd[i][2] )
+        end
+        # now it could be that a columns of the header is wider than the colWidth of the bodies.
+        # in that case, make the last column of the bodies wider.
+        for i = 2:size(headerArray,2)
+            totalWidth = sum([colWidths[cind] for cind in headerCellStartEnd[i][1] : headerCellStartEnd[i][2]]) + length(settings.colsep)*(headerCellStartEnd[i][2] - headerCellStartEnd[i][1])
+            if length(headerArray[1,i])>totalWidth
+                # extend width of cells
+                colWidths[headerCellStartEnd[i][2]] +=  (length(headerArray[1,i])-totalWidth)
+                headerWidths[i] += (length(headerArray[1,i])-totalWidth)
+            end
+        end
+        # second line
+        headerArray[2,1] = ""
+        for i = 2:size(headerArray,2)
+            headerArray[2,i] = (length(settings.hline) == 1 ? settings.hline ^ headerWidths[i] : settings.hline)
+        end
 
         # print the whole thing
 
@@ -150,32 +224,6 @@ module RegressionTables
         end
 
         # header
-        headerLabels = Vector{String}(0)
-        headerWidths = Vector{Int64}(0)
-        # first column is empty (top left)
-        push!(headerLabels, "")
-        push!(headerWidths, colWidths[1])
-        # first regression result
-        push!(headerLabels, tab.header[1,2])
-        push!(headerWidths, colWidths[2])
-        if columns(tab)>2
-            for rIndex = 3:size(tab.header,2)
-                if tab.header[1,rIndex] == tab.header[1,rIndex-1]
-                    headerWidths[end] += length(settings.colsep) + colWidths[rIndex]
-                else
-                    push!(headerLabels, tab.header[1,rIndex])
-                    push!(headerWidths, colWidths[rIndex])
-                end
-            end
-        end
-        # second line -- this needs to be improved TODO
-        headerArray = Array{String}(2,length(headerLabels))
-        headerArray[1,:] = headerLabels
-        headerArray[2,1] = ""
-        for i=2:size(headerArray,2)
-            headerArray[2,i] = settings.hline ^ headerWidths[i]
-        end
-        @show length(headerLabels)
         render(io, headerArray, headerWidths, ("c" ^ size(headerArray,2)), settings)
 
         # bodies
@@ -236,12 +284,13 @@ module RegressionTables
         lhs_labels::Vector{String} = Vector{String}(),
         regressors::Vector{String} = Vector{String}(),
         estimformat::String = "%0.3f",
+        estim_decoration::Function = default_estim_decoration,
         statisticformat::String = "%0.3f",
         below_statistic::Symbol = :se,
         below_decoration::Function = s::String -> "($s)",
         regression_statistics::Vector{Symbol} = [:nobs, :r2],
         regression_statistics_label::Vector{String} = Vector{String}(0),
-        renderSettings::RenderSettings = RenderSettings("-", "   ", "\n")
+        renderSettings::RenderSettings = asciiOutput()
         )
 
         numberOfResults = size(rr,1)
@@ -258,15 +307,12 @@ module RegressionTables
         # lhs_labels
         if (length(lhs_labels)>0) &&
             (length(lhs_labels) != numberOfResults)
-            error("Argument lhs_labels needs to have
-                either zero length or the same length as the number of regressions.")
+            error("Argument lhs_labels needs to have either zero length or the same length as the number of regressions.")
         end
 
         # Create an AbstractTable from the regression results
 
         #println("Showing regtable... \n")
-
-
 
         # ordering of regressors:
         if length(regressors) == 0
@@ -292,7 +338,7 @@ module RegressionTables
             for resultIndex = 1:numberOfResults
                 index = find(regressor .== rr[resultIndex].coefnames)
                 if !isempty(index)
-                    estimateLine[1,resultIndex+1] = sprintf1(estimformat,rr[resultIndex].coef[index[1]])
+                    estimateLine[1,resultIndex+1] = estim_decoration(sprintf1(estimformat,rr[resultIndex].coef[index[1]]),rr[resultIndex].coef[index[1]],sqrt(rr[resultIndex].vcov[index[1],index[1]]))
                     if below_statistic == :tstat
                         s = sprintf1(statisticformat, rr[resultIndex].coef[index[1]]/sqrt(rr[resultIndex].vcov[index[1],index[1]]))
                         estimateLine[2,resultIndex+1] = below_decoration(s)
@@ -355,7 +401,18 @@ module RegressionTables
         # create AbstractTable
         tab = AbstractTable(numberOfResults+1, "-", regressandBlock, [estimateBlock,statisticBlock], "-")
 
-        render(STDOUT, tab , align, renderSettings )
+        # create output stream
+        if renderSettings.outfile == ""
+            outstream = STDOUT
+        else
+            try
+                outstream = open(renderSettings.outfile)
+            catch ex
+                error("Error opening file $(renderSettings.outfile).")
+            end
+        end
+
+        render(outstream, tab , align, renderSettings )
 
         return estimateBlock, statisticBlock
 

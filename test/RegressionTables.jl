@@ -17,7 +17,23 @@ rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe =
 tab = RegressionTables.regtable(rr1,rr2,rr3; lhslabel = "Test")
 
 
-tab1, tab2 = RegressionTables.regtable(rr1,rr2,rr3; regressors = ["PetalLength";"SepalWidth"])
+tab1, tab2 = RegressionTables.regtable(rr1,rr2,rr3; renderSettings = RegressionTables.asciiOutput())
+
+
+# label = "Dependent variable: SepalLength (Adjusted for blah)"
+# tab1, tab2 = RegressionTables.regtable(rr1,rr2,rr3; renderSettings = RegressionTables.asciiOutput())
+
+# try latex output
+tab1, tab2 = RegressionTables.regtable(rr1,rr2,rr3; renderSettings = RegressionTables.latexOutput())
+
+f = open("test.txt", "w")
+println(f, "Test")
+close(f)
+
+
+
+
+
 
 #statisticformat="%0.10f"
 tab1, tab2 = RegressionTables.regtable(rr1,rr2,rr3; regressors = ["PetalLength";"SepalWidth";"PetalWidth"])
