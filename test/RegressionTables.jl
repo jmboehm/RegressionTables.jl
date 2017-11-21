@@ -7,7 +7,7 @@ using Formatting
 include("../src/RegressionTables.jl")
 
 df = dataset("datasets", "iris")
-asciiSettings = RegressionTables.RenderSettings("-", " ", "\n")
+#asciiSettings = RegressionTables.RenderSettings("-", " ", "\n")
 
 df[:SpeciesDummy] = pool(df[:Species])
 rr1 = reg(df, @model(SepalLength ~ SepalWidth   , fe = SpeciesDummy))

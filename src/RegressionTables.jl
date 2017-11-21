@@ -15,7 +15,12 @@ module RegressionTables
     # order = ["varname_1", "varname_2", ...]
 
     type RenderSettings
-        hline::String   # horizontal line. If character, repeat
+
+        # horizontal line. if character, repeat.
+        toprule::String
+        midrule::String
+        bottomrule::String
+
         colsep::String  # separator between columns
         linebreak::String   # link break string
 
@@ -26,19 +31,23 @@ module RegressionTables
                                             # min and max column index and returns
                                             # a formatted string
 
+        header::Function
+        footer::Function
 
     end
 
-    #latexSettings = RenderSettings("\\hline", " & ", " \\\\ ", "")
-    #asciiSettings = RenderSettings("-", " ", "\n", "")
 
     function latexOutput(outfile::String = "")
         latexRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "\\multicolumn{$(colmax-colmin+1)}{c}{$s}"
-        return RenderSettings("\\hline", " & ", " \\\\ ", outfile, latexRegressandTransform)
+        latexTableHeader(numberOfResults::Int64, align::String) = "\\begin{tabular}{$align}"
+        latexTableFooter(numberOfResults::Int64, align::String) = "\\end{tabular}"
+        return RenderSettings("\\toprule", "\\midrule", "\\bottomrule", " & ", " \\\\ ", outfile, latexRegressandTransform, latexTableHeader, latexTableFooter)
     end
     function asciiOutput(outfile::String = "")
         asciiRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "$s"
-        return RenderSettings("-", " ", "\n", outfile, asciiRegressandTransform)
+        asciiTableHeader(numberOfResults::Int64, align::String) = ""
+        asciiTableFooter(numberOfResults::Int64, align::String) = ""
+        return RenderSettings("-", "-", "-", "   ", "", outfile, asciiRegressandTransform, asciiTableHeader, asciiTableFooter)
     end
 
     # * 5%, ** 1%, *** 0.1%
@@ -209,18 +218,29 @@ module RegressionTables
         # second line
         headerArray[2,1] = ""
         for i = 2:size(headerArray,2)
-            headerArray[2,i] = (length(settings.hline) == 1 ? settings.hline ^ headerWidths[i] : settings.hline)
+            headerArray[2,i] = (length(settings.midrule) == 1 ? settings.midrule ^ headerWidths[i] : settings.midrule)
         end
 
-        # print the whole thing
+        # START RENDERING
+
+        # header
+        println(io, settings.header(c,align))
 
         # headerString
-        if tab.headerString == ""
-            # don't print anything
-        elseif length(tab.headerString) == 1
-            println(io, tab.headerString ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep)))
+        # if tab.headerString == ""
+        #     # don't print anything
+        # elseif length(tab.headerString) == 1
+        #     println(io, tab.headerString ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep)))
+        # else
+        #     println(io, tab.headerString)
+        # end
+
+        # print toprule
+        if length(settings.toprule)==1
+            # one character, extend over the whole line
+            println(io, settings.toprule ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep))  )
         else
-            println(io, tab.headerString)
+            println(io, settings.toprule)
         end
 
         # header
@@ -231,25 +251,37 @@ module RegressionTables
 
             render(io, tab.bodies[b], colWidths, align, settings)
 
-            # if we're not at the last block, print the hline
+            # if we're not at the last block, print the midrule
             if b < size(tab.bodies,1)
-                if length(settings.hline)==1
+                if length(settings.midrule)==1
                     # one character, extend over the whole line
-                    println(io, settings.hline ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep))  )
+                    println(io, settings.midrule ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep))  )
                 else
-                    println(io, settings.hline)
+                    println(io, settings.midrule)
                 end
             end
         end
 
-        # footerString
-        if tab.footerString == ""
-            # don't print anything
-        elseif length(tab.footerString) == 1
-            println(io, tab.footerString ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep)))
+        # print bottomrule
+        if length(settings.bottomrule)==1
+            # one character, extend over the whole line
+            println(io, settings.bottomrule ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep))  )
         else
-            println(io, tab.footerString)
+            println(io, settings.bottomrule)
         end
+
+        # footerString
+        # if tab.footerString == ""
+        #     # don't print anything
+        # elseif length(tab.footerString) == 1
+        #     println(io, tab.footerString ^ (sum(colWidths) + (columns(tab)-1)*length(settings.colsep)))
+        # else
+        #     println(io, tab.footerString)
+        # end
+
+
+        # footer
+        println(io, settings.footer(c,align))
 
     end
 
@@ -266,6 +298,9 @@ module RegressionTables
 
     # Label option:
     #   labels::Dict is a Dict that contains for each variable (string) a display label. If not found, defaults to variable name
+
+    # number_regressions: bool that determines whether numbers should be shown above each regression column. defaults to true.
+    # number_regressions_decoration: function that takes the column number and returns the formatted string. defaults to "($i)".
 
     # Options for statistics:
     #   :nobs Number of Observations
@@ -290,6 +325,8 @@ module RegressionTables
         below_decoration::Function = s::String -> "($s)",
         regression_statistics::Vector{Symbol} = [:nobs, :r2],
         regression_statistics_label::Vector{String} = Vector{String}(0),
+        number_regressions::Bool = true,
+        number_regressions_decoration::Function = i::Int64 -> "($i)",
         renderSettings::RenderSettings = asciiOutput()
         )
 
@@ -368,6 +405,14 @@ module RegressionTables
             regressandBlock[1,rIndex+1] = (length(lhs_labels)>0 ? lhs_labels[rIndex] : rr[rIndex].yname)
         end
 
+        # Regression numbering block (if we do it)
+        if number_regressions
+            regressionNumberBlock = fill("", 1, numberOfResults + 1)
+            for rIndex = 1:numberOfResults
+                regressionNumberBlock[1,rIndex+1] = number_regressions_decoration(rIndex)
+            end
+        end
+
         if length(regression_statistics)>0
             # we have a statistics block (N, R^2, etc)
 
@@ -398,8 +443,15 @@ module RegressionTables
         # construct alignment string:
         align = "l" * ("r" ^ numberOfResults)
 
+        bodyBlocks = [estimateBlock,statisticBlock]
+
+        # if we're numbering the regression columns, add a block before the other stuff
+        if number_regressions
+            insert!(bodyBlocks,1,regressionNumberBlock)
+        end
+
         # create AbstractTable
-        tab = AbstractTable(numberOfResults+1, "-", regressandBlock, [estimateBlock,statisticBlock], "-")
+        tab = AbstractTable(numberOfResults+1, "", regressandBlock, bodyBlocks , "")
 
         # create output stream
         if renderSettings.outfile == ""
