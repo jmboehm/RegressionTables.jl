@@ -22,17 +22,17 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 ### Details
 A typical use is to pass a number of `AbstractRegressionResult`s to the function, along with a `RenderSettings` object.
 ```
-RegressionTables.regtable(regressionResult1, regressionResult2; renderSettings = RegressionTables.asciiOutput())
+regtable(regressionResult1, regressionResult2; renderSettings = asciiOutput())
 ```
 Pass a string to the functions that create a `RenderSettings` to divert output to a file. For example, using LaTeX output,
 ```
-RegressionTables.regtable(regressionResult1, regressionResult2; renderSettings = RegressionTables.latexOutput("myoutfile.tex"))
+regtable(regressionResult1, regressionResult2; renderSettings = latexOutput("myoutfile.tex"))
 ```
 See the full argument list for details.
 
 ### Examples
 ```julia
-using DataFrames, RDatasets, FixedEffectModels
+using RegressionTables, DataFrames, RDatasets, FixedEffectModels
 df = dataset("datasets", "iris")
 df[:SpeciesDummy] = pool(df[:Species])
 df[:isSmall] = pool(df[:SepalWidth] .< 2.9)
@@ -42,28 +42,28 @@ rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe =
 rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
 rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe = SpeciesDummy))
 # default
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput())
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput())
 # display of statistics below estimates
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), below_statistic = :blank)
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), below_decoration = s -> "[\$(s)]")
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), below_statistic = :blank)
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), below_decoration = s -> "[\$(s)]")
 # ordering of regressors, leaving out regressors
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), regressors = ["SepalLength";"PetalWidth";"SepalWidth"])
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), regressors = ["SepalLength";"PetalWidth";"SepalWidth"])
 # format of the estimates
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), estimformat = "%02.5f")
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), estimformat = "%02.5f")
 # replace some variable names by other strings
-RegressionTables.regtable(rr1,rr2,rr3; renderSettings = RegressionTables.asciiOutput(), labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
+regtable(rr1,rr2,rr3; renderSettings = asciiOutput(), labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
 # do not print the FE block
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), print_fe_section = false)
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), print_fe_section = false)
 # re-order fixed effects
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), fixedeffects = ["isSmall", "SpeciesDummy"])
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), fixedeffects = ["isSmall", "SpeciesDummy"])
 # change the yes/no labels in the fixed effect section, and statistics labels
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(), labels = Dict("__LABEL_FE_YES__" => "Mhm.", "__LABEL_FE_NO__" => "Nope.", "__LABEL_STATISTIC_N__" => "Number of observations", "__LABEL_STATISTIC_R2__" => "R Squared"))
+regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), labels = Dict("__LABEL_FE_YES__" => "Mhm.", "__LABEL_FE_NO__" => "Nope.", "__LABEL_STATISTIC_N__" => "Number of observations", "__LABEL_STATISTIC_R2__" => "R Squared"))
 # full set of available statistics
-RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # LaTeX output
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.latexOutput())
+regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
 # LaTeX output to file
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.latexOutput("myoutfile.tex"))
+regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
 ```
 """
 
