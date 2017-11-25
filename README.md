@@ -87,6 +87,24 @@ $R^2$        &    0.726 &    0.863 &     0.867 &                          0.635 
 \bottomrule
 \end{tabular}
 ```
+Send the output to a text file by passing the destination file string to the `asciiOutput()` or `latexOutput()` functions:
+```julia
+regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutputfile.tex"))
+```
+then use `\input` in LaTeX to include that file in your code. Be sure to use the `booktabs` package:
+```latex
+\documentclass{article}
+\usepackage{booktabs}
+
+\begin{document}
+
+\begin{table}
+\label{tab:mytable}
+\input{myoutputfile}
+\end{table}
+
+\end{document}
+```
 
 ## Options
 
@@ -111,7 +129,7 @@ $R^2$        &    0.726 &    0.863 &     0.867 &                          0.635 
 
 The following is the exhaustive list of strings that govern the output of labels. Use e.g.
 ```julia
-label = Dict("__LABEL_STATISTIC_N__" => "Number of observations")
+labels = Dict("__LABEL_STATISTIC_N__" => "Number of observations")
 ```
 to change the label for the row showing the number of observations in each regression.
 
