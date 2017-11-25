@@ -10,6 +10,7 @@ rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe =
 rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
 rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe = SpeciesDummy))
 
+
 function checkfilesarethesame(file1::String, file2::String)
 
     f1 = open(file1)
