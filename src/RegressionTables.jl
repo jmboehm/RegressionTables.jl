@@ -4,6 +4,31 @@ module RegressionTables
 
     ##############################################################################
     ##
+    #   TODO:
+    #
+    #   FUNCTIONALITY:
+    #   - Implement labels for yname, coefnames
+    #   - Generic replacement dictionary for labels
+    #   - For statistics, check if statistic exists (depends on RegressionResult)
+    #   - More statistics (F)
+    #   - Fixed effect for FE regressions
+    #   - t-test based on DOF instead of DOF->infty
+    #
+    #   TECHNICAL:
+    #   - Rewrite table cell/row formats using an encapsulating function instead
+    #      of strings (which would allow HTML <td></td>)
+    #   - Formatting option: string (or function) for spacer rows
+    #
+    ##
+    ##############################################################################
+
+# TODO:
+#   - Implement labels for yname, coefnames
+#   - For statistics, check if statistic exists (depends on RegressionResult)
+#   - Have option minimum column width (to avoid titles being truncated)
+
+    ##############################################################################
+    ##
     ## Dependencies
     ##
     ##############################################################################
@@ -14,12 +39,16 @@ module RegressionTables
 
     # order = ["varname_1", "varname_2", ...]
 
-    type RenderSettings
+    struct RenderSettings
 
         # horizontal line. if character, repeat.
         toprule::String
         midrule::String
         bottomrule::String
+
+        headerrule::Function  # Function that takes the headerCellStartEnd array and returns a
+                                # sting that describes the text line below the header titles
+                                # if it's one single character, it's put into a table format and repeated (e.g. "-" for ascii)
 
         colsep::String  # separator between columns
         linebreak::String   # link break string
@@ -31,8 +60,11 @@ module RegressionTables
                                             # min and max column index and returns
                                             # a formatted string
 
-        header::Function
-        footer::Function
+        header::Function                    # function that return the header string
+        footer::Function                    # function that returns the footer string
+                                            # both should take the number of results and align string as arguments
+
+
 
     end
 
@@ -41,13 +73,44 @@ module RegressionTables
         latexRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "\\multicolumn{$(colmax-colmin+1)}{c}{$s}"
         latexTableHeader(numberOfResults::Int64, align::String) = "\\begin{tabular}{$align}"
         latexTableFooter(numberOfResults::Int64, align::String) = "\\end{tabular}"
-        return RenderSettings("\\toprule", "\\midrule", "\\bottomrule", " & ", " \\\\ ", outfile, latexRegressandTransform, latexTableHeader, latexTableFooter)
+        function latexHeaderRule(headerCellStartEnd::Vector{Vector{Int64}})
+            if length(headerCellStartEnd)<2
+                error("Invalid headerCellStartEnd: need to have at least two columns.")
+            end
+            s = ""
+            for i in headerCellStartEnd[2:end]
+                s = s * "\\cmidrule(lr){$(i[1])-$(i[2])}" * " "
+            end
+            return s
+        end
+        toprule = "\\toprule"
+        midrule = "\\midrule"
+        bottomrule = "\\bottomrule"
+        headerrule = latexHeaderRule
+        colsep = " & "
+        linebreak = " \\\\ "
+        foutfile = outfile
+        encapsulateRegressand = latexRegressandTransform
+        header = latexTableHeader
+        footer = latexTableFooter
+        return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak, foutfile, encapsulateRegressand, header, footer)
     end
     function asciiOutput(outfile::String = "")
         asciiRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "$s"
         asciiTableHeader(numberOfResults::Int64, align::String) = ""
         asciiTableFooter(numberOfResults::Int64, align::String) = ""
-        return RenderSettings("-", "-", "-", "   ", "", outfile, asciiRegressandTransform, asciiTableHeader, asciiTableFooter)
+        asciiHeaderRule(headerCellStartEnd::Vector{Vector{Int64}}) = "-"
+        toprule = "-"
+        midrule = "-"
+        bottomrule = "-"
+        headerrule = asciiHeaderRule
+        colsep = "   "
+        linebreak = ""
+        foutfile = outfile
+        encapsulateRegressand = asciiRegressandTransform
+        header = asciiTableHeader
+        footer = asciiTableFooter
+        return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak, foutfile, encapsulateRegressand, header, footer)
     end
 
     # * 5%, ** 1%, *** 0.1%
@@ -195,12 +258,12 @@ module RegressionTables
                 else
                     push!(headerLabels, tab.header[1,rIndex])
                     push!(headerWidths, colWidths[rIndex])
-                    push!(headerCellStartEnd, (rIndex, rIndex))
+                    push!(headerCellStartEnd, [rIndex, rIndex])
                 end
             end
         end
         # second line -- this needs to be improved TODO
-        headerArray = Array{String}(2,length(headerLabels))
+        headerArray = Array{String}(1,length(headerLabels))
         headerArray[1,1] = ""
         for i = 2:size(headerArray,2)
             headerArray[1,i] = settings.encapsulateRegressand(headerLabels[i],headerCellStartEnd[i][1],headerCellStartEnd[i][2] )
@@ -216,10 +279,21 @@ module RegressionTables
             end
         end
         # second line
-        headerArray[2,1] = ""
-        for i = 2:size(headerArray,2)
-            headerArray[2,i] = (length(settings.midrule) == 1 ? settings.midrule ^ headerWidths[i] : settings.midrule)
+        # distinguish two cases:
+        #   if headerrule gives a string of length one, put into table, and repeat the string
+        hr = settings.headerrule(headerCellStartEnd)
+        if length(hr) == 1
+            secondRow = Array{String}(1,length(headerLabels))
+            secondRow[1,1] = ""
+            for i = 2:size(secondRow,2)
+                secondRow[1,i] = (length(settings.midrule) == 1 ? settings.midrule ^ headerWidths[i] : settings.midrule)
+            end
+            headerArray = [headerArray; secondRow]
+            print_headerrule_separately = false
+        else
+            print_headerrule_separately = true
         end
+
 
         # START RENDERING
 
@@ -245,6 +319,9 @@ module RegressionTables
 
         # header
         render(io, headerArray, headerWidths, ("c" ^ size(headerArray,2)), settings)
+        if print_headerrule_separately
+            println(io, hr)
+        end
 
         # bodies
         for b = 1:size(tab.bodies,1)
@@ -293,7 +370,7 @@ module RegressionTables
     # regressors::Vector{String} is the vector of regressor names that should be shown, in that order.
     #   Defaults to an empty vector, in which case all regressors will be shown.
 
-    # estimformat: string that describes the format of the estimate. Defaults to "%0.4f".
+    # estimformat: string that describes the format of the estimate. Defaults to "%0.3f".
     # statisticformat: string that describes the format of the number below the estimate (se/t). Defaults to "%0.4f".
 
     # Label option:
@@ -306,14 +383,9 @@ module RegressionTables
     #   :nobs Number of Observations
     #   :r2 R^2
     #   :f  F-Statistic
-    #   :dof Degrees of Freedom
+    #   :dof Degrees of Freedom (not yet implemented)
 
     # settings::RenderSettings
-
-    # TODO:
-    #   - Implement labels for yname, coefnames
-    #   - For statistics, check if statistic exists (depends on RegressionResult)
-    #   - Have option minimum column width (to avoid titles being truncated)
 
     function regtable(rr::AbstractRegressionResult...;
         lhs_labels::Vector{String} = Vector{String}(),
@@ -446,6 +518,7 @@ module RegressionTables
         bodyBlocks = [estimateBlock,statisticBlock]
 
         # if we're numbering the regression columns, add a block before the other stuff
+
         if number_regressions
             insert!(bodyBlocks,1,regressionNumberBlock)
         end
@@ -458,13 +531,18 @@ module RegressionTables
             outstream = STDOUT
         else
             try
-                outstream = open(renderSettings.outfile)
+                outstream = open(renderSettings.outfile, "w")
             catch ex
-                error("Error opening file $(renderSettings.outfile).")
+                error("Error opening file $(renderSettings.outfile): $(ex.msg)")
             end
         end
 
         render(outstream, tab , align, renderSettings )
+
+        # if we're writing to a file, close it
+        if renderSettings.outfile != ""
+            close(outstream)
+        end
 
         return estimateBlock, statisticBlock
 
