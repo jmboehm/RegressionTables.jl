@@ -24,7 +24,9 @@ rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe =
 rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
 
 RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput())
-
+```
+yields 
+```
 ---------------------------------------------------------
                         SepalLength            SepalWidth
               ------------------------------   ----------
@@ -43,6 +45,7 @@ N                  150        150        150          150
 R2               0.726      0.863      0.867        0.635
 ---------------------------------------------------------
 ```
+
 ## Options
 
 (TODO)
