@@ -26,6 +26,7 @@ module RegressionTables
     ##############################################################################
 
     #import DataFrames: DataFrame, AbstractDataFrame, ModelMatrix, ModelFrame, Terms, coefnames, Formula, completecases, names!, pool, @formula
+    import Distributions: TDist, ccdf, FDist, Chisq, AliasTable, Categorical
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
 
@@ -144,16 +145,16 @@ module RegressionTables
     end
 
     # * 5%, ** 1%, *** 0.1%
-    # TODO this should be made exact (using DOF)
-    function default_estim_decoration(s::String, estimate::Float64, se::Float64)
-        t = abs(estimate/se)
-        if (t < 1.645)
+    function default_estim_decoration(s::String, pval::Float64)
+        if pval<0.0
+            error("p value needs to be nonnegative.")
+        if (pval > 0.1)
             return "$s"
-        elseif (t < 1.95996)
+        elseif (pval > 0.05)
             return "$s"
-        elseif (t < 2.57583)
+        elseif (pval > 0.01)
             return "$s*"
-        elseif (t < 3.29053)
+        elseif (pval > 0.001)
             return "$s**"
         else
             return "$s***"
