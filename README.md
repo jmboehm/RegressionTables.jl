@@ -2,7 +2,7 @@
 
 This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl).
 
-In its objective it is similar to  (and heavily inspired by) the Stata command [`estout`](http://repec.sowi.unibe.ch/stata/estout/) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/). 
+In its objective it is similar to  (and heavily inspired by) the Stata command [`esttab`](http://repec.sowi.unibe.ch/stata/estout/esttab.html) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/). 
 
 To install the package, type in the Julia command prompt
 
