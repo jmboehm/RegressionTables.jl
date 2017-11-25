@@ -1,3 +1,11 @@
+[![RegressionTables](http://pkg.julialang.org/badges/RegressionTables_0.1.svg)](http://pkg.julialang.org/?pkg=RegressionTables)
+
+[![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl)
+
+[![Coverage Status](https://coveralls.io/repos/jmboehm/RegressionTables.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmboehm/RegressionTables.jl?branch=master)
+
+[![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master)
+
 ## RegressionTables.jl
 
 This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl).
