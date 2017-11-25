@@ -6,13 +6,9 @@ module RegressionTables
     ##
     #   TODO:
     #
-    #   FUNCTIONALITY:
-    #   - Implement labels for yname, coefnames
-    #   - Generic replacement dictionary for labels
-    #   - For statistics, check if statistic exists (depends on RegressionResult)
-    #   - More statistics (F)
-    #   - Fixed effect for FE regressions
-    #   - t-test based on DOF instead of DOF->infty
+    #   FUNCTIONALITY: (asterisk means priority)
+    #   - More statistics (DOF)
+    #   * t-test based on DOF instead of DOF->infty
     #
     #   TECHNICAL:
     #   - Rewrite table cell/row formats using an encapsulating function instead
@@ -22,10 +18,6 @@ module RegressionTables
     ##
     ##############################################################################
 
-# TODO:
-#   - Implement labels for yname, coefnames
-#   - For statistics, check if statistic exists (depends on RegressionResult)
-#   - Have option minimum column width (to avoid titles being truncated)
 
     ##############################################################################
     ##
@@ -37,7 +29,7 @@ module RegressionTables
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
 
-    # order = ["varname_1", "varname_2", ...]
+    export regtable, latexOutput, asciiOutput, RenderSettings
 
     struct RenderSettings
 
@@ -52,6 +44,18 @@ module RegressionTables
 
         colsep::String  # separator between columns
         linebreak::String   # link break string
+
+        label_fe_yes::String    # what the FE block prints if the FE is present. override with __LABEL_FE_YES__ in 'label' argument
+        label_fe_no::String    # what the FE block prints if the FE is not present. override with __LABEL_FE_NO__ in 'label' argument
+
+        label_statistic_n::String # label for number of observations. override with __LABEL_STATISTIC_N__ in 'label' argument
+        label_statistic_r2::String # label for R^2. override with __LABEL_STATISTIC_R2__ in 'label' argument
+        label_statistic_r2_a::String # label for adjusted R^2. override with __LABEL_STATISTIC_R2_A__
+        label_statistic_r2_within::String # label for within-R^2. override with __LABEL_STATISTIC_R2_WITHIN__
+        label_statistic_f::String # label for F-Stat. override with __LABEL_STATISTIC_F__ in 'label' argument
+        label_statistic_p::String # label for F-test p value. override with __LABEL_STATISTIC_P__
+        label_statistic_f_kp::String # label for first-stage F statistic override with __LABEL_STATISTIC_F_KP__
+        label_statistic_p_kp::String # label for first-stage F-stat p value override with __LABEL_STATISTIC_P_KP__
 
         outfile::String    # file to print output into.
                            # if empty, print to STDOUT.
@@ -89,11 +93,24 @@ module RegressionTables
         headerrule = latexHeaderRule
         colsep = " & "
         linebreak = " \\\\ "
+
+        label_fe_yes = "Yes"
+        label_fe_no = ""
+
+        label_statistic_n = "\$N\$"
+        label_statistic_r2 = "\$R^2\$"
+        label_statistic_f = "\$F\$"
+        label_statistic_r2_a = "Adjusted \$R^2\$"
+        label_statistic_r2_within = "Within-\$R^2\$"
+        label_statistic_p = "\$F\$-test \$p\$ value"
+        label_statistic_f_kp = "First-stage \$F\$ statistic"
+        label_statistic_p_kp = "First-stage \$p\$ value"
+
         foutfile = outfile
         encapsulateRegressand = latexRegressandTransform
         header = latexTableHeader
         footer = latexTableFooter
-        return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak, foutfile, encapsulateRegressand, header, footer)
+        return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak, label_fe_yes, label_fe_no, label_statistic_n, label_statistic_r2, label_statistic_r2_a, label_statistic_r2_within, label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, foutfile, encapsulateRegressand, header, footer)
     end
     function asciiOutput(outfile::String = "")
         asciiRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "$s"
@@ -106,15 +123,28 @@ module RegressionTables
         headerrule = asciiHeaderRule
         colsep = "   "
         linebreak = ""
+
+        label_fe_yes = "Yes"
+        label_fe_no = ""
+
+        label_statistic_n = "N"
+        label_statistic_r2 = "R2"
+        label_statistic_r2_a = "Adjusted R2"
+        label_statistic_r2_within = "Within-R2"
+        label_statistic_f = "F"
+        label_statistic_p = "F-test p value"
+        label_statistic_f_kp = "First-stage F statistic"
+        label_statistic_p_kp = "First-stage p value"
+
         foutfile = outfile
         encapsulateRegressand = asciiRegressandTransform
         header = asciiTableHeader
         footer = asciiTableFooter
-        return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak, foutfile, encapsulateRegressand, header, footer)
+        return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak, label_fe_yes, label_fe_no, label_statistic_n, label_statistic_r2, label_statistic_r2_a, label_statistic_r2_within, label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, foutfile, encapsulateRegressand, header, footer)
     end
 
     # * 5%, ** 1%, *** 0.1%
-    # TODO this should be made exact
+    # TODO this should be made exact (using DOF)
     function default_estim_decoration(s::String, estimate::Float64, se::Float64)
         t = abs(estimate/se)
         if (t < 1.645)
@@ -156,7 +186,12 @@ module RegressionTables
 
     end
 
+    # some helper functions
     columns(tab::AbstractTable) = size(tab.bodies[1],2)
+
+    # isFERegressionResult
+    isFERegressionResult(r::AbstractRegressionResult) = isa(r,RegressionResultFE) || isa(r,RegressionResultFEIV)
+
 
     # type RegressionTable
     #     numberofcolumns::Int64
@@ -229,9 +264,6 @@ module RegressionTables
         for colIndex = 1:c
             if (align[colIndex] == 'l') || (align[colIndex] == 'r') || (align[colIndex] == 'c')
                 colWidths[colIndex] = maximum([length(b[r,colIndex]) for b in tab.bodies for r=1:size(b,1) ])
-            #elseif align[col] == 'c'
-            #    colWidths[colIndex] = maximum(search.([b[r,c] for b in tab.bodies for r=1:size(b,1) ],'.') ) - 1 +
-            #                            maximum(length.([b[r,c] for b in tab.bodies for r=1:size(b,1) ]) - search.([b[r,c] for b in tab.bodies for r=1:size(b,1) ],'.') )
             else
                 error("Invalid character in align string. Only 'l', 'r', 'c' are allowed.")
             end
@@ -262,7 +294,7 @@ module RegressionTables
                 end
             end
         end
-        # second line -- this needs to be improved TODO
+        # second line
         headerArray = Array{String}(1,length(headerLabels))
         headerArray[1,1] = ""
         for i = 2:size(headerArray,2)
@@ -293,7 +325,6 @@ module RegressionTables
         else
             print_headerrule_separately = true
         end
-
 
         # START RENDERING
 
@@ -370,6 +401,9 @@ module RegressionTables
     # regressors::Vector{String} is the vector of regressor names that should be shown, in that order.
     #   Defaults to an empty vector, in which case all regressors will be shown.
 
+    # fixedeffects::Vector{String} is the vector of FE names that should be shown, in that order.
+    #   Defaults to an empty vector, in which case all FE's will be shown.
+
     # estimformat: string that describes the format of the estimate. Defaults to "%0.3f".
     # statisticformat: string that describes the format of the number below the estimate (se/t). Defaults to "%0.4f".
 
@@ -379,49 +413,42 @@ module RegressionTables
     # number_regressions: bool that determines whether numbers should be shown above each regression column. defaults to true.
     # number_regressions_decoration: function that takes the column number and returns the formatted string. defaults to "($i)".
 
+    # print_fe_section: print a section showing fixed effects (if there are FE regressions). Defaults to true.
+
+    # regression_statistics: Symbol vector that contains statistics to show.
     # Options for statistics:
     #   :nobs Number of Observations
     #   :r2 R^2
-    #   :f  F-Statistic
+    #   :r2_a R^2 adjusted
+    #   :r2_within R^2 within
+    #   :f F-Statistic
+    #   :p p-value for F-stat
+    #   :f_kp First stage F-stat (Kleinbergen-Paap)
+    #   :p_kp p-value for first stage F-stat
     #   :dof Degrees of Freedom (not yet implemented)
 
     # settings::RenderSettings
 
     function regtable(rr::AbstractRegressionResult...;
-        lhs_labels::Vector{String} = Vector{String}(),
         regressors::Vector{String} = Vector{String}(),
+        fixedeffects::Vector{String} = Vector{String}(),
+        labels::Dict{String,String} = Dict{String,String}(),
         estimformat::String = "%0.3f",
         estim_decoration::Function = default_estim_decoration,
         statisticformat::String = "%0.3f",
         below_statistic::Symbol = :se,
         below_decoration::Function = s::String -> "($s)",
         regression_statistics::Vector{Symbol} = [:nobs, :r2],
-        regression_statistics_label::Vector{String} = Vector{String}(0),
         number_regressions::Bool = true,
         number_regressions_decoration::Function = i::Int64 -> "($i)",
+        print_fe_section = true,
         renderSettings::RenderSettings = asciiOutput()
         )
 
         numberOfResults = size(rr,1)
-        println("Found $numberOfResults regression results.")
-
-        # Check options
-        #
-        # regression_statistics_label:
-        if (length(regression_statistics_label)>0) &&
-            (length(regression_statistics_label) != length(regression_statistics))
-            error("Argument regression_statistics_label needs to have
-                either zero length or the same length as regression_statistics.")
-        end
-        # lhs_labels
-        if (length(lhs_labels)>0) &&
-            (length(lhs_labels) != numberOfResults)
-            error("Argument lhs_labels needs to have either zero length or the same length as the number of regressions.")
-        end
+        #println("Found $numberOfResults regression results.")
 
         # Create an AbstractTable from the regression results
-
-        #println("Showing regtable... \n")
 
         # ordering of regressors:
         if length(regressors) == 0
@@ -464,7 +491,7 @@ module RegressionTables
                 warn("Regressor $regressor not found among regression results.")
             else
                 # add label on the left:
-                estimateLine[1,1] = regressor
+                estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : regressor
                 # add to estimateBlock
                 estimateBlock = [estimateBlock; estimateLine]
             end
@@ -474,7 +501,8 @@ module RegressionTables
         #   needs to be separately rendered
         regressandBlock = fill("", 1, numberOfResults+1)
         for rIndex = 1:numberOfResults
-            regressandBlock[1,rIndex+1] = (length(lhs_labels)>0 ? lhs_labels[rIndex] : rr[rIndex].yname)
+            # keep in mind that yname is a Symbol
+            regressandBlock[1,rIndex+1] = haskey(labels,string(rr[rIndex].yname)) ? labels[string(rr[rIndex].yname)] : string(rr[rIndex].yname)
         end
 
         # Regression numbering block (if we do it)
@@ -485,37 +513,147 @@ module RegressionTables
             end
         end
 
+        # Fixed effects block
+        print_fe_block = print_fe_section && any(isFERegressionResult.(rr))
+        if print_fe_block
+
+            # if no list of FE's to include is given, construct it by order in the regressions
+            if length(fixedeffects) == 0
+
+                # construct list of fixed effects for display
+                feList = Vector{String}()
+                for r in rr if isFERegressionResult(r)
+
+                    if isa(r.feformula, Symbol)
+                        if !(any(feList .== string(r.feformula)))
+                            # add to list
+                            push!(feList, string(r.feformula))
+                        end
+                    elseif r.feformula.args[1] == :+
+                        x = r.feformula.args
+                        for i in 2:length(x) if isa(x[i], Symbol)
+                            if !(any(feList .== string(x[i])))
+                                # add to list
+                                push!(feList, string(x[i]))
+                            end
+                        end end
+                    end
+
+                end end
+            else
+                # take the user-supplied list of fixed effects
+                feList = fixedeffects
+            end
+
+            # construct a list of fixed effects (strings) for each RegressionResult
+            febyrr = Vector{Vector{String}}()
+            for r in rr
+                fe = Vector{String}()
+                if isFERegressionResult(r)
+                    if isa(r.feformula, Symbol)
+                        # add to list
+                        push!(fe, string(r.feformula))
+                    elseif r.feformula.args[1] == :+
+                        x = r.feformula.args
+                        for i in 2:length(x) if isa(x[i], Symbol)
+                            # add to list
+                            push!(fe, string(x[i]))
+                        end end
+                    end
+                end
+                push!(febyrr, fe)
+            end
+
+            # construct FE block
+            feBlock = Array{String}(0,numberOfResults+1)
+            for fe in feList
+                feLine = fill("", 1, numberOfResults+1)
+                for resultIndex = 1:numberOfResults if isFERegressionResult(rr[resultIndex])
+                    index = find(fe .== febyrr[resultIndex])
+                    if !isempty(index)
+                        feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
+                    else
+                        feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
+                    end
+                end end
+                # check if the regressor was not found
+                if feLine == fill("", 1, numberOfResults+1)
+                    warn("Fixed effect $fe not found in any regression results.")
+                else
+                    # add label on the left:
+                    feLine[1,1] = haskey(labels,fe) ? labels[fe] : fe
+                    # add to estimateBlock
+                    feBlock = [feBlock; feLine]
+                end
+            end
+        end
+
         if length(regression_statistics)>0
             # we have a statistics block (N, R^2, etc)
+            print_statistics_block = true
 
             # one line for each statistic
             statisticBlock = fill("", length(regression_statistics), numberOfResults+1)
             for i = 1:length(regression_statistics)
                 if regression_statistics[i] == :nobs
-                    statisticBlock[i,1] = length(regression_statistics_label)>0 ? regression_statistics_label[i] : "N"
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_N__") ? labels["__LABEL_STATISTIC_N__"] : renderSettings.label_statistic_n
                     for resultIndex = 1:numberOfResults
                         statisticBlock[i,resultIndex+1] = sprintf1("%i",rr[resultIndex].nobs)
                     end
                 elseif regression_statistics[i] == :r2
-                    statisticBlock[i,1] = length(regression_statistics_label)>0 ? regression_statistics_label[i] : "R2"
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2__") ? labels["__LABEL_STATISTIC_R2__"] : renderSettings.label_statistic_r2
                     for resultIndex = 1:numberOfResults
                         statisticBlock[i,resultIndex+1] = sprintf1(statisticformat, rr[resultIndex].r2)
                     end
-                elseif regression_statistics[i] == :f
-                    statisticBlock[i,1] = length(regression_statistics_label)>0 ? regression_statistics_label[i] : "F"
+                elseif regression_statistics[i] == :r2_a
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_A__") ? labels["__LABEL_STATISTIC_R2_A__"] : renderSettings.label_statistic_r2_a
                     for resultIndex = 1:numberOfResults
-                        statisticBlock[i,resultIndex+1] = sprintf1(statisticformat, rr[resultIndex].F)
+                        statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :r2_a) ? sprintf1(statisticformat, rr[resultIndex].r2_a) : ""
+                    end
+                elseif regression_statistics[i] == :r2_within
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_WITHIN__") ? labels["__LABEL_STATISTIC_R2_WITHIN__"] : renderSettings.label_statistic_r2_within
+                    for resultIndex = 1:numberOfResults
+                        statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :r2_within) ? sprintf1(statisticformat, rr[resultIndex].r2_within) : ""
+                    end
+                elseif regression_statistics[i] == :f
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_F__") ? labels["__LABEL_STATISTIC_F__"] : renderSettings.label_statistic_f
+                    for resultIndex = 1:numberOfResults
+                        statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :F) ? sprintf1(statisticformat, rr[resultIndex].F) : ""
+                    end
+                elseif regression_statistics[i] == :p
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_P__") ? labels["__LABEL_STATISTIC_P__"] : renderSettings.label_statistic_p
+                    for resultIndex = 1:numberOfResults
+                        statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :p) ? sprintf1(statisticformat, rr[resultIndex].p) : ""
+                    end
+                elseif regression_statistics[i] == :f_kp
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_F_KP__") ? labels["__LABEL_STATISTIC_F_KP__"] : renderSettings.label_statistic_f_kp
+                    for resultIndex = 1:numberOfResults
+                        statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :F_kp) ? sprintf1(statisticformat, rr[resultIndex].F_kp) : ""
+                    end
+                elseif regression_statistics[i] == :p_kp
+                    statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_P_KP__") ? labels["__LABEL_STATISTIC_P_KP__"] : renderSettings.label_statistic_p_kp
+                    for resultIndex = 1:numberOfResults
+                        statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :p_kp) ? sprintf1(statisticformat, rr[resultIndex].p_kp) : ""
                     end
                 end
+
             end
         else
-
+            print_statistics_block = false
         end
 
         # construct alignment string:
         align = "l" * ("r" ^ numberOfResults)
 
-        bodyBlocks = [estimateBlock,statisticBlock]
+        bodyBlocks = [estimateBlock]
+
+        if print_fe_block
+            push!(bodyBlocks,feBlock)
+        end
+
+        if print_statistics_block
+            push!(bodyBlocks,statisticBlock)
+        end
 
         # if we're numbering the regression columns, add a block before the other stuff
 
@@ -543,26 +681,6 @@ module RegressionTables
         if renderSettings.outfile != ""
             close(outstream)
         end
-
-        return estimateBlock, statisticBlock
-
-        # for r in rr
-        #     @show r.coef
-        #     @show r.vcov
-        # end
-
-        # coef(x::AbstractRegressionResult) = x.coef
-        # coefnames(x::AbstractRegressionResult) = x.coefnames
-        # vcov(x::AbstractRegressionResult) = x.vcov
-        # nobs(x::AbstractRegressionResult) = x.nobs
-        # df_residual(x::AbstractRegressionResult) = x.df_residual
-        # function confint(x::AbstractRegressionResult)
-        #     scale = quantile(TDist(x.df_residual), 1 - (1-0.95)/2)
-        #     se = stderr(x)
-        #     hcat(x.coef -  scale * se, x.coef + scale * se)
-        # end
-
-        #@show rr
 
     end
 
