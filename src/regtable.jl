@@ -67,7 +67,7 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
 ```
 """
 
-function regtable(rr::Union{AbstractRegressionResult,DataFrames.DataFrameRegressionModel}...;
+function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
@@ -96,7 +96,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrames.DataFrameRegress
     yname(r::AbstractRegressionResult) = r.yname
     yname(r::DataFrameRegressionModel) = r.mf.terms.eterms[1]
     ther2(r::AbstractRegressionResult) = r.r2
-    ther2(r::DataFrameRegressionModel) = isa(r.model, GLM.LinearModel) ? r2(r) : NaN
+    ther2(r::DataFrameRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
 
 
     numberOfResults = size(rr,1)

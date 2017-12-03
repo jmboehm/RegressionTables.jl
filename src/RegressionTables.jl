@@ -27,12 +27,13 @@ module RegressionTables
     ##
     ##############################################################################
 
-    using DataFrames, GLM
+    using DataFrames
 
     import Distributions: ccdf, FDist
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
     import DataFrames: DataFrameRegressionModel, ModelFrame , coef, coefnames, vcov, nobs, dof_residual, r2
+    import GLM: LinearModel
 
 
     ##############################################################################

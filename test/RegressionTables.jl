@@ -73,7 +73,7 @@ end
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
 
-regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
 
 
@@ -112,7 +112,7 @@ regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__)
 regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test2.tex")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.tex"), joinpath(dirname(@__FILE__), "tables", "test2_reference.tex"))
 
-regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
 
 

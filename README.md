@@ -2,7 +2,7 @@
 
 ## RegressionTables.jl
 
-This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl).
+This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl).
 
 In its objective it is similar to  (and heavily inspired by) the Stata command [`esttab`](http://repec.sowi.unibe.ch/stata/estout/esttab.html) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/).
 
@@ -98,6 +98,43 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 \end{table}
 
 \end{document}
+```
+`regtable()` can also print `DataFrameRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl):
+```julia
+dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
+    Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
+    Treatment = pool(repeat(["a","b", "c"], inner = 3)))
+lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
+gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), dobson,
+                  Poisson())
+
+regtable(rr1,lm1,gm1; renderSettings = asciiOutput())
+```
+yields
+```
+---------------------------------------------
+                   SepalLength        Counts
+               -------------------   --------
+                    (1)        (2)        (3)
+---------------------------------------------
+(Intercept)    6.526***   6.526***   3.045***
+                (0.479)    (0.479)    (0.171)
+SepalWidth       -0.223     -0.223           
+                (0.155)    (0.155)           
+Outcome: B                             -0.454
+                                      (0.202)
+Outcome: C                             -0.293
+                                      (0.193)
+Treatment: b                            0.000
+                                      (0.200)
+Treatment: c                            0.000
+                                      (0.200)
+---------------------------------------------
+Estimator           OLS        OLS         NL
+---------------------------------------------
+N                   150        150          9
+R2                0.014      0.014           
+---------------------------------------------
 ```
 
 ## Options
