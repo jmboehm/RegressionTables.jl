@@ -26,6 +26,7 @@ function asciiOutput(outfile::String = "")
     label_estimator = "Estimator"
     label_estimator_ols = "OLS"
     label_estimator_iv = "IV"
+    label_estimator_nl = "NL"
 
     foutfile = outfile
     encapsulateRegressand = asciiRegressandTransform
@@ -35,6 +36,6 @@ function asciiOutput(outfile::String = "")
         label_fe_yes, label_fe_no,
         label_statistic_n, label_statistic_r2, label_statistic_r2_a, label_statistic_r2_within,
         label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, label_statistic_dof,
-        label_estimator, label_estimator_ols, label_estimator_iv,
+        label_estimator, label_estimator_ols, label_estimator_iv, label_estimator_nl,
         foutfile, encapsulateRegressand, header, footer)
 end

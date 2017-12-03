@@ -103,7 +103,7 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 ## Options
 
 ### Function Arguments
-* `rr::AbstractRegressionResult...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` that should be printed. Only required argument.
+* `rr::rr::Union{AbstractRegressionResult,DataFrames.DataFrameRegressionModel}...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` (or `DataFrameRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
@@ -130,6 +130,7 @@ to change the label for the row showing the number of observations in each regre
 * `__LABEL_ESTIMATOR__` (default: "Estimator")
 * `__LABEL_ESTIMATOR_OLS__` (default: "OLS")
 * `__LABEL_ESTIMATOR_IV__` (default: "IV")
+* `__LABEL_ESTIMATOR_NL__` (default: "NL")
 
 * `__LABEL_FE_YES__` (default: "Yes")
 * `__LABEL_FE_NO__` (default: "")

@@ -1,15 +1,25 @@
-using RegressionTables, FixedEffectModels, RDatasets, Base.Test
+using RegressionTables, FixedEffectModels, GLM, RDatasets, Base.Test
 
 df = dataset("datasets", "iris")
 df[:SpeciesDummy] = pool(df[:Species])
 df[:isSmall] = pool(df[:SepalWidth] .< 2.9)
 
+# FixedEffectModels.jl
 rr1 = reg(df, @model(SepalLength ~ SepalWidth))
 rr2 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength   , fe = SpeciesDummy))
 rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe = SpeciesDummy  + isSmall))
 rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
 rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe = SpeciesDummy))
 
+# GLM.jl
+dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
+    Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
+    Treatment = pool(repeat(["a","b", "c"], inner = 3)))
+
+lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
+lm2 = fit(LinearModel, @formula(SepalLength ~ SepalWidth + PetalWidth), df)
+gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), dobson,
+              Poisson())
 
 function checkfilesarethesame(file1::String, file2::String)
 
@@ -63,6 +73,11 @@ end
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
 
+regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
+
+
+
 # LATEX TABLES
 
 # # default
@@ -97,6 +112,12 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE_
 regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test2.tex")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.tex"), joinpath(dirname(@__FILE__), "tables", "test2_reference.tex"))
 
+regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
+
+
 # clean up
 rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
+rm(joinpath(dirname(@__FILE__), "tables", "test3.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
