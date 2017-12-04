@@ -22,9 +22,14 @@ gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), do
               Poisson())
 
 function checkfilesarethesame(file1::String, file2::String)
+
+
+    println(STDOUT, file1)
+    println(STDOUT, file2)
+
     try
-        f1 = open(file1)
-        f2 = open(file2)
+        f1 = open(file1, "r")
+        f2 = open(file2, "r")
 
     catch ex
         error("Error opening files: $(ex)")
