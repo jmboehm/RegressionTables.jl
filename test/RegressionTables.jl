@@ -23,7 +23,7 @@ gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), do
 
 function checkfilesarethesame(file1::String, file2::String)
 
-    println(readdir("test/tables"))
+    println(readdir(joinpath(dirname(@__FILE__), "tables")))
 
     println(STDOUT, file1)
     println(STDOUT, file2)
