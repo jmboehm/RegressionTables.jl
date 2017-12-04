@@ -18,15 +18,10 @@ dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
 
 lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 lm2 = fit(LinearModel, @formula(SepalLength ~ SepalWidth + PetalWidth), df)
-gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), dobson,
+gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome), dobson,
               Poisson())
 
 function checkfilesarethesame(file1::String, file2::String)
-
-    println(readdir(joinpath(dirname(@__FILE__), "tables")))
-
-    println(STDOUT, file1)
-    println(STDOUT, file2)
 
     f1 = open(file1, "r")
     f2 = open(file2, "r")
@@ -34,20 +29,16 @@ function checkfilesarethesame(file1::String, file2::String)
     s1 = readstring(f1)
     s2 = readstring(f2)
 
-    println(STDOUT, s1)
-    println(STDOUT, s2)
-
     close(f1)
     close(f2)
 
-    println("Length of 1: $(length(s1))")
-    println("Length of 2: $(length(s2))")
+    # Character-by-character comparison
     for i=1:length(s1)
         if s1[i]!=s2[i]
             println("Character $(i) different: $(s1[i]) $(s2[i])")
         end
     end
-    
+
     if s1 == s2
         return true
     else
@@ -88,8 +79,6 @@ end
 
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
-
-regtable(lm1, lm2, gm1; renderSettings = asciiOutput(), regression_statistics = [:nobs, :r2])
 
 regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
