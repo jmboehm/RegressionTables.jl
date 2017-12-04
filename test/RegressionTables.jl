@@ -28,13 +28,8 @@ function checkfilesarethesame(file1::String, file2::String)
     println(STDOUT, file1)
     println(STDOUT, file2)
 
-    try
-        f1 = open(file1, "r")
-        f2 = open(file2, "r")
-
-    catch ex
-        error("Error opening files: $(ex)")
-    end
+    f1 = open(file1, "r")
+    f2 = open(file2, "r")
 
     s1 = readstring(f1)
     s2 = readstring(f2)
