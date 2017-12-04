@@ -40,6 +40,14 @@ function checkfilesarethesame(file1::String, file2::String)
     close(f1)
     close(f2)
 
+    println("Length of 1: $(length(s1))")
+    println("Length of 2: $(length(s2))")
+    for i=1:length(s1)
+        if s1[i]!=s2[i]
+            println("Character $(i) different: $(s1[i]) $(s2[i])")
+        end
+    end
+    
     if s1 == s2
         return true
     else
