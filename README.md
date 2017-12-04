@@ -2,7 +2,7 @@
 
 ## RegressionTables.jl
 
-This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl).
+This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl).
 
 In its objective it is similar to  (and heavily inspired by) the Stata command [`esttab`](http://repec.sowi.unibe.ch/stata/estout/esttab.html) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/).
 
@@ -99,11 +99,48 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 
 \end{document}
 ```
+`regtable()` can also print `DataFrameRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl):
+```julia
+dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
+    Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
+    Treatment = pool(repeat(["a","b", "c"], inner = 3)))
+lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
+gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), dobson,
+                  Poisson())
+
+regtable(rr1,lm1,gm1; renderSettings = asciiOutput())
+```
+yields
+```
+---------------------------------------------
+                   SepalLength        Counts
+               -------------------   --------
+                    (1)        (2)        (3)
+---------------------------------------------
+(Intercept)    6.526***   6.526***   3.045***
+                (0.479)    (0.479)    (0.171)
+SepalWidth       -0.223     -0.223           
+                (0.155)    (0.155)           
+Outcome: B                             -0.454
+                                      (0.202)
+Outcome: C                             -0.293
+                                      (0.193)
+Treatment: b                            0.000
+                                      (0.200)
+Treatment: c                            0.000
+                                      (0.200)
+---------------------------------------------
+Estimator           OLS        OLS         NL
+---------------------------------------------
+N                   150        150          9
+R2                0.014      0.014           
+---------------------------------------------
+```
 
 ## Options
 
 ### Function Arguments
-* `rr::AbstractRegressionResult...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` that should be printed. Only required argument.
+* `rr::rr::Union{AbstractRegressionResult,DataFrames.DataFrameRegressionModel}...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` (or `DataFrameRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
@@ -130,6 +167,7 @@ to change the label for the row showing the number of observations in each regre
 * `__LABEL_ESTIMATOR__` (default: "Estimator")
 * `__LABEL_ESTIMATOR_OLS__` (default: "OLS")
 * `__LABEL_ESTIMATOR_IV__` (default: "IV")
+* `__LABEL_ESTIMATOR_NL__` (default: "NL")
 
 * `__LABEL_FE_YES__` (default: "Yes")
 * `__LABEL_FE_NO__` (default: "")

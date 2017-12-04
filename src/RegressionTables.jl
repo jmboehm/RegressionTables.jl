@@ -10,6 +10,7 @@ module RegressionTables
     #   - write more serious tests
     #   - allow custom ordering of blocks (e.g. [:estimates, :fe, :estimator, :statistics])
     #   - HTML or CSV output
+    #   - custom statistics
     #
     #   TECHNICAL:
     #   - Rewrite table cell/row formats using an encapsulating function instead
@@ -26,9 +27,13 @@ module RegressionTables
     ##
     ##############################################################################
 
+    using DataFrames
+
     import Distributions: ccdf, FDist
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
+    import DataFrames: DataFrameRegressionModel, ModelFrame , coef, coefnames, vcov, nobs, dof_residual, r2
+    import GLM: LinearModel
 
 
     ##############################################################################
@@ -46,8 +51,8 @@ module RegressionTables
     ##############################################################################
 
     # main types
-    include("RenderSettings.jl")
-    include("RegressionTable.jl")
+    include("rendersettings.jl")
+    include("regressiontable.jl")
 
     # misc
     include("util/util.jl")

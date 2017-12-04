@@ -16,7 +16,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
-* `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV) is used. Defaults to `true`.
+* `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/NL) is used. Defaults to `true`.
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 
 ### Details
@@ -67,7 +67,7 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
 ```
 """
 
-function regtable(rr::AbstractRegressionResult...;
+function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
@@ -84,8 +84,22 @@ function regtable(rr::AbstractRegressionResult...;
     renderSettings::RenderSettings = asciiOutput()
     )
 
+    # define some functions that makes use of DataFrames' RegressionModels
+    coefnames(r::DataFrameRegressionModel) = DataFrames.coefnames(r.mf)
+    coefnames(r::AbstractRegressionResult) = r.coefnames
+    coef(r::AbstractRegressionResult) = r.coef
+    coef(r::DataFrameRegressionModel) = DataFrames.coef(r)
+    vcov(r::AbstractRegressionResult) = r.vcov
+    vcov(r::DataFrameRegressionModel) = DataFrames.vcov(r)
+    df_residual(r::AbstractRegressionResult) = r.df_residual
+    df_residual(r::DataFrameRegressionModel) = dof_residual(r)
+    yname(r::AbstractRegressionResult) = r.yname
+    yname(r::DataFrameRegressionModel) = r.mf.terms.eterms[1]
+    ther2(r::AbstractRegressionResult) = r.r2
+    ther2(r::DataFrameRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
+
+
     numberOfResults = size(rr,1)
-    #println("Found $numberOfResults regression results.")
 
     # Create an RegressionTable from the regression results
 
@@ -94,10 +108,11 @@ function regtable(rr::AbstractRegressionResult...;
         # construct default ordering: from ordering in regressions (like in Stata)
         regressorList = Vector{String}()
         for r in rr # AbstractRegressionResult
-            for regressorIndex = 1:length(r.coefnames)
-                if !(any(regressorList .== r.coefnames[regressorIndex]))
+            names = coefnames(r)
+            for regressorIndex = 1:length(names)
+                if !(any(regressorList .== names[regressorIndex]))
                     # add to list
-                    push!(regressorList, r.coefnames[regressorIndex])
+                    push!(regressorList, names[regressorIndex])
                 end
             end
         end
@@ -111,15 +126,19 @@ function regtable(rr::AbstractRegressionResult...;
     for regressor in regressorList
         estimateLine = fill("", 2, numberOfResults+1)
         for resultIndex = 1:numberOfResults
-            index = find(regressor .== rr[resultIndex].coefnames)
+            thiscnames = coefnames(rr[resultIndex])
+            thiscoef = coef(rr[resultIndex])
+            thisvcov = vcov(rr[resultIndex])
+            thisdf_residual = df_residual(rr[resultIndex])
+            index = find(regressor .== thiscnames)
             if !isempty(index)
-                pval = ccdf(FDist(1, rr[resultIndex].df_residual ), abs2(rr[resultIndex].coef[index[1]]/sqrt(rr[resultIndex].vcov[index[1],index[1]])))
-                estimateLine[1,resultIndex+1] = estim_decoration(sprintf1(estimformat,rr[resultIndex].coef[index[1]]),pval)
+                pval = ccdf(FDist(1, thisdf_residual ), abs2(thiscoef[index[1]]/sqrt(thisvcov[index[1],index[1]])))
+                estimateLine[1,resultIndex+1] = estim_decoration(sprintf1(estimformat,thiscoef[index[1]]),pval)
                 if below_statistic == :tstat
-                    s = sprintf1(statisticformat, rr[resultIndex].coef[index[1]]/sqrt(rr[resultIndex].vcov[index[1],index[1]]))
+                    s = sprintf1(statisticformat, thiscoef[index[1]]/sqrt(thisvcov[index[1],index[1]]))
                     estimateLine[2,resultIndex+1] = below_decoration(s)
                 elseif below_statistic == :se
-                    s = sprintf1(statisticformat, sqrt(rr[resultIndex].vcov[index[1],index[1]]))
+                    s = sprintf1(statisticformat, sqrt(thisvcov[index[1],index[1]]))
                     estimateLine[2,resultIndex+1] = below_decoration(s)
                 elseif below_statistic == :blank
                     estimateLine[2,resultIndex+1] = "" # for the sake of completeness
@@ -142,7 +161,7 @@ function regtable(rr::AbstractRegressionResult...;
     regressandBlock = fill("", 1, numberOfResults+1)
     for rIndex = 1:numberOfResults
         # keep in mind that yname is a Symbol
-        regressandBlock[1,rIndex+1] = haskey(labels,string(rr[rIndex].yname)) ? labels[string(rr[rIndex].yname)] : string(rr[rIndex].yname)
+        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : string(yname(rr[rIndex]))
     end
 
     # Regression numbering block (if we do it)
@@ -232,9 +251,13 @@ function regtable(rr::AbstractRegressionResult...;
         estimatorBlock = fill("", 1, numberOfResults+1)
         estimatorBlock[1,1] = haskey(labels, "__LABEL_ESTIMATOR__") ? labels["__LABEL_ESTIMATOR__"] : renderSettings.label_estimator
         for i = 1:numberOfResults
-            estimatorBlock[1,i+1] = isIVRegressionResult(rr[i]) ?
-                (haskey(labels, "__LABEL_ESTIMATOR_IV__") ? labels["__LABEL_ESTIMATOR_IV__"] : renderSettings.label_estimator_iv) :
-                (haskey(labels, "__LABEL_ESTIMATOR_OLS__") ? labels["__LABEL_ESTIMATOR_OLS__"] : renderSettings.label_estimator_ols)
+            if isOLSRegressionResult(rr[i])
+                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_OLS__") ? labels["__LABEL_ESTIMATOR_OLS__"] : renderSettings.label_estimator_ols
+            elseif isIVRegressionResult(rr[i])
+                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_IV__") ? labels["__LABEL_ESTIMATOR_IV__"] : renderSettings.label_estimator_iv
+            else
+                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_NL__") ? labels["__LABEL_ESTIMATOR_NL__"] : renderSettings.label_estimator_nl
+            end
         end
     end
 
@@ -248,12 +271,12 @@ function regtable(rr::AbstractRegressionResult...;
             if regression_statistics[i] == :nobs
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_N__") ? labels["__LABEL_STATISTIC_N__"] : renderSettings.label_statistic_n
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = sprintf1("%i",rr[resultIndex].nobs)
+                    statisticBlock[i,resultIndex+1] = sprintf1("%i",nobs(rr[resultIndex]))
                 end
             elseif regression_statistics[i] == :r2
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2__") ? labels["__LABEL_STATISTIC_R2__"] : renderSettings.label_statistic_r2
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = sprintf1(statisticformat, rr[resultIndex].r2)
+                    statisticBlock[i,resultIndex+1] = isnan(ther2(rr[resultIndex])) ? "" : sprintf1(statisticformat, ther2(rr[resultIndex]))
                 end
             elseif regression_statistics[i] == :r2_a
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_A__") ? labels["__LABEL_STATISTIC_R2_A__"] : renderSettings.label_statistic_r2_a
@@ -330,7 +353,7 @@ function regtable(rr::AbstractRegressionResult...;
         try
             outstream = open(renderSettings.outfile, "w")
         catch ex
-            error("Error opening file $(renderSettings.outfile): $(ex.msg)")
+            error("Error opening file $(renderSettings.outfile): $(ex)")
         end
     end
 

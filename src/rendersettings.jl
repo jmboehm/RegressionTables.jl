@@ -29,6 +29,7 @@ struct RenderSettings
     label_estimator::String # label for the Estimator block. Override with __LABEL_ESTIMATOR__
     label_estimator_ols::String # label for the Estimator block. Override with __LABEL_ESTIMATOR_OLS__
     label_estimator_iv::String # label for the Estimator block. Override with __LABEL_ESTIMATOR_IV__
+    label_estimator_nl::String # label for the Estimator block. Override with __LABEL_ESTIMATOR_NL__
 
     outfile::String    # file to print output into.
                        # if empty, print to STDOUT.
