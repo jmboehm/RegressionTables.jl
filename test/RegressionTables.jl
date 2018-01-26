@@ -127,7 +127,7 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = htmlOutput(joinpath(dirname(@__FILE__
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.html"), joinpath(dirname(@__FILE__), "tables", "test1_reference.html"))
 
 regtable(lm1, lm2, gm1; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test2.html")), regression_statistics = [:nobs, :r2])
-@@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.html"), joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.html"), joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
 
 
 # clean up
