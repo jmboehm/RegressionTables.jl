@@ -10,7 +10,9 @@ struct RenderSettings
                             # sting that describes the text line below the header titles
                             # if it's one single character, it's put into a table format and repeated (e.g. "-" for ascii)
 
+    headercolsep::String # separator between columns for header
     colsep::String  # separator between columns
+    linestart::String # start of each line string
     linebreak::String   # link break string
 
     label_fe_yes::String    # what the FE block prints if the FE is present. override with __LABEL_FE_YES__ in 'label' argument

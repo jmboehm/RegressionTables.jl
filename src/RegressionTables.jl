@@ -42,7 +42,7 @@ module RegressionTables
     ##
     ##############################################################################
 
-    export regtable, latexOutput, asciiOutput, RenderSettings
+    export regtable, latexOutput, asciiOutput, htmlOutput, RenderSettings
 
     ##############################################################################
     ##
@@ -61,6 +61,7 @@ module RegressionTables
     include("decorations/default_decorations.jl")
     include("rendersettings/ascii.jl")
     include("rendersettings/latex.jl")
+    include("rendersettings/html.jl")
 
     # main functions
     include("render.jl")

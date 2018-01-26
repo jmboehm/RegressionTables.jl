@@ -1,4 +1,4 @@
-[![RegressionTables](http://pkg.julialang.org/badges/RegressionTables_0.1.svg)](http://pkg.julialang.org/?pkg=RegressionTables) [![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![Coverage Status](https://coveralls.io/repos/jmboehm/RegressionTables.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmboehm/RegressionTables.jl?branch=master) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master)
+[![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![Coverage Status](https://coveralls.io/repos/jmboehm/RegressionTables.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmboehm/RegressionTables.jl?branch=master) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master)
 
 ## RegressionTables.jl
 
@@ -81,7 +81,9 @@ $R^2$        &    0.726 &    0.863 &     0.867 &                          0.635 
 \bottomrule
 \end{tabular}
 ```
-Send the output to a text file by passing the destination file string to the `asciiOutput()` or `latexOutput()` functions:
+Similarly, HTML tables can be created with `htmlOutput()`.
+
+Send the output to a text file by passing the destination file string to the `asciiOutput()`, `latexOutput()`, or `htmlOutput()` functions:
 ```julia
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutputfile.tex"))
 ```

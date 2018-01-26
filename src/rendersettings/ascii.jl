@@ -7,7 +7,9 @@ function asciiOutput(outfile::String = "")
     midrule = "-"
     bottomrule = "-"
     headerrule = asciiHeaderRule
+    headercolsep = "   "
     colsep = "   "
+    linestart = ""
     linebreak = ""
 
     label_fe_yes = "Yes"
@@ -32,8 +34,8 @@ function asciiOutput(outfile::String = "")
     encapsulateRegressand = asciiRegressandTransform
     header = asciiTableHeader
     footer = asciiTableFooter
-    return RenderSettings(toprule, midrule, bottomrule, headerrule, colsep, linebreak,
-        label_fe_yes, label_fe_no,
+    return RenderSettings(toprule, midrule, bottomrule, headerrule, headercolsep, colsep, linestart,
+        linebreak, label_fe_yes, label_fe_no,
         label_statistic_n, label_statistic_r2, label_statistic_r2_a, label_statistic_r2_within,
         label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, label_statistic_dof,
         label_estimator, label_estimator_ols, label_estimator_iv, label_estimator_nl,

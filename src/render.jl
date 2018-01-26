@@ -1,6 +1,6 @@
 
 # render a block of a RegressionTable
-function render(io::IO, block::Array{String, 2}, colWidths::Vector{Int64}, align::String, settings::RenderSettings = asciiSettings)
+function render(io::IO, block::Array{String, 2}, colWidths::Vector{Int64}, align::String, settings::RenderSettings = asciiSettings; isHeader::Bool = false)
 
     c = size(block,2)
 
@@ -13,7 +13,7 @@ function render(io::IO, block::Array{String, 2}, colWidths::Vector{Int64}, align
 
     # print the whole thing
     for row = 1:size(block,1)
-        s = ""
+        s = settings.linestart
         for col = 1:c
             # if the string is too long, truncate it
             # (this sometimes happens with column headers)
@@ -30,10 +30,13 @@ function render(io::IO, block::Array{String, 2}, colWidths::Vector{Int64}, align
             elseif align[col] == 'c'
                 l = iseven(colWidths[col]-length(printstring)) ? Int64((colWidths[col]-length(printstring))/2) : Int64((colWidths[col]-length(printstring)+1)/2)
                 r = iseven(colWidths[col]-length(printstring)) ? Int64((colWidths[col]-length(printstring))/2) : Int64((colWidths[col]-length(printstring)-1)/2)
+                # if the printstring is too long, so be it
+                l = max(l,0)
+                r = max(r,0)
                 s = s * (" " ^ l) * printstring * (" " ^ r)
             end
             if col < c
-                s = s * settings.colsep
+                s = s * (isHeader ? settings.headercolsep : settings.colsep)
             end
         end
         s = s * settings.linebreak
@@ -78,7 +81,7 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
     if columns(tab)>2
         for rIndex = 3:size(tab.header,2)
             if tab.header[1,rIndex] == tab.header[1,rIndex-1]
-                headerWidths[end] += length(settings.colsep) + colWidths[rIndex]
+                headerWidths[end] += length(settings.headercolsep) + colWidths[rIndex]
                 headerCellStartEnd[end][2] += 1
             else
                 push!(headerLabels, tab.header[1,rIndex])
@@ -142,7 +145,7 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
     end
 
     # header
-    render(io, headerArray, headerWidths, ("c" ^ size(headerArray,2)), settings)
+    render(io, headerArray, headerWidths, ("c" ^ size(headerArray,2)), settings, isHeader=true)
     if print_headerrule_separately
         println(io, hr)
     end

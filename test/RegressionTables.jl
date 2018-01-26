@@ -122,9 +122,20 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(joinpath(dirname(@__FILE_
 regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
 
+# HTML Tables
+regtable(rr1,rr2,rr3,rr5; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test1.html")), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.html"), joinpath(dirname(@__FILE__), "tables", "test1_reference.html"))
+
+regtable(lm1, lm2, gm1; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test2.html")), regression_statistics = [:nobs, :r2])
+@@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.html"), joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
+
 
 # clean up
 rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test3.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
+rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
+rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
+
+
