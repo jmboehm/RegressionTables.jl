@@ -27,14 +27,20 @@ module RegressionTables
     ##
     ##############################################################################
 
-    using DataFrames
+    #using DataFrames
+
+    using StatsBase: StatsBase, CoefTable, StatisticalModel, RegressionModel
+    using StatsModels
 
     import Distributions: ccdf, FDist
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
-    import DataFrames: DataFrameRegressionModel, ModelFrame , coef, coefnames, vcov, nobs, dof_residual, r2
     import GLM: LinearModel
+    import StatsModels: DataFrameRegressionModel
 
+    import StatsBase: coef, coeftable, confint, deviance, nulldeviance, dof, dof_residual,
+                      loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,
+                      fit, model_response, r2, r², adjr2, adjr², PValue
 
     ##############################################################################
     ##

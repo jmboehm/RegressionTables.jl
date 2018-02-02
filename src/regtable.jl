@@ -84,13 +84,13 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     renderSettings::RenderSettings = asciiOutput()
     )
 
-    # define some functions that makes use of DataFrames' RegressionModels
-    coefnames(r::DataFrameRegressionModel) = DataFrames.coefnames(r.mf)
+    # define some functions that makes use of StatsModels' RegressionModels
+    coefnames(r::DataFrameRegressionModel) = StatsModels.coefnames(r.mf)
     coefnames(r::AbstractRegressionResult) = r.coefnames
     coef(r::AbstractRegressionResult) = r.coef
-    coef(r::DataFrameRegressionModel) = DataFrames.coef(r)
+    coef(r::DataFrameRegressionModel) = StatsModels.coef(r)
     vcov(r::AbstractRegressionResult) = r.vcov
-    vcov(r::DataFrameRegressionModel) = DataFrames.vcov(r)
+    vcov(r::DataFrameRegressionModel) = StatsModels.vcov(r)
     df_residual(r::AbstractRegressionResult) = r.df_residual
     df_residual(r::DataFrameRegressionModel) = dof_residual(r)
     yname(r::AbstractRegressionResult) = r.yname

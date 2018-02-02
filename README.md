@@ -18,7 +18,7 @@ Pkg.add("RegressionTables")
 using RegressionTables, DataFrames, FixedEffectModels, RDatasets
 
 df = dataset("datasets", "iris")
-df[:SpeciesDummy] = pool(df[:Species])
+df[:SpeciesDummy] = categorical(df[:Species])
 
 rr1 = reg(df, @model(SepalLength ~ SepalWidth   , fe = SpeciesDummy))
 rr2 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength   , fe = SpeciesDummy))

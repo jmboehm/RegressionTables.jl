@@ -1,8 +1,9 @@
-using RegressionTables, FixedEffectModels, GLM, RDatasets, Base.Test
+using RegressionTables
+using FixedEffectModels, GLM, RDatasets, Base.Test
 
 df = dataset("datasets", "iris")
-df[:SpeciesDummy] = pool(df[:Species])
-df[:isSmall] = pool(df[:SepalWidth] .< 2.9)
+df[:SpeciesDummy] = categorical(df[:Species])
+df[:isSmall] = categorical(df[:SepalWidth] .< 2.9)
 
 # FixedEffectModels.jl
 rr1 = reg(df, @model(SepalLength ~ SepalWidth))
@@ -13,8 +14,8 @@ rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe
 
 # GLM.jl
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
-    Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
-    Treatment = pool(repeat(["a","b", "c"], inner = 3)))
+    Outcome = categorical(repeat(["A", "B", "C"], outer = 3)),
+    Treatment = categorical(repeat(["a","b", "c"], inner = 3)))
 
 lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 lm2 = fit(LinearModel, @formula(SepalLength ~ SepalWidth + PetalWidth), df)
@@ -82,7 +83,6 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE_
 
 regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
-
 
 
 # LATEX TABLES
