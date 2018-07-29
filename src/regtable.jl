@@ -271,7 +271,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
             if regression_statistics[i] == :nobs
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_N__") ? labels["__LABEL_STATISTIC_N__"] : renderSettings.label_statistic_n
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = sprintf1("%i",nobs(rr[resultIndex]))
+                    statisticBlock[i,resultIndex+1] = sprintf1("%'i",nobs(rr[resultIndex]))
                 end
             elseif regression_statistics[i] == :r2
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2__") ? labels["__LABEL_STATISTIC_R2__"] : renderSettings.label_statistic_r2
