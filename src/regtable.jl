@@ -17,6 +17,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/NL) is used. Defaults to `true`.
+* `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `DataFrameRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 
 ### Details
@@ -81,15 +82,34 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     number_regressions_decoration::Function = i::Int64 -> "($i)",
     print_fe_section = true,
     print_estimator_section = true,
+    standardize_coef = false,
     renderSettings::RenderSettings = asciiOutput()
     )
 
     # define some functions that makes use of StatsModels' RegressionModels
     coefnames(r::DataFrameRegressionModel) = StatsModels.coefnames(r.mf)
     coefnames(r::AbstractRegressionResult) = r.coefnames
+    # if standardize_coef == true 
+    #     function coef(r::DataFrameRegressionModel)
+    #         cc = StatsModels.coef(r)
+    #         return [ cc[i]*std(r.model.pp.X[:,i])/std(r.model.rr.y) for i in 1:length(cc) ]
+    #     end
+    #     function vcov(r::DataFrameRegressionModel)
+    #         vc = StatsModels.vcov(r)
+    #         mul = [ std(r.model.pp.X[:,i])*std(r.model.pp.X[:,j])/(std(r.model.rr.y)*std(r.model.rr.y)) for i in 1:size(cc,1), j in 1:size(cc,1)  ]
+    #         return mul .* vc
+    #     end
+    # else # do not standardize
+    #     function coef(r::DataFrameRegressionModel) 
+    #         return StatsModels.coef(r)
+    #     end
+    #     function vcov(r::DataFrameRegressionModel)
+    #         return StatsModels.vcov(r)
+    #     end
+    # end
     coef(r::AbstractRegressionResult) = r.coef
-    coef(r::DataFrameRegressionModel) = StatsModels.coef(r)
     vcov(r::AbstractRegressionResult) = r.vcov
+    coef(r::DataFrameRegressionModel) = StatsModels.coef(r)
     vcov(r::DataFrameRegressionModel) = StatsModels.vcov(r)
     df_residual(r::AbstractRegressionResult) = r.df_residual
     df_residual(r::DataFrameRegressionModel) = dof_residual(r)
@@ -98,6 +118,11 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     ther2(r::AbstractRegressionResult) = r.r2
     ther2(r::DataFrameRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
 
+    # print a warning message if standardize_coef == true but one
+    # of the regression results is not a DataFrameRegressionModel
+    if standardize_coef && any(.!isa.(rr,StatsModels.DataFrameRegressionModel))
+        warn("Standardized coefficients are only shown for DataFrameRegressionModel regression results.")
+    end
 
     numberOfResults = size(rr,1)
 
@@ -129,6 +154,11 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
             thiscnames = coefnames(rr[resultIndex])
             thiscoef = coef(rr[resultIndex])
             thisvcov = vcov(rr[resultIndex])
+            if standardize_coef && isa(rr[resultIndex],StatsModels.DataFrameRegressionModel)
+                thiscoef = [ thiscoef[i]*std(rr[resultIndex].model.pp.X[:,i])/std(rr[resultIndex].model.rr.y) for i in 1:length(thiscoef) ]
+                mul = [ std(rr[resultIndex].model.pp.X[:,i])*std(rr[resultIndex].model.pp.X[:,j])/(std(rr[resultIndex].model.rr.y)*std(rr[resultIndex].model.rr.y)) for i in 1:length(thiscoef), j in 1:length(thiscoef)  ]
+                thisvcov  = mul .* thisvcov
+            end
             thisdf_residual = df_residual(rr[resultIndex])
             index = find(regressor .== thiscnames)
             if !isempty(index)
