@@ -32,6 +32,8 @@ module RegressionTables
     using StatsBase: StatsBase, CoefTable, StatisticalModel, RegressionModel
     using StatsModels
 
+    using Compat
+
     import Distributions: ccdf, FDist
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
