@@ -394,8 +394,8 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     # if we're writing to a file, close it
     if renderSettings.outfile != ""
         close(outstream)
+    else # else print the table
+        println(Compat.String(outstream))
     end
-
-    println(Compat.String(outstream))
 
 end
