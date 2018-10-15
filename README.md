@@ -157,6 +157,7 @@ R2                0.014      0.014
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV) is used. Defaults to `true`.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `DataFrameRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
+* `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 
 ### Label Codes

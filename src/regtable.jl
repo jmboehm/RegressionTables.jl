@@ -18,6 +18,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/NL) is used. Defaults to `true`.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `DataFrameRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
+* `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 
 ### Details
@@ -83,6 +84,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     print_fe_section = true,
     print_estimator_section = true,
     standardize_coef = false,
+    out_buffer = IOBuffer(),
     renderSettings::RenderSettings = asciiOutput()
     )
 
@@ -378,7 +380,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
 
     # create output stream
     if renderSettings.outfile == ""
-        outstream = STDOUT
+        outstream = out_buffer
     else
         try
             outstream = open(renderSettings.outfile, "w")
@@ -393,5 +395,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     if renderSettings.outfile != ""
         close(outstream)
     end
+
+    println(Compat.String(outstream))
 
 end
