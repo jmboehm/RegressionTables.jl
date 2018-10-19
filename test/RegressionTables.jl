@@ -1,5 +1,5 @@
 using RegressionTables
-using FixedEffectModels, GLM, RDatasets, Base.Test
+using FixedEffectModels, GLM, RDatasets, Test
 
 df = dataset("datasets", "iris")
 df[:SpeciesDummy] = categorical(df[:Species])

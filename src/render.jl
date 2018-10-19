@@ -67,9 +67,9 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
 
     # construct, but not print, the header
     # header
-    headerLabels = Vector{String}(0)
-    headerWidths = Vector{Int64}(0)
-    headerCellStartEnd = Vector{Vector{Int64}}(0)
+    headerLabels = Vector{String}(undef,0)
+    headerWidths = Vector{Int64}(undef,0)
+    headerCellStartEnd = Vector{Vector{Int64}}(undef,0)
     # first column is empty (top left)
     push!(headerLabels, "")
     push!(headerWidths, colWidths[1])
@@ -91,7 +91,7 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
         end
     end
     # second line
-    headerArray = Array{String}(1,length(headerLabels))
+    headerArray = Array{String}(undef,1,length(headerLabels))
     headerArray[1,1] = ""
     for i = 2:size(headerArray,2)
         headerArray[1,i] = settings.encapsulateRegressand(headerLabels[i],headerCellStartEnd[i][1],headerCellStartEnd[i][2] )
@@ -111,7 +111,7 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
     #   if headerrule gives a string of length one, put into table, and repeat the string
     hr = settings.headerrule(headerCellStartEnd)
     if length(hr) == 1
-        secondRow = Array{String}(1,length(headerLabels))
+        secondRow = Array{String}(undef,1,length(headerLabels))
         secondRow[1,1] = ""
         for i = 2:size(secondRow,2)
             secondRow[1,i] = (length(settings.midrule) == 1 ? settings.midrule ^ headerWidths[i] : settings.midrule)
