@@ -29,7 +29,7 @@ module RegressionTables
 
     #using DataFrames
 
-    using StatsBase.StatsBase, StatsBase.CoefTable, StatsBase.StatisticalModel, StatsBase.RegressionModel
+    using StatsBase
     using StatsModels
     using Statistics
 
