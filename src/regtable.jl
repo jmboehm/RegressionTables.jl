@@ -68,7 +68,6 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
 ```
 """
-
 function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
@@ -113,7 +112,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     vcov(r::AbstractRegressionResult) = r.vcov
     coef(r::DataFrameRegressionModel) = StatsModels.coef(r)
     vcov(r::DataFrameRegressionModel) = StatsModels.vcov(r)
-    df_residual(r::AbstractRegressionResult) = r.df_residual
+    df_residual(r::AbstractRegressionResult) = dof_residual(r)
     df_residual(r::DataFrameRegressionModel) = dof_residual(r)
     yname(r::AbstractRegressionResult) = r.yname
     yname(r::DataFrameRegressionModel) = r.mf.terms.eterms[1]
@@ -149,7 +148,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     end
 
     # for each regressor, check each regression result, calculate statistic, and construct block
-    estimateBlock = Array{String}(0,numberOfResults+1)
+    estimateBlock = Array{String}(undef,0,numberOfResults+1)
     for regressor in regressorList
         estimateLine = fill("", 2, numberOfResults+1)
         for resultIndex = 1:numberOfResults
@@ -162,7 +161,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
                 thisvcov  = mul .* thisvcov
             end
             thisdf_residual = df_residual(rr[resultIndex])
-            index = find(regressor .== thiscnames)
+            index = findall(regressor .== thiscnames)
             if !isempty(index)
                 pval = ccdf(FDist(1, thisdf_residual ), abs2(thiscoef[index[1]]/sqrt(thisvcov[index[1],index[1]])))
                 estimateLine[1,resultIndex+1] = estim_decoration(sprintf1(estimformat,thiscoef[index[1]]),pval)
@@ -256,11 +255,11 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
         end
 
         # construct FE block
-        feBlock = Array{String}(0,numberOfResults+1)
+        feBlock = Array{String}(undef,0,numberOfResults+1)
         for fe in feList
             feLine = fill("", 1, numberOfResults+1)
             for resultIndex = 1:numberOfResults if isFERegressionResult(rr[resultIndex])
-                index = find(fe .== febyrr[resultIndex])
+                index = findall(fe .== febyrr[resultIndex])
                 if !isempty(index)
                     feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
                 else
@@ -343,7 +342,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
             elseif regression_statistics[i] == :dof
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_DOF__") ? labels["__LABEL_STATISTIC_DOF__"] : renderSettings.label_statistic_dof
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :df_residual) ? sprintf1("%i",rr[resultIndex].df_residual) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :dof_residual) ? sprintf1("%i",rr[resultIndex].dof_residual) : ""
                 end
             end
 
@@ -395,7 +394,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     if renderSettings.outfile != ""
         close(outstream)
     else # else print the table
-        println(Compat.String(outstream))
+        println(Compat.String(take!(copy(outstream))))
     end
 
 end

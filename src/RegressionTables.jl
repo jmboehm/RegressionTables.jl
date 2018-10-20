@@ -29,8 +29,9 @@ module RegressionTables
 
     #using DataFrames
 
-    using StatsBase: StatsBase, CoefTable, StatisticalModel, RegressionModel
+    using StatsBase
     using StatsModels
+    using Statistics
 
     using Compat
 
