@@ -342,7 +342,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
             elseif regression_statistics[i] == :dof
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_DOF__") ? labels["__LABEL_STATISTIC_DOF__"] : renderSettings.label_statistic_dof
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :df_residual) ? sprintf1("%i",rr[resultIndex].df_residual) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :dof_residual) ? sprintf1("%i",rr[resultIndex].dof_residual) : ""
                 end
             end
 
