@@ -20,7 +20,7 @@ struct RenderSettings
 
     label_statistic_n::String # label for number of observations. override with __LABEL_STATISTIC_N__ in 'label' argument
     label_statistic_r2::String # label for R^2. override with __LABEL_STATISTIC_R2__ in 'label' argument
-    label_statistic_r2_a::String # label for adjusted R^2. override with __LABEL_STATISTIC_R2_A__
+    label_statistic_adjr2::String # label for adjusted R^2. override with __LABEL_STATISTIC_adjr2__
     label_statistic_r2_within::String # label for within-R^2. override with __LABEL_STATISTIC_R2_WITHIN__
     label_statistic_f::String # label for F-Stat. override with __LABEL_STATISTIC_F__ in 'label' argument
     label_statistic_p::String # label for F-test p value. override with __LABEL_STATISTIC_P__

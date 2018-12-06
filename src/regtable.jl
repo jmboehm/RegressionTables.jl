@@ -12,7 +12,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t). Defaults to "%0.4f".
 * `below_statistic` is a `Symbol` that describes a statistic that should be shown below each point estimate. Recognized values are `:blank`, `:se`, and `:tstat`. Defaults to `:se`.
 * `below_decoration` is a `Function` that takes the formatted statistic string, and applies a decorations. Defaults to round parentheses.
-* `regression_statistics` is a `Vector` of `Symbol`s that describe statistics to be shown at the bottom of the table. Recognized symbols are `:nobs`, `:r2`, `:r2_a`, `:r2_within`, `:f`, `:p`, `:f_kp`, `:p_kp`, and `:dof`. Defaults to `[:nobs, :r2]`.
+* `regression_statistics` is a `Vector` of `Symbol`s that describe statistics to be shown at the bottom of the table. Recognized symbols are `:nobs`, `:r2`, `:adjr2`, `:r2_within`, `:f`, `:p`, `:f_kp`, `:p_kp`, and `:dof`. Defaults to `[:nobs, :r2]`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
@@ -61,7 +61,7 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), fixedeffects = ["isSma
 # change the yes/no labels in the fixed effect section, and statistics labels
 regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), labels = Dict("__LABEL_FE_YES__" => "Mhm.", "__LABEL_FE_NO__" => "Nope.", "__LABEL_STATISTIC_N__" => "Number of observations", "__LABEL_STATISTIC_R2__" => "R Squared"))
 # full set of available statistics
-regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(), regression_statistics = [:nobs, :r2, :r2_a, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # LaTeX output
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
 # LaTeX output to file
@@ -299,6 +299,10 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
         # one line for each statistic
         statisticBlock = fill("", length(regression_statistics), numberOfResults+1)
         for i = 1:length(regression_statistics)
+            if regression_statistics[i] == :r2_a
+                @warn "Use :adjr2 instead of :r2_a"
+                regression_statistics[i] = :adjr2
+            end
             if regression_statistics[i] == :nobs
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_N__") ? labels["__LABEL_STATISTIC_N__"] : renderSettings.label_statistic_n
                 for resultIndex = 1:numberOfResults
@@ -309,10 +313,10 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
                 for resultIndex = 1:numberOfResults
                     statisticBlock[i,resultIndex+1] = isnan(ther2(rr[resultIndex])) ? "" : sprintf1(statisticformat, ther2(rr[resultIndex]))
                 end
-            elseif regression_statistics[i] == :r2_a
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_A__") ? labels["__LABEL_STATISTIC_R2_A__"] : renderSettings.label_statistic_r2_a
+            elseif regression_statistics[i] == :adjr2
+                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_adjr2__") ? labels["__LABEL_STATISTIC_adjr2__"] : renderSettings.label_statistic_adjr2
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :r2_a) ? sprintf1(statisticformat, rr[resultIndex].r2_a) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :adjr2) ? sprintf1(statisticformat, rr[resultIndex].adjr2) : ""
                 end
             elseif regression_statistics[i] == :r2_within
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_WITHIN__") ? labels["__LABEL_STATISTIC_R2_WITHIN__"] : renderSettings.label_statistic_r2_within
