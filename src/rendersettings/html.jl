@@ -32,7 +32,7 @@ function htmlOutput(outfile::String = "")
     label_statistic_n = "<i>N</i>"
     label_statistic_r2 = "<i>R<sup>2</sup></i>"
     label_statistic_f = "<i>F</i>"
-    label_statistic_r2_a = "Adjusted <i>R<sup>2</sup></i>"
+    label_statistic_adjr2 = "Adjusted <i>R<sup>2</sup></i>"
     label_statistic_r2_within = "Within-<i>R<sup>2</sup></i>"
     label_statistic_p = "<i>F</i>-test <i>p</i> value"
     label_statistic_f_kp = "First-stage <i>F</i> statistic"
@@ -50,7 +50,7 @@ function htmlOutput(outfile::String = "")
     footer = htmlTableFooter
     return RenderSettings(toprule, midrule, bottomrule, headerrule, headercolsep, colsep, linestart, 
         linebreak, label_fe_yes, label_fe_no,
-        label_statistic_n, label_statistic_r2, label_statistic_r2_a, label_statistic_r2_within,
+        label_statistic_n, label_statistic_r2, label_statistic_adjr2, label_statistic_r2_within,
         label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, label_statistic_dof,
         label_estimator, label_estimator_ols, label_estimator_iv, label_estimator_nl,
         foutfile, encapsulateRegressand, header, footer)

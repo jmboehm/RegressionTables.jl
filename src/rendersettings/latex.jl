@@ -27,7 +27,7 @@ function latexOutput(outfile::String = "")
     label_statistic_n = "\$N\$"
     label_statistic_r2 = "\$R^2\$"
     label_statistic_f = "\$F\$"
-    label_statistic_r2_a = "Adjusted \$R^2\$"
+    label_statistic_adjr2 = "Adjusted \$R^2\$"
     label_statistic_r2_within = "Within-\$R^2\$"
     label_statistic_p = "\$F\$-test \$p\$ value"
     label_statistic_f_kp = "First-stage \$F\$ statistic"
@@ -46,7 +46,7 @@ function latexOutput(outfile::String = "")
     footer = latexTableFooter
     return RenderSettings(toprule, midrule, bottomrule, headerrule, headercolsep, colsep, linestart, 
         linebreak, label_fe_yes, label_fe_no,
-        label_statistic_n, label_statistic_r2, label_statistic_r2_a, label_statistic_r2_within,
+        label_statistic_n, label_statistic_r2, label_statistic_adjr2, label_statistic_r2_within,
         label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, label_statistic_dof,
         label_estimator, label_estimator_ols, label_estimator_iv, label_estimator_nl,
         foutfile, encapsulateRegressand, header, footer)
