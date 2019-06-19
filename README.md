@@ -101,6 +101,23 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 
 \end{document}
 ```
+
+In order to escape forbidden LaTeX characters, use code like the following.
+
+```julia
+repl_dict = Dict("_" => "\\_", "&" => "\\&")
+
+function sanitize(s, repl_dict=repl_dict)
+  for (old, new) in repl_dict
+    s = replace.(s, Ref(old => new))
+  end
+  
+  s
+end
+
+regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput(), sanitize_labels = sanitize)
+```
+
 `regtable()` can also print `DataFrameRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl):
 ```julia
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],

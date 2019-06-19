@@ -84,7 +84,8 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     print_estimator_section = true,
     standardize_coef = false,
     out_buffer = IOBuffer(),
-    renderSettings::RenderSettings = asciiOutput()
+    sanitize_labels::Function = identity,
+    renderSettings::RenderSettings = asciiOutput()    
     )
 
     # define some functions that makes use of StatsModels' RegressionModels
@@ -181,7 +182,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
            @warn("Regressor $regressor not found among regression results.")
         else
             # add label on the left:
-            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : regressor
+            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : sanitize_labels(regressor)
             # add to estimateBlock
             estimateBlock = [estimateBlock; estimateLine]
         end
@@ -271,7 +272,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
                @warn("Fixed effect $fe not found in any regression results.")
             else
                 # add label on the left:
-                feLine[1,1] = haskey(labels,fe) ? labels[fe] : fe
+                feLine[1,1] = haskey(labels,fe) ? labels[fe] : sanitize_labels(fe)
                 # add to estimateBlock
                 feBlock = [feBlock; feLine]
             end
