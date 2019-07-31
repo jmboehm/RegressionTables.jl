@@ -84,7 +84,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     print_estimator_section = true,
     standardize_coef = false,
     out_buffer = IOBuffer(),
-    sanitize_labels::Function = identity,
+    transform_labels::Function = identity,
     renderSettings::RenderSettings = asciiOutput()    
     )
 
@@ -182,7 +182,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
            @warn("Regressor $regressor not found among regression results.")
         else
             # add label on the left:
-            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : sanitize_labels(regressor)
+            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : transform_labels(regressor)
             # add to estimateBlock
             estimateBlock = [estimateBlock; estimateLine]
         end
@@ -193,7 +193,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     regressandBlock = fill("", 1, numberOfResults+1)
     for rIndex = 1:numberOfResults
         # keep in mind that yname is a Symbol
-        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : sanitize_labels(string(yname(rr[rIndex])))
+        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : transform_labels(string(yname(rr[rIndex])))
     end
 
     # Regression numbering block (if we do it)
@@ -272,7 +272,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
                @warn("Fixed effect $fe not found in any regression results.")
             else
                 # add label on the left:
-                feLine[1,1] = haskey(labels,fe) ? labels[fe] : sanitize_labels(fe)
+                feLine[1,1] = haskey(labels,fe) ? labels[fe] : transform_labels(fe)
                 # add to estimateBlock
                 feBlock = [feBlock; feLine]
             end
