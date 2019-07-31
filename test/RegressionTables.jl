@@ -2,8 +2,8 @@ using RegressionTables
 using FixedEffectModels, GLM, RDatasets, Test
 
 df = dataset("datasets", "iris")
-df[!, :SpeciesDummy] = categorical(df[!, :Species])
-df[!, :isSmall] = categorical(df[!, :SepalWidth] .< 2.9)
+df[:SpeciesDummy] = categorical(df[:Species])
+df[:isSmall] = categorical(df[:SepalWidth] .< 2.9)
 
 # FixedEffectModels.jl
 rr1 = reg(df, @model(SepalLength ~ SepalWidth))
