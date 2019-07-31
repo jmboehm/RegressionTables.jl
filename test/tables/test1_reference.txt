@@ -24,8 +24,8 @@ N                              150        150        150          150
 R2                           0.014      0.863      0.867        0.080
 Adjusted R2                  0.007      0.860      0.861        0.055
 Within-R2                               0.642      0.595       -0.535
-F                            2.074     32.900     26.861       21.199
-F-test p value               0.000      0.000      0.000        0.000
+F                            2.074    129.736     69.567       17.468
+F-test p value               0.152      0.000      0.000        0.000
 First-stage F statistic                                        19.962
 First-stage p value                                             0.000
 Degrees of Freedom             148        145        142          145
