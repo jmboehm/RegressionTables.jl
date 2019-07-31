@@ -163,14 +163,14 @@ R2                0.014      0.014
 * `transform_labels` is a function that is used to transform labels. In order to escape forbidden LaTeX characters use
     ```julia
     repl_dict = Dict("&" => "\\&", "%" => "\\%", "$" => "\\$", "#" => "\\#", "_" => "\\_", "{" => "\\{", "}" => "\\}") 
-    function sanitize(s, repl_dict=repl_dict)
+    function transform(s, repl_dict=repl_dict)
         for (old, new) in repl_dict
             s = replace.(s, Ref(old => new))
         end
         s
     end
     
-    regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput(), sanitize_labels = sanitize)
+    regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput(), transform_labels = transform)
     ```
     Defaults to `identity`.
 
