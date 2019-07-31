@@ -122,7 +122,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     # print a warning message if standardize_coef == true but one
     # of the regression results is not a DataFrameRegressionModel
     if standardize_coef && any(.!isa.(rr,StatsModels.DataFrameRegressionModel))
-        warn("Standardized coefficients are only shown for DataFrameRegressionModel regression results.")
+        @warn("Standardized coefficients are only shown for DataFrameRegressionModel regression results.")
     end
 
     numberOfResults = size(rr,1)
@@ -178,7 +178,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
         end
         # check if the regressor was not found
         if estimateLine == fill("", 2, numberOfResults+1)
-            warn("Regressor $regressor not found among regression results.")
+           @warn("Regressor $regressor not found among regression results.")
         else
             # add label on the left:
             estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : regressor
@@ -268,7 +268,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
             end end
             # check if the regressor was not found
             if feLine == fill("", 1, numberOfResults+1)
-                warn("Fixed effect $fe not found in any regression results.")
+               @warn("Fixed effect $fe not found in any regression results.")
             else
                 # add label on the left:
                 feLine[1,1] = haskey(labels,fe) ? labels[fe] : fe
