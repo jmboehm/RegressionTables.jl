@@ -71,6 +71,7 @@ module RegressionTables
     include("rendersettings/ascii.jl")
     include("rendersettings/latex.jl")
     include("rendersettings/html.jl")
+    include("label_transforms/default_transforms.jl")
 
     # main functions
     include("render.jl")

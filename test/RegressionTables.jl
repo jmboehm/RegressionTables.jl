@@ -19,6 +19,7 @@ dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
 
 lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 lm2 = fit(LinearModel, @formula(SepalLength ~ SepalWidth + PetalWidth), df)
+lm3 = fit(LinearModel, @formula(SepalLength ~ SepalWidth * PetalWidth), df) # testing interactions
 gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome), dobson,
               Poisson())
 
@@ -128,6 +129,9 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(joinpath(dirname(@__FILE_
 
 regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
+
+regtable(lm1, lm2, lm3, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test6.tex")), regression_statistics = [:nobs, :r2], transform_labels = escape_ampersand)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test6.tex"), joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
 
 # HTML Tables
 regtable(rr1,rr2,rr3,rr5; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test1.html")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
