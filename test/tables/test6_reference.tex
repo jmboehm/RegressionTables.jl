@@ -1,0 +1,25 @@
+\begin{tabular}{lrrrr}
+\toprule
+                         & \multicolumn{3}{c}{SepalLength} & \multicolumn{1}{c}{Counts} \\ 
+\cmidrule(lr){2-4} \cmidrule(lr){5-5} 
+                         &      (1) &      (2) &       (3) &                        (4) \\ 
+\midrule
+(Intercept)              & 6.526*** & 3.457*** &  3.130*** &                   3.045*** \\ 
+                         &  (0.479) &  (0.309) &   (0.574) &                    (0.126) \\ 
+SepalWidth               &   -0.223 & 0.399*** &   0.496** &                            \\ 
+                         &  (0.155) &  (0.091) &   (0.171) &                            \\ 
+PetalWidth               &          & 0.972*** &   1.291** &                            \\ 
+                         &          &  (0.052) &   (0.474) &                            \\ 
+SepalWidth \& PetalWidth &          &          &    -0.099 &                            \\ 
+                         &          &          &   (0.147) &                            \\ 
+Outcome: B               &          &          &           &                     -0.454 \\ 
+                         &          &          &           &                    (0.202) \\ 
+Outcome: C               &          &          &           &                     -0.293 \\ 
+                         &          &          &           &                    (0.193) \\ 
+\midrule
+Estimator                &      OLS &      OLS &       OLS &                         NL \\ 
+\midrule
+$N$                      &      150 &      150 &       150 &                          9 \\ 
+$R^2$                    &    0.014 &    0.707 &     0.708 &                            \\ 
+\bottomrule
+\end{tabular}

@@ -160,9 +160,9 @@ R2                0.014      0.014
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `DataFrameRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
 * `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
-* `transform_labels` is a function that is used to transform labels. In order to escape forbidden LaTeX characters use
+* `transform_labels` is a function that is used to transform labels. For example, in order to escape certain LaTeX characters, use
     ```julia
-    repl_dict = Dict("&" => "\\&", "%" => "\\%", "$" => "\\$", "#" => "\\#", "_" => "\\_", "{" => "\\{", "}" => "\\}") 
+    repl_dict = Dict("&" => "\\&", "%" => "\\%", "\$" => "\\\$", "#" => "\\#", "_" => "\\_", "{" => "\\{", "}" => "\\}") 
     function transform(s, repl_dict=repl_dict)
         for (old, new) in repl_dict
             s = replace.(s, Ref(old => new))
@@ -170,9 +170,9 @@ R2                0.014      0.014
         s
     end
     
-    regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput(), transform_labels = transform)
+    regtable(rr; renderSettings = latexOutput(), transform_labels = transform)
     ```
-    Defaults to `identity`.
+    Defaults to `identity`. The most common use case is probably to escape the ampersand `&` in LaTeX, which is already implemented as `transform_labels = escape_ampersand`.
 
 
 ### Label Codes
