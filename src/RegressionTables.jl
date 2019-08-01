@@ -51,7 +51,7 @@ module RegressionTables
     ##
     ##############################################################################
 
-    export regtable, latexOutput, asciiOutput, htmlOutput, RenderSettings
+    export regtable, latexOutput, asciiOutput, htmlOutput, RenderSettings, escape_ampersand
 
     ##############################################################################
     ##
