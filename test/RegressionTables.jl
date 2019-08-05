@@ -9,7 +9,7 @@ df[:isWide] = categorical(df[:SepalWidth] .> 2.5)
 # FixedEffectModels.jl
 rr1 = reg(df, @model(SepalLength ~ SepalWidth))
 rr2 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength   , fe = SpeciesDummy))
-rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe = SpeciesDummy  + isSmall + isWide))
+rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe = SpeciesDummy  + isSmall))
 rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
 rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe = SpeciesDummy))
 rr6 = reg(df, @model(SepalLength ~ SepalWidth, fe = SpeciesDummy * isWide + isSmall))
