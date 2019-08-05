@@ -4,6 +4,7 @@ using FixedEffectModels, GLM, RDatasets, Test
 df = dataset("datasets", "iris")
 df[:SpeciesDummy] = categorical(df[:Species])
 df[:isSmall] = categorical(df[:SepalWidth] .< 2.9)
+df[:isWide] = categorical(df[:SepalWidth] .> 2.5)
 
 # FixedEffectModels.jl
 rr1 = reg(df, @model(SepalLength ~ SepalWidth))
@@ -11,6 +12,7 @@ rr2 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength   , fe = SpeciesDumm
 rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe = SpeciesDummy  + isSmall))
 rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
 rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe = SpeciesDummy))
+rr6 = reg(df, @model(SepalLength ~ SepalWidth, fe = SpeciesDummy * isWide + isSmall))
 
 # GLM.jl
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
@@ -83,9 +85,11 @@ end
 # # full set of available statistics
 # regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 
-
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
+
+regtable(rr1,rr2,rr3,rr5,rr6; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test7.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test7.txt"), joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
 
 regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
