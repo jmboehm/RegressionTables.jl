@@ -223,12 +223,19 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
                     end
                 elseif r.feformula.args[1] == :+
                     x = r.feformula.args
-                    for i in 2:length(x) if isa(x[i], Symbol)
-                        if !(any(feList .== string(x[i])))
-                            # add to list
-                            push!(feList, string(x[i]))
+                    for i in 2:length(x) 
+                        if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
+                            if !(any(feList .== string(x[i])))
+                                # add to list
+                                push!(feList, string(x[i]))
+                            end
                         end
-                    end end
+                    end
+                elseif r.feformula.args[1] == :* 
+                    # push the whole interaction
+                    if !(any(feList .== string(r.feformula)))
+                        push!(feList, string(r.feformula))
+                    end
                 end
 
             end end
@@ -247,10 +254,14 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
                     push!(fe, string(r.feformula))
                 elseif r.feformula.args[1] == :+
                     x = r.feformula.args
-                    for i in 2:length(x) if isa(x[i], Symbol)
-                        # add to list
-                        push!(fe, string(x[i]))
-                    end end
+                    for i in 2:length(x) 
+                        if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
+                            # add to list
+                            push!(fe, string(x[i]))
+                        end 
+                    end
+                elseif r.feformula.args[1] == :*
+                    push!(fe, string(r.feformula))
                 end
             end
             push!(febyrr, fe)
