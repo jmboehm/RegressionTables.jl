@@ -88,7 +88,6 @@ end
 # if you want to test locally...
 # include("src/RegressionTables.jl")
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
-# RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
