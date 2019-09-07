@@ -39,7 +39,7 @@ module RegressionTables
     import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
     import GLM: LinearModel
-    import StatsModels: DataFrameRegressionModel
+    import StatsModels: TableRegressionModel
 
     import StatsBase: coef, coeftable, confint, deviance, nulldeviance, dof, dof_residual,
                       loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,

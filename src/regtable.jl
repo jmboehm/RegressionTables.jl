@@ -17,7 +17,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/NL) is used. Defaults to `true`.
-* `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `DataFrameRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
+* `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
 * `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 * `transform_labels` is a `Function` that is used to transform labels. It takes the `String` to be transformed as an argument. See `README.md` for an example.
@@ -69,10 +69,10 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
 ```
 """
-function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}...;
+function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
-    labels::Dict{String,String} = Dict{String,String}(),
+    labels::Dict{Symbol,String} = Dict{Symbol,String}(),
     estimformat::String = "%0.3f",
     estim_decoration::Function = default_ascii_estim_decoration,
     statisticformat::String = "%0.3f",
@@ -90,47 +90,48 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
     )
 
     # define some functions that makes use of StatsModels' RegressionModels
-    coefnames(r::DataFrameRegressionModel) = StatsModels.coefnames(r.mf)
-    coefnames(r::AbstractRegressionResult) = r.coefnames
+    coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
+    coefnames(r::AbstractRegressionResult) = String.(r.coefnames) # this will need to be updated when we move 
+                                                                  # to FixedEffectModels 0.8.2
     # if standardize_coef == true 
-    #     function coef(r::DataFrameRegressionModel)
+    #     function coef(r::TableRegressionModel)
     #         cc = StatsModels.coef(r)
     #         return [ cc[i]*std(r.model.pp.X[:,i])/std(r.model.rr.y) for i in 1:length(cc) ]
     #     end
-    #     function vcov(r::DataFrameRegressionModel)
+    #     function vcov(r::TableRegressionModel)
     #         vc = StatsModels.vcov(r)
     #         mul = [ std(r.model.pp.X[:,i])*std(r.model.pp.X[:,j])/(std(r.model.rr.y)*std(r.model.rr.y)) for i in 1:size(cc,1), j in 1:size(cc,1)  ]
     #         return mul .* vc
     #     end
     # else # do not standardize
-    #     function coef(r::DataFrameRegressionModel) 
+    #     function coef(r::TableRegressionModel) 
     #         return StatsModels.coef(r)
     #     end
-    #     function vcov(r::DataFrameRegressionModel)
+    #     function vcov(r::TableRegressionModel)
     #         return StatsModels.vcov(r)
     #     end
     # end
     coef(r::AbstractRegressionResult) = r.coef
     vcov(r::AbstractRegressionResult) = r.vcov
-    coef(r::DataFrameRegressionModel) = StatsModels.coef(r)
-    vcov(r::DataFrameRegressionModel) = StatsModels.vcov(r)
+    coef(r::TableRegressionModel) = StatsModels.coef(r)
+    vcov(r::TableRegressionModel) = StatsModels.vcov(r)
     df_residual(r::AbstractRegressionResult) = dof_residual(r)
-    df_residual(r::DataFrameRegressionModel) = dof_residual(r)
+    df_residual(r::TableRegressionModel) = dof_residual(r)
     yname(r::AbstractRegressionResult) = r.yname
-    yname(r::DataFrameRegressionModel) = r.mf.terms.eterms[1]
+    yname(r::TableRegressionModel) = r.mf.f.lhs.sym # returns a Symbol
     ther2(r::AbstractRegressionResult) = r.r2
-    ther2(r::DataFrameRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
+    ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
 
     # print a warning message if standardize_coef == true but one
-    # of the regression results is not a DataFrameRegressionModel
-    if standardize_coef && any(.!isa.(rr,StatsModels.DataFrameRegressionModel))
-        @warn("Standardized coefficients are only shown for DataFrameRegressionModel regression results.")
+    # of the regression results is not a TableRegressionModel
+    if standardize_coef && any(.!isa.(rr,StatsModels.TableRegressionModel))
+        @warn("Standardized coefficients are only shown for TableRegressionModel regression results.")
     end
 
     numberOfResults = size(rr,1)
 
     # Create an RegressionTable from the regression results
-
+    
     # ordering of regressors:
     if length(regressors) == 0
         # construct default ordering: from ordering in regressions (like in Stata)
@@ -157,7 +158,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
             thiscnames = coefnames(rr[resultIndex])
             thiscoef = coef(rr[resultIndex])
             thisvcov = vcov(rr[resultIndex])
-            if standardize_coef && isa(rr[resultIndex],StatsModels.DataFrameRegressionModel)
+            if standardize_coef && isa(rr[resultIndex],StatsModels.TableRegressionModel)
                 thiscoef = [ thiscoef[i]*std(rr[resultIndex].model.pp.X[:,i])/std(rr[resultIndex].model.rr.y) for i in 1:length(thiscoef) ]
                 mul = [ std(rr[resultIndex].model.pp.X[:,i])*std(rr[resultIndex].model.pp.X[:,j])/(std(rr[resultIndex].model.rr.y)*std(rr[resultIndex].model.rr.y)) for i in 1:length(thiscoef), j in 1:length(thiscoef)  ]
                 thisvcov  = mul .* thisvcov
@@ -180,7 +181,7 @@ function regtable(rr::Union{AbstractRegressionResult,DataFrameRegressionModel}..
         end
         # check if the regressor was not found
         if estimateLine == fill("", 2, numberOfResults+1)
-           @warn("Regressor $regressor not found among regression results.")
+           @warn("Regressor $(String(regressor)) not found among regression results.")
         else
             # add label on the left:
             estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : transform_labels(regressor)
