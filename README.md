@@ -102,7 +102,7 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 \end{document}
 ```
 
-`regtable()` can also print `DataFrameRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl):
+`regtable()` can also print `TableRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl):
 ```julia
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
     Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
@@ -143,7 +143,7 @@ R2                0.014      0.014
 ## Options
 
 ### Function Arguments
-* `rr::rr::Union{AbstractRegressionResult,DataFrames.DataFrameRegressionModel}...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` (or `DataFrameRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
+* `rr::rr::Union{AbstractRegressionResult,DataFrames.TableRegressionModel}...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` (or `TableRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
@@ -157,7 +157,7 @@ R2                0.014      0.014
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "($s)"`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV) is used. Defaults to `true`.
-* `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `DataFrameRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
+* `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
 * `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 * `transform_labels` is a function that is used to transform labels. For example, in order to escape certain LaTeX characters, use

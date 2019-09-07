@@ -4,6 +4,6 @@ isIVRegressionResult(r::AbstractRegressionResult) = isa(r,RegressionResultIV) ||
 isOLSRegressionResult(r::AbstractRegressionResult) = !isIVRegressionResult(r)
 
 # FE and IV regression not supported in GLM.jl
-isFERegressionResult(r::DataFrameRegressionModel) = false
-isIVRegressionResult(r::DataFrameRegressionModel) = false
-isOLSRegressionResult(r::DataFrameRegressionModel) = isa(r.model, LinearModel)
+isFERegressionResult(r::TableRegressionModel) = false
+isIVRegressionResult(r::TableRegressionModel) = false
+isOLSRegressionResult(r::TableRegressionModel) = isa(r.model, LinearModel)
