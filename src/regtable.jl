@@ -3,7 +3,7 @@
 Produces a publication-quality regression table, similar to Stata's `esttab` and R's `stargazer`.
 
 ### Arguments
-* `rr::AbstractRegressionResult...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` that should be printed. Only required argument.
+* `rr::FixedEffectModel...` are the `FixedEffectModel`s from `FixedEffectModels.jl` that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
@@ -23,7 +23,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `transform_labels` is a `Function` that is used to transform labels. It takes the `String` to be transformed as an argument. See `README.md` for an example.
 
 ### Details
-A typical use is to pass a number of `AbstractRegressionResult`s to the function, along with a `RenderSettings` object.
+A typical use is to pass a number of `FixedEffectModel`s to the function, along with a `RenderSettings` object.
 ```
 regtable(regressionResult1, regressionResult2; renderSettings = asciiOutput())
 ```
@@ -69,7 +69,7 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
 ```
 """
-function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
+function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{Symbol,String} = Dict{Symbol,String}(),
@@ -91,7 +91,7 @@ function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
 
     # define some functions that makes use of StatsModels' RegressionModels
     coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
-    coefnames(r::AbstractRegressionResult) = String.(r.coefnames) # this will need to be updated when we move 
+    coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move 
                                                                   # to FixedEffectModels 0.8.2
     # if standardize_coef == true 
     #     function coef(r::TableRegressionModel)
@@ -111,15 +111,15 @@ function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
     #         return StatsModels.vcov(r)
     #     end
     # end
-    coef(r::AbstractRegressionResult) = r.coef
-    vcov(r::AbstractRegressionResult) = r.vcov
+    coef(r::FixedEffectModel) = r.coef
+    vcov(r::FixedEffectModel) = r.vcov
     coef(r::TableRegressionModel) = StatsModels.coef(r)
     vcov(r::TableRegressionModel) = StatsModels.vcov(r)
-    df_residual(r::AbstractRegressionResult) = dof_residual(r)
+    df_residual(r::FixedEffectModel) = dof_residual(r)
     df_residual(r::TableRegressionModel) = dof_residual(r)
-    yname(r::AbstractRegressionResult) = r.yname
+    yname(r::FixedEffectModel) = r.yname
     yname(r::TableRegressionModel) = r.mf.f.lhs.sym # returns a Symbol
-    ther2(r::AbstractRegressionResult) = r.r2
+    ther2(r::FixedEffectModel) = r.r2
     ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
 
     # print a warning message if standardize_coef == true but one
@@ -136,7 +136,7 @@ function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
     if length(regressors) == 0
         # construct default ordering: from ordering in regressions (like in Stata)
         regressorList = Vector{String}()
-        for r in rr # AbstractRegressionResult
+        for r in rr # FixedEffectModel
             names = coefnames(r)
             for regressorIndex = 1:length(names)
                 if !(any(regressorList .== names[regressorIndex]))
@@ -330,12 +330,12 @@ function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
             elseif regression_statistics[i] == :adjr2
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_adjr2__") ? labels["__LABEL_STATISTIC_adjr2__"] : renderSettings.label_statistic_adjr2
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :adjr2) ? sprintf1(statisticformat, rr[resultIndex].adjr2) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :adjr2) && !isnothing(rr[resultIndex].adjr2) ? sprintf1(statisticformat, rr[resultIndex].adjr2) : ""
                 end
             elseif regression_statistics[i] == :r2_within
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_WITHIN__") ? labels["__LABEL_STATISTIC_R2_WITHIN__"] : renderSettings.label_statistic_r2_within
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :r2_within) ? sprintf1(statisticformat, rr[resultIndex].r2_within) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :r2_within) && !isnothing(rr[resultIndex].r2_within) ? sprintf1(statisticformat, rr[resultIndex].r2_within) : ""
                 end
             elseif regression_statistics[i] == :f
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_F__") ? labels["__LABEL_STATISTIC_F__"] : renderSettings.label_statistic_f
@@ -350,12 +350,12 @@ function regtable(rr::Union{AbstractRegressionResult,TableRegressionModel}...;
             elseif regression_statistics[i] == :f_kp
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_F_KP__") ? labels["__LABEL_STATISTIC_F_KP__"] : renderSettings.label_statistic_f_kp
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :F_kp) ? sprintf1(statisticformat, rr[resultIndex].F_kp) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :F_kp) && !isnothing(rr[resultIndex].F_kp) ? sprintf1(statisticformat, rr[resultIndex].F_kp) : ""
                 end
             elseif regression_statistics[i] == :p_kp
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_P_KP__") ? labels["__LABEL_STATISTIC_P_KP__"] : renderSettings.label_statistic_p_kp
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :p_kp) ? sprintf1(statisticformat, rr[resultIndex].p_kp) : ""
+                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :p_kp) && !isnothing(rr[resultIndex].p_kp) ? sprintf1(statisticformat, rr[resultIndex].p_kp) : ""
                 end
             elseif regression_statistics[i] == :dof
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_DOF__") ? labels["__LABEL_STATISTIC_DOF__"] : renderSettings.label_statistic_dof
