@@ -36,7 +36,7 @@ module RegressionTables
     using Compat
 
     import Distributions: ccdf, FDist
-    import FixedEffectModels: AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
+    import FixedEffectModels: FixedEffectModel, has_fe, has_iv #AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
     import GLM: LinearModel
     import StatsModels: TableRegressionModel

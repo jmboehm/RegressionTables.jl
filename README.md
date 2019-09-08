@@ -102,7 +102,7 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 \end{document}
 ```
 
-`regtable()` can also print `TableRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl):
+`regtable()` can also print `TableRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl) (and output from other packages that produce `TableRegressionModel`'s):
 ```julia
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
     Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
@@ -143,7 +143,7 @@ R2                0.014      0.014
 ## Options
 
 ### Function Arguments
-* `rr::rr::Union{AbstractRegressionResult,DataFrames.TableRegressionModel}...` are the `AbstractRegressionResult`s from `FixedEffectModels.jl` (or `TableRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
+* `rr::Union{FixedEffectModel,DataFrames.TableRegressionModel}...` are the `FixedEffectModel`s from `FixedEffectModels.jl` (or `TableRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
