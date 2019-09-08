@@ -1,7 +1,7 @@
 name = "RegressionTables"
 uuid = "d519eb52-b820-54da-95a6-98e1306fdade"
 authors = ["Johannes Boehm <johannes.boehm@gmail.com>"]
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
