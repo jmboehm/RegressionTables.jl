@@ -380,9 +380,9 @@ uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [[TimeZones]]
 deps = ["Dates", "EzXML", "Mocking", "Printf", "Serialization", "Unicode"]
-git-tree-sha1 = "0271dc890dd1447da1568510937bd5b3a6b51b58"
+git-tree-sha1 = "2769a7ceffe237e651ed960a331a19258c8cf208"
 uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
-version = "0.9.2"
+version = "0.10.0"
 
 [[TranscodingStreams]]
 deps = ["Random", "Test"]
