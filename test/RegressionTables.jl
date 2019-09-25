@@ -97,6 +97,7 @@ end
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.htmlOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.htmlOutput(), regression_statistics = [:nobs, :r2])
 # --------------
+
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput("test1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6; renderSettings = RegressionTables.asciiOutput("test7.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("test3.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
@@ -106,6 +107,64 @@ end
 # RegressionTables.regtable(lm1, lm2, lm3, gm1; renderSettings = RegressionTables.latexOutput("test6.txt"), regression_statistics = [:nobs, :r2], transform_labels = RegressionTables.escape_ampersand)
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.htmlOutput("test1.html"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.htmlOutput("test2.html"), regression_statistics = [:nobs, :r2])
+
+# include("src/RegressionTables.jl")
+# RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], labels = Dict("SepalWidth" => "The Sepal Width"))
+# RegressionTables.regtable(rr1,rr2,rr3; renderSettings = RegressionTables.asciiOutput(), labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
+
+# new tests: all features
+# RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+# # regressors and labels
+# RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest2.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], regressors = ["SepalLength", "PetalWidth"])
+# # fixedeffects, estimformat, statisticformat, number_regressions_decoration
+# RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest3.txt"), fixedeffects = ["SpeciesDummy"], estimformat = "%0.4f", statisticformat = "%0.4f", number_regressions_decoration = i -> "[$i]")
+# # estim_decoration, below_statistic, below_decoration, number_regressions
+# function dec(s::String, pval::Float64)
+#     if pval<0.0
+#         error("p value needs to be nonnegative.")
+#     end
+#     if (pval > 0.05)
+#         return "$s"
+#     elseif (pval <= 0.05)
+#         return "$s<-OMG!"
+#     end
+# end
+# RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest4.txt"), estim_decoration = dec, below_statistic = :tstat, below_decoration = s -> "[$s]", number_regressions = false)
+# # print_fe_section, print_estimator_section
+# RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest5.txt"), print_fe_section = false, print_estimator_section = false)
+# # transform_labels and custom labels
+# RegressionTables.regtable(rr5,rr6,lm1, lm2, lm3; renderSettings = RegressionTables.asciiOutput("ftest6.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = RegressionTables.escape_ampersand,
+# labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
+
+RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"), joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))
+# regressors and labels
+RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest2.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], regressors = ["SepalLength", "PetalWidth"])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"), joinpath(dirname(@__FILE__), "tables", "ftest2_reference.txt"))
+# fixedeffects, estimformat, statisticformat, number_regressions_decoration
+RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest3.txt")), fixedeffects = ["SpeciesDummy"], estimformat = "%0.4f", statisticformat = "%0.4f", number_regressions_decoration = i -> "[$i]")
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"), joinpath(dirname(@__FILE__), "tables", "ftest3_reference.txt"))
+# estim_decoration, below_statistic, below_decoration, number_regressions
+function dec(s::String, pval::Float64)
+    if pval<0.0
+        error("p value needs to be nonnegative.")
+    end
+    if (pval > 0.05)
+        return "$s"
+    elseif (pval <= 0.05)
+        return "$s<-OMG!"
+    end
+end
+RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest4.txt")), estim_decoration = dec, below_statistic = :tstat, below_decoration = s -> "[$s]", number_regressions = false)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"), joinpath(dirname(@__FILE__), "tables", "ftest4_reference.txt"))
+# print_fe_section, print_estimator_section
+RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest5.txt")), print_fe_section = false, print_estimator_section = false)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"), joinpath(dirname(@__FILE__), "tables", "ftest5_reference.txt"))
+# transform_labels and custom labels
+RegressionTables.regtable(rr5,rr6,lm1, lm2, lm3; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest6.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = RegressionTables.escape_ampersand,
+labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
+
 
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
