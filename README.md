@@ -20,10 +20,10 @@ using RegressionTables, DataFrames, FixedEffectModels, RDatasets
 df = dataset("datasets", "iris")
 df[:SpeciesDummy] = categorical(df[:Species])
 
-rr1 = reg(df, @model(SepalLength ~ SepalWidth   , fe = SpeciesDummy))
-rr2 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength   , fe = SpeciesDummy))
-rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe = SpeciesDummy))
-rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
+rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)))
+rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
+rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + PetalWidth + fe(SpeciesDummy)))
+rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
 
 regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput())
 ```
@@ -145,7 +145,7 @@ R2                0.014      0.014
 ### Function Arguments
 * `rr::Union{FixedEffectModel,DataFrames.TableRegressionModel}...` are the `FixedEffectModel`s from `FixedEffectModels.jl` (or `TableRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
-* `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
+* `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown. Note that strings need to match the displayed label exactly, otherwise they will not be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
 * `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).
@@ -162,14 +162,14 @@ R2                0.014      0.014
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 * `transform_labels` is a function that is used to transform labels. For example, in order to escape certain LaTeX characters, use
     ```julia
-    repl_dict = Dict("&" => "\\&", "%" => "\\%", "\$" => "\\\$", "#" => "\\#", "_" => "\\_", "{" => "\\{", "}" => "\\}") 
+    repl_dict = Dict("&" => "\\&", "%" => "\\%", "\$" => "\\\$", "#" => "\\#", "_" => "\\_", "{" => "\\{", "}" => "\\}")
     function transform(s, repl_dict=repl_dict)
         for (old, new) in repl_dict
             s = replace.(s, Ref(old => new))
         end
         s
     end
-    
+
     regtable(rr; renderSettings = latexOutput(), transform_labels = transform)
     ```
     Defaults to `identity`. The most common use case is probably to escape the ampersand `&` in LaTeX, which is already implemented as `transform_labels = escape_ampersand`.
