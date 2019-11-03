@@ -1,7 +1,7 @@
 name = "RegressionTables"
 uuid = "d519eb52-b820-54da-95a6-98e1306fdade"
 authors = ["Johannes Boehm <johannes.boehm@gmail.com>"]
-version = "0.2.3"
+version = "0.2.4"
 
 [deps]
 Compat = "34da2185-b29b-5c13-b0c7-acf172513d20"
@@ -14,7 +14,7 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 StatsModels = "3eaba693-59b7-5ba5-a881-562e759f1c8d"
 
 [compat]
-FixedEffectModels = ">= 0.8.2"
+FixedEffectModels = ">= 0.10.1"
 julia = ">= 1.1"
 
 [extras]
