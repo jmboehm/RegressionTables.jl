@@ -86,14 +86,14 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     standardize_coef = false,
     out_buffer = IOBuffer(),
     transform_labels::Function = identity,
-    renderSettings::RenderSettings = asciiOutput()    
+    renderSettings::RenderSettings = asciiOutput()
     )
 
     # define some functions that makes use of StatsModels' RegressionModels
     coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
-    coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move 
+    coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move
                                                                   # to FixedEffectModels 0.8.2
-    # if standardize_coef == true 
+    # if standardize_coef == true
     #     function coef(r::TableRegressionModel)
     #         cc = StatsModels.coef(r)
     #         return [ cc[i]*std(r.model.pp.X[:,i])/std(r.model.rr.y) for i in 1:length(cc) ]
@@ -104,7 +104,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     #         return mul .* vc
     #     end
     # else # do not standardize
-    #     function coef(r::TableRegressionModel) 
+    #     function coef(r::TableRegressionModel)
     #         return StatsModels.coef(r)
     #     end
     #     function vcov(r::TableRegressionModel)
@@ -131,7 +131,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     numberOfResults = size(rr,1)
 
     # Create an RegressionTable from the regression results
-    
+
     # ordering of regressors:
     if length(regressors) == 0
         # construct default ordering: from ordering in regressions (like in Stata)
@@ -214,30 +214,36 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
         if length(fixedeffects) == 0
 
             # construct list of fixed effects for display
-            feList = Vector{String}()
+            feList = Vector{AbstractTerm}()
             for r in rr if isFERegressionResult(r)
 
-                if isa(r.feformula, Symbol)
-                    if !(any(feList .== string(r.feformula)))
-                        # add to list
-                        push!(feList, string(r.feformula))
-                    end
-                elseif r.feformula.args[1] == :+
-                    x = r.feformula.args
-                    for i in 2:length(x) 
-                        if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-                            if !(any(feList .== string(x[i])))
-                                # add to list
-                                push!(feList, string(x[i]))
-                            end
-                        end
-                    end
-                elseif r.feformula.args[1] == :* 
-                    # push the whole interaction
-                    if !(any(feList .== string(r.feformula)))
-                        push!(feList, string(r.feformula))
+                for term in eachterm(r.formula.rhs)
+                    if has_fe(term) && !(any(name.(feList) .== name(term)))
+                        push!(feList, term)
                     end
                 end
+
+                # if isa(r.feformula, Symbol)
+                #     if !(any(feList .== string(r.feformula)))
+                #         # add to list
+                #         push!(feList, string(r.feformula))
+                #     end
+                # elseif r.feformula.args[1] == :+
+                #     x = r.feformula.args
+                #     for i in 2:length(x)
+                #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
+                #             if !(any(feList .== string(x[i])))
+                #                 # add to list
+                #                 push!(feList, string(x[i]))
+                #             end
+                #         end
+                #     end
+                # elseif r.feformula.args[1] == :*
+                #     # push the whole interaction
+                #     if !(any(feList .== string(r.feformula)))
+                #         push!(feList, string(r.feformula))
+                #     end
+                # end
 
             end end
         else
@@ -245,25 +251,30 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
             feList = fixedeffects
         end
 
-        # construct a list of fixed effects (strings) for each RegressionResult
-        febyrr = Vector{Vector{String}}()
+        # construct a list of fixed effects (Term's) for each RegressionResult
+        febyrr = Vector{Vector{AbstractTerm}}()
         for r in rr
-            fe = Vector{String}()
+            fe = Vector{AbstractTerm}()
             if isFERegressionResult(r)
-                if isa(r.feformula, Symbol)
-                    # add to list
-                    push!(fe, string(r.feformula))
-                elseif r.feformula.args[1] == :+
-                    x = r.feformula.args
-                    for i in 2:length(x) 
-                        if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-                            # add to list
-                            push!(fe, string(x[i]))
-                        end 
+                for term in eachterm(r.formula.rhs)
+                    if has_fe(term)
+                        push!(fe, term)
                     end
-                elseif r.feformula.args[1] == :*
-                    push!(fe, string(r.feformula))
                 end
+                # if isa(r.feformula, Symbol)
+                #     # add to list
+                #     push!(fe, string(r.feformula))
+                # elseif r.feformula.args[1] == :+
+                #     x = r.feformula.args
+                #     for i in 2:length(x)
+                #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
+                #             # add to list
+                #             push!(fe, string(x[i]))
+                #         end
+                #     end
+                # elseif r.feformula.args[1] == :*
+                #     push!(fe, string(r.feformula))
+                # end
             end
             push!(febyrr, fe)
         end
@@ -273,7 +284,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
         for fe in feList
             feLine = fill("", 1, numberOfResults+1)
             for resultIndex = 1:numberOfResults if isFERegressionResult(rr[resultIndex])
-                index = findall(fe .== febyrr[resultIndex])
+                index = findall(name(fe) .== name.(febyrr[resultIndex]))
                 if !isempty(index)
                     feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
                 else
@@ -285,7 +296,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
                @warn("Fixed effect $fe not found in any regression results.")
             else
                 # add label on the left:
-                feLine[1,1] = haskey(labels,fe) ? labels[fe] : transform_labels(fe)
+                feLine[1,1] = haskey(labels,fe) ? labels[fe] : transform_labels(name(fe))
                 # add to estimateBlock
                 feBlock = [feBlock; feLine]
             end
