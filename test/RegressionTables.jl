@@ -98,7 +98,9 @@ end
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.htmlOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.htmlOutput(), regression_statistics = [:nobs, :r2])
 # --------------
-
+# RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.latexOutput("test2.tex"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+# RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.latexOutput("test4.tex"), regression_statistics = [:nobs, :r2])
+# RegressionTables.regtable(lm1, lm2, lm3, gm1; renderSettings = RegressionTables.latexOutput("test6.tex"), regression_statistics = [:nobs, :r2], transform_labels = RegressionTables.escape_ampersand)
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput("test1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6; renderSettings = RegressionTables.asciiOutput("test7.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("test3.txt"), regression_statistics = [:nobs, :r2])
