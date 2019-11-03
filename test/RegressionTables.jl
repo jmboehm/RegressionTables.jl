@@ -109,8 +109,7 @@ end
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.htmlOutput("test1.html"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.htmlOutput("test2.html"), regression_statistics = [:nobs, :r2])
 
-
-# new tests: all features
+# # new tests: all features
 # RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # # regressors and labels
 # RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("ftest2.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], regressors = ["SepalLength", "PetalWidth"])

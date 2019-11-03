@@ -5,7 +5,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 ### Arguments
 * `rr::FixedEffectModel...` are the `FixedEffectModel`s from `FixedEffectModels.jl` that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
-* `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
+* `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown. Note that the string needs to match the display label exactly, otherwise it will not be shown.
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
 * `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).
@@ -210,46 +210,49 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     print_fe_block = print_fe_section && any(isFERegressionResult.(rr))
     if print_fe_block
 
-        # if no list of FE's to include is given, construct it by order in the regressions
-        if length(fixedeffects) == 0
+        # construct list of fixed effects for display
+        feList = Vector{AbstractTerm}()
+        for r in rr if isFERegressionResult(r)
 
-            # construct list of fixed effects for display
-            feList = Vector{AbstractTerm}()
-            for r in rr if isFERegressionResult(r)
-
-                for term in eachterm(r.formula.rhs)
-                    if has_fe(term) && !(any(name.(feList) .== name(term)))
-                        push!(feList, term)
-                    end
+            for term in eachterm(r.formula.rhs)
+                if has_fe(term) && !(any(name.(feList) .== name(term)))
+                    push!(feList, term)
                 end
+            end
 
-                # if isa(r.feformula, Symbol)
-                #     if !(any(feList .== string(r.feformula)))
-                #         # add to list
-                #         push!(feList, string(r.feformula))
-                #     end
-                # elseif r.feformula.args[1] == :+
-                #     x = r.feformula.args
-                #     for i in 2:length(x)
-                #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-                #             if !(any(feList .== string(x[i])))
-                #                 # add to list
-                #                 push!(feList, string(x[i]))
-                #             end
-                #         end
-                #     end
-                # elseif r.feformula.args[1] == :*
-                #     # push the whole interaction
-                #     if !(any(feList .== string(r.feformula)))
-                #         push!(feList, string(r.feformula))
-                #     end
-                # end
+            # if isa(r.feformula, Symbol)
+            #     if !(any(feList .== string(r.feformula)))
+            #         # add to list
+            #         push!(feList, string(r.feformula))
+            #     end
+            # elseif r.feformula.args[1] == :+
+            #     x = r.feformula.args
+            #     for i in 2:length(x)
+            #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
+            #             if !(any(feList .== string(x[i])))
+            #                 # add to list
+            #                 push!(feList, string(x[i]))
+            #             end
+            #         end
+            #     end
+            # elseif r.feformula.args[1] == :*
+            #     # push the whole interaction
+            #     if !(any(feList .== string(r.feformula)))
+            #         push!(feList, string(r.feformula))
+            #     end
+            # end
 
-            end end
-        else
-            # take the user-supplied list of fixed effects
-            feList = fixedeffects
+        end end
+        # in case the user supplies a list of FE's, cut down the list
+        if !isempty(fixedeffects)
+            # compare the user-supplied list to `feList`, and keep only those that match
+            for i = length(feList):-1:1
+                if !any(name(feList[i]) .== fixedeffects)
+                    deleteat!(feList, [i])
+                end
+            end
         end
+
 
         # construct a list of fixed effects (Term's) for each RegressionResult
         febyrr = Vector{Vector{AbstractTerm}}()
