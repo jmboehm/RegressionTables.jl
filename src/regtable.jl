@@ -299,7 +299,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
                @warn("Fixed effect $fe not found in any regression results.")
             else
                 # add label on the left:
-                feLine[1,1] = haskey(labels,fe) ? labels[fe] : transform_labels(name(fe))
+                feLine[1,1] = haskey(labels,name(fe)) ? labels[name(fe)] : transform_labels(name(fe))
                 # add to estimateBlock
                 feBlock = [feBlock; feLine]
             end
