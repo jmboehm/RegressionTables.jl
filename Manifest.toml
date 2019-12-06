@@ -148,6 +148,12 @@ version = "0.4.1"
 deps = ["Random"]
 uuid = "9fa8497b-333b-5362-9e8d-4d0656e87820"
 
+[[GLM]]
+deps = ["Distributions", "LinearAlgebra", "Printf", "Random", "Reexport", "SparseArrays", "SpecialFunctions", "Statistics", "StatsBase", "StatsFuns", "StatsModels"]
+git-tree-sha1 = "64fa5f0db1cec3d700503e06676861b820f61d1e"
+uuid = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
+version = "1.3.5"
+
 [[GPUArrays]]
 deps = ["AbstractFFTs", "Adapt", "LinearAlgebra", "Printf", "Random", "Serialization"]
 git-tree-sha1 = "e756da6cee76a5f1436a05827fa8fdf3badc577f"
