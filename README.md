@@ -8,8 +8,8 @@ In its objective it is similar to  (and heavily inspired by) the Stata command [
 
 To install the package, type in the Julia command prompt
 
-```julia
-Pkg.add("RegressionTables")
+```
+] add RegressionTables
 ```
 
 ## A brief demonstration

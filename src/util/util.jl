@@ -11,9 +11,10 @@ isOLSRegressionResult(r::TableRegressionModel) = isa(r.model, LinearModel)
 
 # get display labels for terms
 function name(t::InteractionTerm)
-    n = name(t.terms[1])
+    n = isa(t.terms[1], Term) ? "$(t.terms[1])" : name(t.terms[1])
     for term in t.terms[2:end]
-        n = "$(n) * $(name(term))"
+        s = isa(term, Term) ? "$(term)" : name(term)
+        n = "$(n) * $(s)"
     end
     n
 end
