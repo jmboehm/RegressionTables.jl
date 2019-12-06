@@ -13,6 +13,7 @@ rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + PetalWidth + fe(
 rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
 rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(SpeciesDummy)))
 rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)&fe(isWide) + fe(isSmall)))
+rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
 
 
 # GLM.jl
@@ -89,7 +90,7 @@ end
 # if you want to test locally...
 # include("src/RegressionTables.jl")
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
-# RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+# RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6,rr7; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(), regression_statistics = [:nobs, :r2], standardize_coef = true)
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.latexOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
@@ -102,7 +103,7 @@ end
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.latexOutput("test4.tex"), regression_statistics = [:nobs, :r2])
 # RegressionTables.regtable(lm1, lm2, lm3, gm1; renderSettings = RegressionTables.latexOutput("test6.tex"), regression_statistics = [:nobs, :r2], transform_labels = RegressionTables.escape_ampersand)
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput("test1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
-# RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6; renderSettings = RegressionTables.asciiOutput("test7.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+# RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6,rr7; renderSettings = RegressionTables.asciiOutput("test7.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("test3.txt"), regression_statistics = [:nobs, :r2])
 # RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput("test5.txt"), regression_statistics = [:nobs, :r2], standardize_coef = true)
 # RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.latexOutput("test2.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
@@ -167,7 +168,7 @@ labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLengt
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
 
-regtable(rr1,rr2,rr3,rr5,rr6; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test7.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+regtable(rr1,rr2,rr3,rr5,rr6,rr7; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test7.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test7.txt"), joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
 
 regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
