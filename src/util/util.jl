@@ -21,3 +21,6 @@ end
 function name(t::FunctionTerm)
     string(t.args_parsed[1].sym)
 end
+function name(t::FixedEffectTerm)
+    string(t.x)
+end
