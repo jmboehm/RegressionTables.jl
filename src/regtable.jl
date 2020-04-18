@@ -189,8 +189,8 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
             estimateBlock = [estimateBlock; estimateLine]
         end
     end
-
-    # Regressand block
+      
+    # Regressand block (referred to as `header` in render)
     #   needs to be separately rendered
     regressandBlock = fill("", 1, numberOfResults+1)
     for rIndex = 1:numberOfResults
