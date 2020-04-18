@@ -256,6 +256,12 @@ git-tree-sha1 = "2fc6f50ddd959e462f0a2dbc802ddf2a539c6e35"
 uuid = "90014a1f-27ba-587c-ab20-58faa44d9150"
 version = "0.9.12"
 
+[[Parameters]]
+deps = ["OrderedCollections"]
+git-tree-sha1 = "b62b2558efb1eef1fa44e4be5ff58a515c287e38"
+uuid = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+version = "0.12.0"
+
 [[Parsers]]
 deps = ["Dates", "Test"]
 git-tree-sha1 = "f8f5d2d4b4b07342e5811d2b6428e45524e241df"

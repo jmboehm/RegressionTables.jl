@@ -45,6 +45,8 @@ module RegressionTables
                       loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,
                       fit, model_response, r2, r², adjr2, adjr², PValue
 
+    using Parameters
+    
     ##############################################################################
     ##
     ## Exported methods and types
@@ -74,6 +76,7 @@ module RegressionTables
     include("label_transforms/default_transforms.jl")
 
     # main functions
+    include("header.jl")
     include("render.jl")
     include("regtable.jl")
 
