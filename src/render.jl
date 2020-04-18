@@ -57,8 +57,10 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
 
     # construct, but not print, the header
     colWidths = column_widths(tab, align)
+    adjusted = true
+    
     h = header(tab, tab.header[1:1,:], settings, colWidths)
-    h = adjust_widths!(colWidths, h, settings)
+    @unpack adjusted, h = adjust_widths!(colWidths, h, settings)
     @unpack headerArray, hr = headerrule(h, settings)
 
     # START RENDERING
