@@ -81,6 +81,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     regression_statistics::Vector{Symbol} = [:nobs, :r2],
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
+    groups = [],
     print_fe_section = true,
     print_estimator_section = true,
     standardize_coef = false,
@@ -197,7 +198,12 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
         # keep in mind that yname is a Symbol
         regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : transform_labels(string(yname(rr[rIndex])))
     end
-
+    
+    if length(groups) > 0
+        regressandBlock = ["" reshape(groups, 1, numberOfResults);
+                           regressandBlock]
+    end
+    
     # Regression numbering block (if we do it)
     if number_regressions
         regressionNumberBlock = fill("", 1, numberOfResults + 1)
