@@ -104,9 +104,11 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 
 `regtable()` can also print `TableRegressionModel`'s from [GLM.jl](https://github.com/JuliaStats/GLM.jl) (and output from other packages that produce `TableRegressionModel`'s):
 ```julia
+using GLM
+
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
-    Outcome = pool(repeat(["A", "B", "C"], outer = 3)),
-    Treatment = pool(repeat(["a","b", "c"], inner = 3)))
+    Outcome = categorical(repeat(["A", "B", "C"], outer = 3)),
+    Treatment = categorical(repeat(["a","b", "c"], inner = 3)))
 lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), dobson,
                   Poisson())
