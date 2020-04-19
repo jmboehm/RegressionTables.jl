@@ -37,13 +37,13 @@ See the full argument list for details.
 ```julia
 using RegressionTables, DataFrames, RDatasets, FixedEffectModels
 df = dataset("datasets", "iris")
-df[:SpeciesDummy] = pool(df[:Species])
-df[:isSmall] = pool(df[:SepalWidth] .< 2.9)
-rr1 = reg(df, @model(SepalLength ~ SepalWidth))
-rr2 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength   , fe = SpeciesDummy))
-rr3 = reg(df, @model(SepalLength ~ SepalWidth + PetalLength + PetalWidth  , fe = SpeciesDummy  + isSmall))
-rr4 = reg(df, @model(SepalWidth ~ SepalLength + PetalLength + PetalWidth  , fe = SpeciesDummy))
-rr5 = reg(df, @model(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth)  , fe = SpeciesDummy))
+df[!,:SpeciesDummy] = categorical(df[!,:Species])
+df[!,:isSmall] = categorical(df[!,:SepalWidth] .< 2.9)
+rr1 = reg(df, @formula(SepalLength ~ SepalWidth))
+rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
+rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + PetalWidth + fe(SpeciesDummy) + fe(isSmall)))
+rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
+rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(SpeciesDummy)))
 # default
 regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput())
 # display of statistics below estimates

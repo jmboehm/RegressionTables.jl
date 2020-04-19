@@ -226,10 +226,19 @@ regtable(lm1, lm2, gm1; renderSettings = htmlOutput(joinpath(dirname(@__FILE__),
 
 
 # clean up
+rm(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"))
+
 rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test3.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test5.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test6.tex"))
+rm(joinpath(dirname(@__FILE__), "tables", "test7.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
