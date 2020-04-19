@@ -15,6 +15,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `regression_statistics` is a `Vector` of `Symbol`s that describe statistics to be shown at the bottom of the table. Recognized symbols are `:nobs`, `:r2`, `:adjr2`, `:r2_within`, `:f`, `:p`, `:f_kp`, `:p_kp`, and `:dof`. Defaults to `[:nobs, :r2]`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
+* `groups` is a `Vector` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/NL) is used. Defaults to `true`.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
@@ -55,6 +56,8 @@ regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), regressors = ["SepalLe
 regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), estimformat = "%02.5f")
 # replace some variable names by other strings
 regtable(rr1,rr2,rr3; renderSettings = asciiOutput(), labels = Dict(:SepalLength => "My dependent variable: SepalLength", :PetalLength => "Length of Petal", :PetalWidth => "Width of Petal", Symbol("(Intercept)") => "Const." , :isSmall => "isSmall Dummies", :SpeciesDummy => "Species Dummies"))
+# group regressions
+regtable(rr1,rr2,rr4,rr3; renderSettings = asciiOutput(), groups = ["grp1", "grp1", "grp2", "grp2"])
 # do not print the FE block
 regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), print_fe_section = false)
 # re-order fixed effects
@@ -81,6 +84,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     regression_statistics::Vector{Symbol} = [:nobs, :r2],
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
+    groups = [],
     print_fe_section = true,
     print_estimator_section = true,
     standardize_coef = false,
@@ -197,7 +201,12 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
         # keep in mind that yname is a Symbol
         regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : transform_labels(string(yname(rr[rIndex])))
     end
-
+    
+    if length(groups) > 0
+        regressandBlock = ["" reshape(groups, 1, numberOfResults);
+                           regressandBlock]
+    end
+    
     # Regression numbering block (if we do it)
     if number_regressions
         regressionNumberBlock = fill("", 1, numberOfResults + 1)

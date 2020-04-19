@@ -63,16 +63,20 @@ end
 """
 function adjust_widths!(colWidths, header, settings)
     @unpack headerArray, headerCellStartEnd, headerLabels, headerWidths = header
-
+    
+    adjusted = false
+    
     for i = 2:size(headerArray,2)
         totalWidth = sum([colWidths[cind] for cind in headerCellStartEnd[i][1] : headerCellStartEnd[i][2]]) + length(settings.colsep)*(headerCellStartEnd[i][2] - headerCellStartEnd[i][1])
         if length(headerArray[1,i])>totalWidth
+            adjusted = true
             # extend width of cells
             colWidths[headerCellStartEnd[i][2]] +=  (length(headerArray[1,i])-totalWidth)
             headerWidths[i] += (length(headerArray[1,i])-totalWidth)
         end
     end
-    (headerArray=headerArray, headerLabels=headerLabels, headerWidths=headerWidths, headerCellStartEnd=headerCellStartEnd)
+    (adjusted = adjusted,
+     h = (headerArray=headerArray, headerLabels=headerLabels, headerWidths=headerWidths, headerCellStartEnd=headerCellStartEnd))
 end
 
 # distinguish two cases:

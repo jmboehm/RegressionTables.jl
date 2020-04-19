@@ -57,10 +57,19 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
 
     # construct, but not print, the header
     colWidths = column_widths(tab, align)
-    h = header(tab, tab.header[1:1,:], settings, colWidths)
-    h = adjust_widths!(colWidths, h, settings)
-    @unpack headerArray, hr = headerrule(h, settings)
+    adjusted = true
+    
+    global header_vec = []
+    
+    while adjusted
+      header_vec = map(1:size(tab.header, 1)) do i
+        h = header(tab, tab.header[i:i,:], settings, colWidths)
+        @unpack adjusted, h = adjust_widths!(colWidths, h, settings)
+        @unpack headerArray, hr = headerrule(h, settings)
 
+        (h=h, hr=hr, headerArray=headerArray)
+      end
+    end
     # START RENDERING
 
     # header
@@ -84,9 +93,12 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
     end
 
     # header
-    render(io, headerArray, h.headerWidths, ("c" ^ size(headerArray,2)), settings, isHeader=true)
-    if hr.print_headerrule_separately
-        println(io, hr.headerrule)
+    map(header_vec) do head
+        @unpack headerArray, h, hr = head
+        render(io, headerArray, h.headerWidths, ("c" ^ size(headerArray,2)), settings, isHeader=true)
+        if hr.print_headerrule_separately
+            println(io, hr.headerrule)
+        end
     end
 
     # bodies
