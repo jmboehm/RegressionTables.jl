@@ -164,6 +164,14 @@ RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTabl
 RegressionTables.regtable(rr5,rr6,lm1, lm2, lm3; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest6.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = RegressionTables.escape_ampersand,
 labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
+# grouped regressions PR #61
+# NOTE: behavior in ftest8 and ftest9 should be improved (Issue #63)
+RegressionTables.regtable(rr1,rr5,rr2,rr4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest7.txt")), groups=["grp1" "grp1" "grp2" "grp2"])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest7.txt"), joinpath(dirname(@__FILE__), "tables", "ftest7_reference.txt"))
+RegressionTables.regtable(rr1,rr5,rr2,rr4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest8.txt")), groups=["grp1" "grp1" "looooooooooooooooogong grp2" "looooooooooooooooogong grp2"])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest8.txt"), joinpath(dirname(@__FILE__), "tables", "ftest8_reference.txt"))
+RegressionTables.regtable(rr5,rr1,rr2,rr4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest9.txt")), groups=["grp1" "grp1" "grp2" "grp2"])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"), joinpath(dirname(@__FILE__), "tables", "ftest9_reference.txt"))
 
 regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
@@ -232,6 +240,9 @@ rm(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest7.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest8.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"))
 
 rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
