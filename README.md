@@ -18,7 +18,7 @@ To install the package, type in the Julia command prompt
 using RegressionTables, DataFrames, FixedEffectModels, RDatasets
 
 df = dataset("datasets", "iris")
-df[:SpeciesDummy] = categorical(df[:Species])
+df[!,:SpeciesDummy] = categorical(df[!,:Species])
 
 rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)))
 rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
