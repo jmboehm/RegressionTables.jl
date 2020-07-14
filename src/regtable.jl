@@ -77,7 +77,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
     estimformat::String = "%0.3f",
-    estim_decoration::Function = default_ascii_estim_decoration,
+    estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
     statisticformat::String = "%0.3f",
     below_statistic::Symbol = :se,
     below_decoration::Function = s::String -> "($s)",

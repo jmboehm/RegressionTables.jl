@@ -1,6 +1,7 @@
 using RegressionTables
 
-tests = ["RegressionTables.jl"
+tests = ["RegressionTables.jl",
+				 "decorations.jl"
 		 ]
 
 println("Running tests:")
