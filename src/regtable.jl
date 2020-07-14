@@ -214,7 +214,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     if number_regressions
         regressionNumberBlock = fill("", 1, numberOfResults + 1)
         for rIndex = 1:numberOfResults
-            regressionNumberBlock[1,rIndex+1] = number_regressions_decoration(rIndex)
+            regressionNumberBlock[1,rIndex+1] = string(number_regressions_decoration(rIndex))
         end
     end
 
