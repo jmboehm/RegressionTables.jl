@@ -21,7 +21,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
 * `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
-* `transform_labels` is a `Function` that is used to transform labels. It takes the `String` to be transformed as an argument. See `README.md` for an example.
+* `transform_labels` is a `Function`, a `Dict` or one of the `Symbol`s `:ampersand`, `:underscore`, `:underscore2space`, `:latex`. See `README.md` for examples.
 
 ### Details
 A typical use is to pass a number of `FixedEffectModel`s to the function, along with a `RenderSettings` object.
@@ -89,10 +89,12 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     print_estimator_section = true,
     standardize_coef = false,
     out_buffer = IOBuffer(),
-    transform_labels::Function = identity,
+    transform_labels::Union{Dict,Function,Symbol} = identity,
     renderSettings::RenderSettings = asciiOutput()
     )
-
+    
+    _transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
+      
     # define some functions that makes use of StatsModels' RegressionModels
     coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
     coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move
@@ -188,7 +190,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
            @warn("Regressor $(String(regressor)) not found among regression results.")
         else
             # add label on the left:
-            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : transform_labels(regressor)
+            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : _transform_labels(regressor)
             # add to estimateBlock
             estimateBlock = [estimateBlock; estimateLine]
         end
@@ -199,11 +201,12 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     regressandBlock = fill("", 1, numberOfResults+1)
     for rIndex = 1:numberOfResults
         # keep in mind that yname is a Symbol
-        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : transform_labels(string(yname(rr[rIndex])))
+        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : _transform_labels(string(yname(rr[rIndex])))
     end
     
     if length(groups) > 0
-        regressandBlock = ["" reshape(groups, 1, numberOfResults);
+        groupBlock = reshape(string.(groups), :, numberOfResults) .|> _transform_labels
+        regressandBlock = [fill("", size(groupBlock, 1)) groupBlock;
                            regressandBlock]
     end
     
@@ -308,7 +311,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
                @warn("Fixed effect $fe not found in any regression results.")
             else
                 # add label on the left:
-                feLine[1,1] = haskey(labels,name(fe)) ? labels[name(fe)] : transform_labels(name(fe))
+                feLine[1,1] = haskey(labels,name(fe)) ? labels[name(fe)] : _transform_labels(name(fe))
                 # add to estimateBlock
                 feBlock = [feBlock; feLine]
             end
@@ -439,3 +442,4 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     end
 
 end
+

@@ -161,7 +161,7 @@ RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTabl
 RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest5.txt")), print_fe_section = false, print_estimator_section = false)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"), joinpath(dirname(@__FILE__), "tables", "ftest5_reference.txt"))
 # transform_labels and custom labels
-RegressionTables.regtable(rr5,rr6,lm1, lm2, lm3; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest6.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = RegressionTables.escape_ampersand,
+RegressionTables.regtable(rr5,rr6,lm1, lm2, lm3; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest6.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = :ampersand,
 labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
 # grouped regressions PR #61
@@ -222,7 +222,7 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(joinpath(dirname(@__FILE_
 regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
 
-regtable(lm1, lm2, lm3, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test6.tex")), regression_statistics = [:nobs, :r2], transform_labels = escape_ampersand)
+regtable(lm1, lm2, lm3, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test6.tex")), regression_statistics = [:nobs, :r2], transform_labels = :ampersand)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test6.tex"), joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
 
 # HTML Tables
