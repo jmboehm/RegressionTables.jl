@@ -1,33 +1,17 @@
-# * 5%, ** 1%, *** 0.1%
-function default_ascii_estim_decoration(s::String, pval::Float64)
-  if pval<0.0
-      error("p value needs to be nonnegative.")
-  end
-  if (pval > 0.1)
-      return "$s"
-  elseif (pval > 0.05)
-      return "$s"
-  elseif (pval > 0.01)
-      return "$s*"
-  elseif (pval > 0.001)
-      return "$s**"
-  else
-      return "$s***"
-  end
-end
-function default_latex_estim_decoration(s::String, pval::Float64)
-  if pval<0.0
-      error("p value needs to be nonnegative.")
-  end
-  if (pval > 0.1)
-      return "$s"
-  elseif (pval > 0.05)
-      return "$s"
-  elseif (pval > 0.01)
-      return "$s\\sym{*}"
-  elseif (pval > 0.001)
-      return "$s\\sym{**}"
-  else
-      return "$s\\sym{***}"
+function make_estim_decorator(breaks=[0.01, 0.05, 0.1], sym='*'; wrapper=identity)
+  @assert issorted(breaks)
+    
+  function estim_decorator(s, pval)
+    pval >= 0 || @error "p value = $pval, but it needs to be non-negative"
+
+    i0 = findfirst(pval .<= breaks)
+    i = isnothing(i0) ? length(breaks) + 1 : i0
+      
+    deco = sym^(length(breaks) - (i - 1))
+    if deco != ""
+      deco = wrapper(deco)
+    end
+    
+    "$s"*deco
   end
 end
