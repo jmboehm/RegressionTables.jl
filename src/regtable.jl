@@ -210,8 +210,8 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     end
     if length(groups) > 0
         groupBlock = reshape(string.(groups), :, numberOfResults) .|> _transform_labels
-        regressandBlock = [fill("", size(groupBlock, 1)) groupBlock;
-                           regressandBlock]
+        regressandBlock = [regressandBlock;
+                           fill("", size(groupBlock, 1)) groupBlock]
     end
     
     # Regression numbering block (if we do it)
