@@ -117,6 +117,11 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     #         return StatsModels.vcov(r)
     #     end
     # end
+    
+    # lhs( t :: Term ) = t.sym
+    lhs( t :: FunctionTerm ) = Symbol( t.exorig )
+    lhs( t ) = t.sym
+    
     coef(r::FixedEffectModel) = r.coef
     vcov(r::FixedEffectModel) = r.vcov
     coef(r::TableRegressionModel) = StatsModels.coef(r)
@@ -124,7 +129,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     df_residual(r::FixedEffectModel) = dof_residual(r)
     df_residual(r::TableRegressionModel) = dof_residual(r)
     yname(r::FixedEffectModel) = r.yname
-    yname(r::TableRegressionModel) = r.mf.f.lhs.sym # returns a Symbol
+    yname(r::TableRegressionModel) = lhs( r.mf.f.lhs ) # returns a Symbol
     ther2(r::FixedEffectModel) = r.r2
     ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
 

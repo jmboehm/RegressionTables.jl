@@ -15,7 +15,6 @@ rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + f
 rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)&fe(isWide) + fe(isSmall)))
 rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
 
-
 # GLM.jl
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
     Outcome = categorical(repeat(["A", "B", "C"], outer = 3)),
@@ -26,6 +25,9 @@ lm2 = fit(LinearModel, @formula(SepalLength ~ SepalWidth + PetalWidth), df)
 lm3 = fit(LinearModel, @formula(SepalLength ~ SepalWidth * PetalWidth), df) # testing interactions
 gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome), dobson,
               Poisson())
+              
+# test of forula on lhs
+lm4 = fit(LinearModel, @formula(log(SepalLength) ~ SepalWidth * PetalWidth), df) # testing interactions
 
 function checkfilesarethesame(file1::String, file2::String)
 
@@ -136,6 +138,7 @@ end
 # RegressionTables.regtable(rr5,rr6,lm1, lm2, lm3; renderSettings = RegressionTables.asciiOutput("ftest6.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = RegressionTables.escape_ampersand,
 # labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
 
+
 RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"), joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))
 # regressors and labels
@@ -145,6 +148,9 @@ RegressionTables.regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = RegressionTabl
 RegressionTables.regtable(rr3,rr5,lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest3.txt")), fixedeffects = ["SpeciesDummy"], estimformat = "%0.4f", statisticformat = "%0.4f", number_regressions_decoration = i -> "[$i]")
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"), joinpath(dirname(@__FILE__), "tables", "ftest3_reference.txt"))
 # estim_decoration, below_statistic, below_decoration, number_regressions
+
+
+
 function dec(s::String, pval::Float64)
     if pval<0.0
         error("p value needs to be nonnegative.")
@@ -181,6 +187,10 @@ regtable(rr1,rr2,rr3,rr5,rr6,rr7; renderSettings = asciiOutput(joinpath(dirname(
 
 regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
+
+regtable(lm1, lm2, lm4; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test8.txt")), regression_statistics = [:nobs, :r2])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test8.txt"), joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
+
 
 #regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test5.txt")), regression_statistics = [:nobs, :r2], standardize_coef = true)
 #@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test5.txt"), joinpath(dirname(@__FILE__), "tables", "test5_reference.txt"))
@@ -224,6 +234,8 @@ regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__)
 
 regtable(lm1, lm2, lm3, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test6.tex")), regression_statistics = [:nobs, :r2], transform_labels = :ampersand)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test6.tex"), joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
+
+
 
 # HTML Tables
 regtable(rr1,rr2,rr3,rr5; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test1.html")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
