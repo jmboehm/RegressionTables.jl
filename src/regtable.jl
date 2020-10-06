@@ -118,7 +118,6 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     #     end
     # end
     
-    # lhs( t :: Term ) = t.sym
     lhs( t :: FunctionTerm ) = Symbol( t.exorig )
     lhs( t ) = t.sym
     
