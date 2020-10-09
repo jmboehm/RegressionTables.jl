@@ -191,6 +191,13 @@ regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__)
 regtable(lm1, lm2, lm4; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test8.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test8.txt"), joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
 
+using Statistics
+comments = ["Baseline", "Preferred"]
+means = [Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
+mystats = NamedTuple{(:comments, :means)}((comments, means))
+regtable(rr1, rr2; renderSettings = asciiOutput("test9.txt"), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
+
 
 #regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test5.txt")), regression_statistics = [:nobs, :r2], standardize_coef = true)
 #@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test5.txt"), joinpath(dirname(@__FILE__), "tables", "test5_reference.txt"))
