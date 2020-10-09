@@ -195,7 +195,7 @@ using Statistics
 comments = ["Baseline", "Preferred"]
 means = [Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
 mystats = NamedTuple{(:comments, :means)}((comments, means))
-regtable(rr1, rr2; renderSettings = asciiOutput("test9.txt"), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
+regtable(rr1, rr2; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test9.txt")), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 
 
