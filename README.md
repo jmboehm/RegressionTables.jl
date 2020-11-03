@@ -165,7 +165,7 @@ R2                0.014      0.014
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
 * `transform_labels` is a function or a `Dict` that is used to transform labels. Defaults to `identity`.
 
-    Some common use cases can be achieved by passing a `Symbol` instead: `:latex`, `:ampersand`, `:ampersand2space`, `:underscore`. For illustration, here are the three ways to escape forbidden LaTeX characters.
+    Some common use cases can be achieved by passing a `Symbol` instead: `:latex`, `:ampersand`, `:underscore`, `:underscore2space`. For illustration, here are the three ways to escape forbidden LaTeX characters.
     ```julia
     # Option 1
     regtable(rr; renderSettings = latexOutput(), transform_labels = :latex)
