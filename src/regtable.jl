@@ -13,6 +13,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `below_statistic` is a `Symbol` that describes a statistic that should be shown below each point estimate. Recognized values are `:blank`, `:se`, and `:tstat`. Defaults to `:se`.
 * `below_decoration` is a `Function` that takes the formatted statistic string, and applies a decorations. Defaults to round parentheses.
 * `regression_statistics` is a `Vector` of `Symbol`s that describe statistics to be shown at the bottom of the table. Recognized symbols are `:nobs`, `:r2`, `:adjr2`, `:r2_within`, `:f`, `:p`, `:f_kp`, `:p_kp`, and `:dof`. Defaults to `[:nobs, :r2]`.
+* `custom_statistics` is a `NamedTuple` that takes user specified statistics to be shown just above `regression_statistics`. By default each statistic will be labelled by its key. Defaults to `missing`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
 * `groups` is a `Vector` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions.
@@ -70,6 +71,12 @@ regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(), regression_statistics 
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
 # LaTeX output to file
 regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
+# Custom statistics
+comments = ["Baseline", "Preferred"]
+means = [Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
+mystats = NamedTuple{(:comments, :means)}((comments, means))
+regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean"))
+
 ```
 """
 function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
@@ -82,6 +89,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     below_statistic::Symbol = :se,
     below_decoration::Function = s::String -> "($s)",
     regression_statistics::Vector{Symbol} = [:nobs, :r2],
+    custom_statistics::Union{Missing,NamedTuple} = missing,
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
     groups = [],
@@ -118,6 +126,10 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     #         return StatsModels.vcov(r)
     #     end
     # end
+    
+    lhs( t :: FunctionTerm ) = Symbol( t.exorig )
+    lhs( t ) = t.sym
+    
     coef(r::FixedEffectModel) = r.coef
     vcov(r::FixedEffectModel) = r.vcov
     coef(r::TableRegressionModel) = StatsModels.coef(r)
@@ -125,7 +137,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     df_residual(r::FixedEffectModel) = dof_residual(r)
     df_residual(r::TableRegressionModel) = dof_residual(r)
     yname(r::FixedEffectModel) = r.yname
-    yname(r::TableRegressionModel) = r.mf.f.lhs.sym # returns a Symbol
+    yname(r::TableRegressionModel) = lhs( r.mf.f.lhs ) # returns a Symbol
     ther2(r::FixedEffectModel) = r.r2
     ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
 
@@ -336,9 +348,21 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
         end
     end
 
-    if length(regression_statistics)>0
+    if length(regression_statistics)>0 || !ismissing(custom_statistics)
         # we have a statistics block (N, R^2, etc)
         print_statistics_block = true
+
+        # one line for each custom statistic
+        if !ismissing(custom_statistics)
+            custom_statisticBlock = fill("", length(custom_statistics), numberOfResults+1)
+            for i = 1:length(custom_statistics)
+                stringKey = String(keys(custom_statistics)[i])
+                custom_statisticBlock[i,1] = haskey(labels, "__LABEL_CUSTOM_STATISTIC_$(stringKey)__") ? labels["__LABEL_CUSTOM_STATISTIC_$(stringKey)__"] : stringKey
+                for resultIndex = 1:numberOfResults
+                    custom_statisticBlock[i,resultIndex+1] = typeof(custom_statistics[i][resultIndex]) == String ? custom_statistics[i][resultIndex] : sprintf1(statisticformat,custom_statistics[i][resultIndex])
+                end
+            end
+        end
 
         # one line for each statistic
         statisticBlock = fill("", length(regression_statistics), numberOfResults+1)
@@ -395,6 +419,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
             end
 
         end
+        statisticBlock = !ismissing(custom_statistics) ? vcat(custom_statisticBlock, statisticBlock) : statisticBlock
     else
         print_statistics_block = false
     end
@@ -415,6 +440,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     if print_statistics_block
         push!(bodyBlocks, statisticBlock)
     end
+
 
     # if we're numbering the regression columns, add a block before the other stuff
 
