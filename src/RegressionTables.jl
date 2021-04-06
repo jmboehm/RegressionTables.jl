@@ -45,7 +45,7 @@ module RegressionTables
                       loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,
                       fit, model_response, r2, r², adjr2, adjr², PValue
 
-    using Parameters
+    using UnPack: @unpack
     
     ##############################################################################
     ##

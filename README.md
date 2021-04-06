@@ -152,7 +152,7 @@ R2                0.014      0.014
 * `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
 * `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t). Defaults to "%0.4f".
-* `below_statistic` is a `Symbol` that describes a statistic that should be shown below each point estimate. Recognized values are `:blank`, `:se`, and `:tstat`. Defaults to `:se`.
+* `below_statistic` is a `Symbol` that describes a statistic that should be shown below each point estimate. Recognized values are `:blank`, `:se`, `:tstat`, and `:none`. `:none` suppresses the line. Defaults to `:se`.
 * `below_decoration` is a `Function` that takes the formatted statistic string, and applies a decorations. Defaults to round parentheses.
 * `regression_statistics` is a `Vector` of `Symbol`s that describe statistics to be shown at the bottom of the table. Recognized symbols are `:nobs`, `:r2`, `:r2_a`, `:r2_within`, `:f`, `:p`, `:f_kp`, `:p_kp`, and `:dof`. Defaults to `[:nobs, :r2]`.
 * `custom_statistics` is a `NamedTuple` that takes user specified statistics to be shown just above `regression_statistics`. By default each statistic will be labelled by its key (e.g. `__LABEL_STATISTIC_mystat__` for the statistic `mystat`). Defaults to `missing`. See `test/RegressionTables.jl` for an example of how to use this.

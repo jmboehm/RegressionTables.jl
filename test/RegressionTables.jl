@@ -198,6 +198,10 @@ mystats = NamedTuple{(:comments, :means)}((comments, means))
 regtable(rr1, rr2; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test9.txt")), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 
+# below_decoration = :none
+RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test10.txt")), below_statistic = :none)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test10.txt"), joinpath(dirname(@__FILE__), "tables", "test10_reference.txt"))
+
 
 #regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test5.txt")), regression_statistics = [:nobs, :r2], standardize_coef = true)
 #@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test5.txt"), joinpath(dirname(@__FILE__), "tables", "test5_reference.txt"))
@@ -270,5 +274,8 @@ rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
 #rm(joinpath(dirname(@__FILE__), "tables", "test5.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test6.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test7.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test8.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test9.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test10.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
