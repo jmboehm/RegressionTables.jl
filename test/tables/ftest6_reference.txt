@@ -17,9 +17,9 @@ Width of Petal                                                          0.972***
 SepalWidth \& PetalWidth                                                             -0.099
                                                                                     (0.147)
 -------------------------------------------------------------------------------------------
-Species Dummies                             Yes                                            
+Species                                     Yes                                            
 isSmall Dummies                                        Yes                                 
-SpeciesDummy * isWide                                  Yes                                 
+Species * isWide                                       Yes                                 
 -------------------------------------------------------------------------------------------
 Estimator                                    IV        OLS        OLS        OLS        OLS
 -------------------------------------------------------------------------------------------
