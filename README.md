@@ -2,7 +2,7 @@
 
 # RegressionTables.jl
 
-This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl).
+This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl), as well as any package that implements the [RegressionModel abstraction](https://juliastats.org/StatsBase.jl/latest/statmodels/).
 
 In its objective it is similar to  (and heavily inspired by) the Stata command [`esttab`](http://repec.sowi.unibe.ch/stata/estout/esttab.html) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/).
 
@@ -141,6 +141,8 @@ N                   150        150          9
 R2                0.014      0.014           
 ---------------------------------------------
 ```
+Printing of `StatsBase.RegressionModel`s is experimental; please file as issue if you encounter problems printing them.
+
 
 ## Options
 
