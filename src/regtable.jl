@@ -79,7 +79,7 @@ regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, 
 
 ```
 """
-function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
+function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
@@ -104,6 +104,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     _transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
       
     # define some functions that makes use of StatsModels' RegressionModels
+    coefnames(r::RegressionModel) = StatsBase.coefnames(r)
     coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
     coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move
                                                                   # to FixedEffectModels 0.8.2
@@ -133,12 +134,17 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel}...;
     vcov(r::FixedEffectModel) = r.vcov
     coef(r::TableRegressionModel) = StatsModels.coef(r)
     vcov(r::TableRegressionModel) = StatsModels.vcov(r)
+    coef(r::RegressionModel) = StatsBase.coef(r)
+    vcov(r::RegressionModel) = StatsBase.vcov(r)
     df_residual(r::FixedEffectModel) = dof_residual(r)
     df_residual(r::TableRegressionModel) = dof_residual(r)
+    df_residual(r::RegressionModel) = dof_residual(r)
     yname(r::FixedEffectModel) = r.yname
     yname(r::TableRegressionModel) = lhs( r.mf.f.lhs ) # returns a Symbol
+    yname(r::RegressionModel) = responsename(r) # returns a Symbol
     ther2(r::FixedEffectModel) = r.r2
     ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
+    ther2(r::RegressionModel) = islinear(r) ? r2(r) : NaN
 
     # print a warning message if standardize_coef == true but one
     # of the regression results is not a TableRegressionModel
