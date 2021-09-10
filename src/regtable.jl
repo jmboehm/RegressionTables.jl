@@ -81,6 +81,7 @@ regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, 
 """
 function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionModel}...;
     regressors::Vector{String} = Vector{String}(),
+    omit = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
     estimformat::String = "%0.3f",
@@ -163,6 +164,10 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     else
         # take the list of regressors from the argument
         regressorList = regressors
+    end
+
+    if !isempty(omit)
+        regressorList, omitBlock = omit_block(rr, omit, regressorList, labels, renderSettings, _transform_labels)
     end
 
     # for each regressor, check each regression result, calculate statistic, and construct block
@@ -328,6 +333,10 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
 
     bodyBlocks = [estimateBlock]
 
+    if !isempty(omit)
+        push!(bodyBlocks, omitBlock)
+    end
+    
     if print_fe_block
         push!(bodyBlocks, feBlock)
     end
@@ -414,4 +423,39 @@ function fe_block(rr, fixedeffects, labels, renderSettings, _transform_labels)
     end
 
     [Labels Block]
+end
+
+function omit_block(rr, omit, regressors, labels, renderSettings, _transform_labels)
+    yes = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
+    no  = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
+
+    # remove regressors to omit    
+    regressors_keep = copy(regressors)
+    for (_, omit_vars) in omit
+        filter!(!contains(omit_vars), regressors_keep)
+    end
+    
+    regressors_tmp = copy(regressors)
+
+    Block = fill("", 0, length(rr))
+    Labels = String[]
+    
+    for (omit_name, omit_regex) in omit
+        omit_vars = filter(contains(omit_regex), regressors_tmp)
+        Line = fill("", 1, length(rr))
+        label = _transform_labels(omit_name)
+        push!(Labels, label)
+        for (i, r) in enumerate(rr)
+            if omit_vars ⊆ coefnames(r)
+                Line[i] = yes
+            elseif !isempty(omit_vars ∩ coefnames(r))
+                Line[i] = "kind of"
+            else
+                Line[i] = no
+            end
+        end
+        Block = [Block; Line]
+    end
+    
+    regressors_keep, [Labels Block]
 end
