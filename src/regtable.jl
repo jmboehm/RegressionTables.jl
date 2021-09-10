@@ -429,9 +429,15 @@ function omit_block(rr, omit, regressors, labels, renderSettings, _transform_lab
     yes = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
     no  = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
 
+    omit_replace = filter(x -> x isa Pair, omit)
+    omit_drop    = filter(x -> ! (x isa Pair), omit)
+
     # remove regressors to omit    
     regressors_keep = copy(regressors)
-    for (_, omit_vars) in omit
+    for omit_vars in omit_drop
+        filter!(!contains(omit_vars), regressors_keep)
+    end
+    for (_, omit_vars) in omit_replace
         filter!(!contains(omit_vars), regressors_keep)
     end
     
@@ -440,7 +446,7 @@ function omit_block(rr, omit, regressors, labels, renderSettings, _transform_lab
     Block = fill("", 0, length(rr))
     Labels = String[]
     
-    for (omit_name, omit_regex) in omit
+    for (omit_name, omit_regex) in omit_replace
         omit_vars = filter(contains(omit_regex), regressors_tmp)
         Line = fill("", 1, length(rr))
         label = _transform_labels(omit_name)
