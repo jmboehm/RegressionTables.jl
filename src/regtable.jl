@@ -159,16 +159,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     # ordering of regressors:
     if length(regressors) == 0
         # construct default ordering: from ordering in regressions (like in Stata)
-        regressorList = Vector{String}()
-        for r in rr # FixedEffectModel
-            names = coefnames(r)
-            for regressorIndex = 1:length(names)
-                if !(any(regressorList .== names[regressorIndex]))
-                    # add to list
-                    push!(regressorList, names[regressorIndex])
-                end
-            end
-        end
+        regressorList = union(coefnames.(rr)...)
     else
         # take the list of regressors from the argument
         regressorList = regressors
