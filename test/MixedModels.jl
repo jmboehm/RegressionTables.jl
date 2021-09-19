@@ -9,7 +9,7 @@ ni1 = fit(MixedModel, @formula(yield ~ 1 + (1|batch)), MixedModels.dataset(:dyes
 gm2 = fit(MixedModel, @formula(yield ~ 1 + (1|batch)), MixedModels.dataset(:dyestuff),
     Normal(), SqrtLink(); progress=false)
 
-RegressionTables.regtable(m1,gm1,ni1,gm2; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "mmtest1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(m1,gm1,ni1,gm2; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "mmtest1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof],estimformat = "%0.1f", statisticformat = "%0.1f")
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "mmtest1.txt"), joinpath(dirname(@__FILE__), "tables", "mmtest1_reference.txt"))
 
 rm(joinpath(dirname(@__FILE__), "tables", "mmtest1.txt"))
