@@ -145,7 +145,17 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     yname(r::RegressionModel) = responsename(r) # returns a Symbol
     ther2(r::FixedEffectModel) = r.r2
     ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
-    ther2(r::RegressionModel) = islinear(r) ? r2(r) : NaN
+    function ther2(r::RegressionModel)
+        if islinear(r)
+            try # do this in a failsafe way... some packages don't define a r2 even for linear models 
+                return r2(r)
+            catch
+                return NaN
+            end
+        else 
+            return NaN
+        end
+    end
 
     # print a warning message if standardize_coef == true but one
     # of the regression results is not a TableRegressionModel

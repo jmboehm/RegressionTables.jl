@@ -3,7 +3,8 @@ using RegressionTables
 tests = ["RegressionTables.jl",
 				 "decorations.jl",
 				 "label_transforms.jl",
-				 "GLFixedEffectModels.jl"
+				 "GLFixedEffectModels.jl",
+				 "MixedModels.jl"
 		 ]
 
 println("Running tests:")
