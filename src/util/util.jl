@@ -8,6 +8,23 @@ isFERegressionResult(r::TableRegressionModel) = false
 isIVRegressionResult(r::TableRegressionModel) = false
 isOLSRegressionResult(r::TableRegressionModel) = isa(r.model, LinearModel)
 
+# this is in particular for GLFixedEffectModels
+function isFERegressionResult(rr::RegressionModel) 
+    # note that until StatsBase supports has_fe, this always returns false...
+    try 
+        return has_fe(rr)
+    catch 
+        return false
+    end
+end
+function isIVRegressionResult(rr::RegressionModel) 
+    try 
+        return has_iv(rr)
+    catch 
+        return false
+    end
+end
+isOLSRegressionResult(rr::RegressionModel) = islinear(rr)
 
 # get display labels for terms
 function name(t::InteractionTerm)

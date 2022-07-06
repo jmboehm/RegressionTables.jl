@@ -2,23 +2,22 @@ using RegressionTables
 using FixedEffectModels, GLM, RDatasets, Test
 
 df = dataset("datasets", "iris")
-df[!, :SpeciesDummy] = categorical(df[!,:Species])
-df[!, :isSmall] = categorical(df[!, :SepalWidth] .< 2.9)
-df[!, :isWide] = categorical(df[!, :SepalWidth] .> 2.5)
+df[!, :isSmall] = df[!, :SepalWidth] .< 2.9
+df[!, :isWide] = df[!, :SepalWidth] .> 2.5
 
 # FixedEffectModels.jl
 rr1 = reg(df, @formula(SepalLength ~ SepalWidth))
-rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
-rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + PetalWidth + fe(SpeciesDummy) + fe(isSmall)))
-rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
-rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(SpeciesDummy)))
-rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)&fe(isWide) + fe(isSmall)))
+rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(Species)))
+rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + PetalWidth + fe(Species) + fe(isSmall)))
+rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(Species)))
+rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(Species)))
+rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(Species)&fe(isWide) + fe(isSmall)))
 rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
 
 # GLM.jl
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
-    Outcome = categorical(repeat(["A", "B", "C"], outer = 3)),
-    Treatment = categorical(repeat(["a","b", "c"], inner = 3)))
+    Outcome = repeat(["A", "B", "C"], outer = 3),
+    Treatment = repeat(["a","b", "c"], inner = 3))
 
 lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 lm2 = fit(LinearModel, @formula(SepalLength ~ SepalWidth + PetalWidth), df)
@@ -179,23 +178,23 @@ RegressionTables.regtable(rr1,rr5,rr2,rr4; renderSettings = RegressionTables.asc
 RegressionTables.regtable(rr5,rr1,rr2,rr4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest9.txt")), groups=["grp1" "grp1" "grp2" "grp2"])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"), joinpath(dirname(@__FILE__), "tables", "ftest9_reference.txt"))
 
-regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
 
-regtable(rr1,rr2,rr3,rr5,rr6,rr7; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test7.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(rr1,rr2,rr3,rr5,rr6,rr7; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test7.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test7.txt"), joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
 
-regtable(lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
+RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test3.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
 
-regtable(lm1, lm2, lm4; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test8.txt")), regression_statistics = [:nobs, :r2])
+RegressionTables.regtable(lm1, lm2, lm4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test8.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test8.txt"), joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
 
 using Statistics
 comments = ["Baseline", "Preferred"]
 means = [Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
 mystats = NamedTuple{(:comments, :means)}((comments, means))
-regtable(rr1, rr2; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "test9.txt")), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
+RegressionTables.regtable(rr1, rr2; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test9.txt")), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 
 # below_decoration = :none
@@ -237,22 +236,22 @@ RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asc
 # regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 #
 
-regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test2.tex")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.latexOutput(joinpath(dirname(@__FILE__), "tables", "test2.tex")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.tex"), joinpath(dirname(@__FILE__), "tables", "test2_reference.tex"))
 
-regtable(lm1, lm2, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2])
+RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.latexOutput(joinpath(dirname(@__FILE__), "tables", "test4.tex")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
 
-regtable(lm1, lm2, lm3, gm1; renderSettings = latexOutput(joinpath(dirname(@__FILE__), "tables", "test6.tex")), regression_statistics = [:nobs, :r2], transform_labels = :ampersand)
+RegressionTables.regtable(lm1, lm2, lm3, gm1; renderSettings = RegressionTables.latexOutput(joinpath(dirname(@__FILE__), "tables", "test6.tex")), regression_statistics = [:nobs, :r2], transform_labels = :ampersand)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test6.tex"), joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
 
 
 
 # HTML Tables
-regtable(rr1,rr2,rr3,rr5; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test1.html")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.htmlOutput(joinpath(dirname(@__FILE__), "tables", "test1.html")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.html"), joinpath(dirname(@__FILE__), "tables", "test1_reference.html"))
 
-regtable(lm1, lm2, gm1; renderSettings = htmlOutput(joinpath(dirname(@__FILE__), "tables", "test2.html")), regression_statistics = [:nobs, :r2])
+RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.htmlOutput(joinpath(dirname(@__FILE__), "tables", "test2.html")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.html"), joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
 
 
@@ -279,3 +278,26 @@ rm(joinpath(dirname(@__FILE__), "tables", "test9.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test10.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
+
+# to update the reference files, re-create them from the above, then rename
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"),joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"),joinpath(dirname(@__FILE__), "tables", "ftest2_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"),joinpath(dirname(@__FILE__), "tables", "ftest3_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"),joinpath(dirname(@__FILE__), "tables", "ftest4_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"),joinpath(dirname(@__FILE__), "tables", "ftest5_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"),joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest7.txt"),joinpath(dirname(@__FILE__), "tables", "ftest7_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest8.txt"),joinpath(dirname(@__FILE__), "tables", "ftest8_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"),joinpath(dirname(@__FILE__), "tables", "ftest9_reference.txt"))
+
+# mv(joinpath(dirname(@__FILE__), "tables", "test1.txt"),joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test2.tex"),joinpath(dirname(@__FILE__), "tables", "test2_reference.tex"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test3.txt"),joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test4.tex"),joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test6.tex"),joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test7.txt"),joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test8.txt"),joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test9.txt"),joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test10.txt"),joinpath(dirname(@__FILE__), "tables", "test10_reference.txt"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test1.html"),joinpath(dirname(@__FILE__), "tables", "test1_reference.html"))
+# mv(joinpath(dirname(@__FILE__), "tables", "test2.html"),joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))

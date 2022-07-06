@@ -1,8 +1,8 @@
-[![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![Coverage Status](https://coveralls.io/repos/jmboehm/RegressionTables.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmboehm/RegressionTables.jl?branch=master) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master) [![DOI](https://zenodo.org/badge/110714417.svg)](https://zenodo.org/badge/latestdoi/110714417)
+[![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master) [![DOI](https://zenodo.org/badge/110714417.svg)](https://zenodo.org/badge/latestdoi/110714417)
 
 # RegressionTables.jl
 
-This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl).
+This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl), as well as any package that implements the [RegressionModel abstraction](https://juliastats.org/StatsBase.jl/latest/statmodels/).
 
 In its objective it is similar to  (and heavily inspired by) the Stata command [`esttab`](http://repec.sowi.unibe.ch/stata/estout/esttab.html) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/).
 
@@ -141,6 +141,8 @@ N                   150        150          9
 R2                0.014      0.014           
 ---------------------------------------------
 ```
+Printing of `StatsBase.RegressionModel`s is experimental; please file as issue if you encounter problems printing them.
+
 
 ## Options
 
@@ -158,6 +160,7 @@ R2                0.014      0.014
 * `custom_statistics` is a `NamedTuple` that takes user specified statistics to be shown just above `regression_statistics`. By default each statistic will be labelled by its key (e.g. `__LABEL_STATISTIC_mystat__` for the statistic `mystat`). Defaults to `missing`. See `test/RegressionTables.jl` for an example of how to use this.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
 * `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "($s)"`.
+* `groups` is a `Vector` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions. Defaults to `[]`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV) is used. Defaults to `true`.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
