@@ -83,6 +83,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
+    align::Symbol = :r,
     estimformat::String = "%0.3f",
     estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
     statisticformat::String = "%0.3f",
@@ -437,7 +438,10 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     end
 
     # construct alignment string:
-    align = "l" * ("r" ^ numberOfResults)
+    if align ∉ [:l,:c,:r]
+        error("`align` keyword needs to be one of [:r,:c,:l]")
+    end
+    align_results = "l" * (string(align) ^ numberOfResults)
 
     bodyBlocks = [estimateBlock]
 
@@ -474,7 +478,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
         end
     end
 
-    render(outstream, tab , align, renderSettings )
+    render(outstream, tab , align_results, renderSettings )
 
     # if we're writing to a file, close it
     if renderSettings.outfile != ""
