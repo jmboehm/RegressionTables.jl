@@ -15,7 +15,7 @@ To install the package, type in the Julia command prompt
 ## A brief demonstration
 
 ```julia
-using RegressionTables, DataFrames, FixedEffectModels, RDatasets
+using RegressionTables, DataFrames, FixedEffectModels, RDatasets, CategoricalArrays
 
 df = dataset("datasets", "iris")
 df[!,:SpeciesDummy] = categorical(df[!,:Species])
@@ -150,6 +150,7 @@ Printing of `StatsBase.RegressionModel`s is experimental; please file as issue i
 * `rr::Union{FixedEffectModel,DataFrames.TableRegressionModel}...` are the `FixedEffectModel`s from `FixedEffectModels.jl` (or `TableRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown. Note that strings need to match the displayed label exactly, otherwise they will not be shown.
+* `align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of results columns (default `:r` right-aligned). Has only an effect on latex output.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
 * `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).

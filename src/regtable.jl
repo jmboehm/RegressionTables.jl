@@ -6,6 +6,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `rr::FixedEffectModel...` are the `FixedEffectModel`s from `FixedEffectModels.jl` that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown. Note that the string needs to match the display label exactly, otherwise it will not be shown.
+* `align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of results columns (default `:r` right-aligned). Currently works only with ASCII and LaTeX output.
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
 * `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).
@@ -83,6 +84,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
+    align::Symbol = :r,
     estimformat::String = "%0.3f",
     estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
     statisticformat::String = "%0.3f",
@@ -437,7 +439,10 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     end
 
     # construct alignment string:
-    align = "l" * ("r" ^ numberOfResults)
+    if align ∉ [:l,:c,:r]
+        error("`align` keyword needs to be one of [:r,:c,:l]")
+    end
+    align_results = "l" * (string(align) ^ numberOfResults)
 
     bodyBlocks = [estimateBlock]
 
@@ -474,7 +479,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
         end
     end
 
-    render(outstream, tab , align, renderSettings )
+    render(outstream, tab , align_results, renderSettings )
 
     # if we're writing to a file, close it
     if renderSettings.outfile != ""
