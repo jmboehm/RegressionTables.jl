@@ -328,14 +328,14 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
         feBlock = Array{String}(undef,0,numberOfResults+1)
         for fe in feList
             feLine = fill("", 1, numberOfResults+1)
-            for resultIndex = 1:numberOfResults if isFERegressionResult(rr[resultIndex])
+            for resultIndex = 1:numberOfResults
                 index = findall(name(fe) .== name.(febyrr[resultIndex]))
                 if !isempty(index)
                     feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
                 else
                     feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
                 end
-            end end
+            end
             # check if the regressor was not found
             if feLine == fill("", 1, numberOfResults+1)
                @warn("Fixed effect $fe not found in any regression results.")
