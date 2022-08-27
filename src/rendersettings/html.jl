@@ -17,7 +17,7 @@ function htmlOutput(outfile::String = "")
     # toprule: just a spacer <tr>
     toprule = "<tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
     # midrule: a <tr> with black border on bottom, and a <tr> spacer
-    midrule = "<tr style=\"border-bottom:1px solid black\"><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr><tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
+    midrule = "<tr style=\"border-bottom:1px solid\"><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr><tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
     # bottomrule: a slightly larger spacer
     bottomrule = "<tr><td style=\"padding:0.15cm\" colspan=\"100%\"></td></tr>"
     headerrule = htmlHeaderRule
