@@ -100,8 +100,8 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     standardize_coef = false,
     out_buffer = IOBuffer(),
     transform_labels::Union{Dict,Function,Symbol} = identity,
-    renderSettings::RenderSettings = asciiOutput()
-    )
+    renderSettings::RenderSettings = asciiOutput(),
+    print_result = true)
     
     _transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
       
@@ -485,8 +485,13 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     if renderSettings.outfile != ""
         close(outstream)
     else # else print the table
-        println(Compat.String(take!(copy(outstream))))
+        # if desired
+        if print_result
+            println(Compat.String(take!(copy(outstream))))
+        else
+            # return the buffer
+            take!(copy(outstream))
+        end
     end
-
 end
 
