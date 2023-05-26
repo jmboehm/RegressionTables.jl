@@ -141,7 +141,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     df_residual(r::FixedEffectModel) = dof_residual(r)
     df_residual(r::TableRegressionModel) = dof_residual(r)
     df_residual(r::RegressionModel) = dof_residual(r)
-    yname(r::FixedEffectModel) = r.yname
+    yname(r::FixedEffectModel) = r.responsename
     yname(r::TableRegressionModel) = lhs( r.mf.f.lhs ) # returns a Symbol
     yname(r::RegressionModel) = responsename(r) # returns a Symbol
     ther2(r::FixedEffectModel) = r.r2

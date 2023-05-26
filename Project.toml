@@ -17,7 +17,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 Compat = "2, 3, 4"
 Distributions = "0.21, 0.23, 0.24, 0.25"
-FixedEffectModels = "0.10, 0.11, 1"
+FixedEffectModels = "1.9"
 Formatting = "0.4"
 GLM = "1.3"
 StatsBase = "0.32, 0.33, 0.34"

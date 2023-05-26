@@ -36,7 +36,12 @@ function name(t::InteractionTerm)
     n
 end
 function name(t::FunctionTerm)
-    string(t.args_parsed[1].sym)
+    tmp = StatsBase.coefnames(t)
+    if tmp[1:3] == "fe("
+        return tmp[4:end-1]
+    end
+    return tmp
+#    string(t.args_parsed[1].sym)
 end
 function name(t::FixedEffectTerm)
     string(t.x)
