@@ -36,13 +36,9 @@ function name(t::InteractionTerm)
     n
 end
 function name(t::FunctionTerm)
-    tmp = StatsBase.coefnames(t)
-    if tmp[1:3] == "fe("
-        return tmp[4:end-1]
+    if t.f === FixedEffectModels.fe
+        string(t.exorig.args[end])
+    else
+        StatsBase.coefnames(t)
     end
-    return tmp
-#    string(t.args_parsed[1].sym)
-end
-function name(t::FixedEffectTerm)
-    string(t.x)
 end
