@@ -31,6 +31,6 @@ F                           30.836    17.468
 F-test p value               0.000     0.000                                 
 First-stage F statistic               19.962                                 
 First-stage p value                    0.000                                 
-Degrees of Freedom             144       145                                 
+Degrees of Freedom             145       145                                 
 -----------------------------------------------------------------------------
 

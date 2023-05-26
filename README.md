@@ -1,10 +1,19 @@
-[![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![Coverage Status](https://coveralls.io/repos/jmboehm/RegressionTables.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/jmboehm/RegressionTables.jl?branch=master) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master) [![DOI](https://zenodo.org/badge/110714417.svg)](https://zenodo.org/badge/latestdoi/110714417)
+[![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master) [![DOI](https://zenodo.org/badge/110714417.svg)](https://zenodo.org/badge/latestdoi/110714417)
 
 # RegressionTables.jl
 
 This package provides publication-quality regression tables for use with [FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl) and [GLM.jl](https://github.com/JuliaStats/GLM.jl), as well as any package that implements the [RegressionModel abstraction](https://juliastats.org/StatsBase.jl/latest/statmodels/).
 
 In its objective it is similar to  (and heavily inspired by) the Stata command [`esttab`](http://repec.sowi.unibe.ch/stata/estout/esttab.html) and the R package [`stargazer`](https://cran.r-project.org/web/packages/stargazer/).
+
+## Table of Contents
+
+- [Installation](#Installation)
+- [A brief demonstration](#a-brief-demonstration)
+- [Function Reference](#function-reference)
+- [Frequently Asked Questions](#frequently-asked-questions)
+
+## Installation
 
 To install the package, type in the Julia command prompt
 
@@ -15,7 +24,7 @@ To install the package, type in the Julia command prompt
 ## A brief demonstration
 
 ```julia
-using RegressionTables, DataFrames, FixedEffectModels, RDatasets
+using RegressionTables, DataFrames, FixedEffectModels, RDatasets, CategoricalArrays
 
 df = dataset("datasets", "iris")
 df[!,:SpeciesDummy] = categorical(df[!,:Species])
@@ -144,12 +153,13 @@ R2                0.014      0.014
 Printing of `StatsBase.RegressionModel`s is experimental; please file as issue if you encounter problems printing them.
 
 
-## Options
+## Function Reference
 
 ### Function Arguments
 * `rr::Union{FixedEffectModel,DataFrames.TableRegressionModel}...` are the `FixedEffectModel`s from `FixedEffectModels.jl` (or `TableRegressionModel`s from `GLM.jl`) that should be printed. Only required argument.
 * `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
 * `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown. Note that strings need to match the displayed label exactly, otherwise they will not be shown.
+* `align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of results columns (default `:r` right-aligned). Currently affects only latex and ASCII  output.
 * `labels` is a `Dict` that contains displayed labels for variables (strings) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
 * `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).
@@ -163,6 +173,7 @@ Printing of `StatsBase.RegressionModel`s is experimental; please file as issue i
 * `groups` is a `Vector` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions. Defaults to `[]`.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV) is used. Defaults to `true`.
+* `print_result` is a `Bool` that governs whether the table should be printed to `stdout`. Defaults to `true`.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
 * `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
 * `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
@@ -210,3 +221,9 @@ to change the label for the row showing the number of observations in each regre
 * `__LABEL_STATISTIC_F_KP__` (default: "First-stage F statistic" in `asciiOutput()`)
 * `__LABEL_STATISTIC_P_KP__` (default: "First-stage p value" in `asciiOutput()`)
 * `__LABEL_STATISTIC_DOF__` (default: "Degrees of Freedom" in `asciiOutput()`)
+
+## Frequently Asked Questions
+
+*What's the best way to render regression tables in Pluto.jl?*
+
+Use `renderSettings = htmlOutput()` and `print_result = false`, and print the resulting `String` as `text/html`. [This page](https://jmboehm.github.io/regtables-pluto.jl.html) shows an example. 
