@@ -95,6 +95,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
     groups = [],
+    hide_regressands = false,
     print_fe_section = true,
     print_estimator_section = true,
     standardize_coef = false,
@@ -228,23 +229,26 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
       
     # Regressand block (referred to as `header` in render)
     #   needs to be separately rendered
-    regressandBlock = fill("", 1, numberOfResults+1)
-    for rIndex = 1:numberOfResults
-        # keep in mind that yname is a Symbol
-        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : _transform_labels(string(yname(rr[rIndex])))
+    if !hide_regressands
+        regressandBlock = fill("", 1, numberOfResults+1)
+        for rIndex = 1:numberOfResults
+            # keep in mind that yname is a Symbol
+            regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : _transform_labels(string(yname(rr[rIndex])))
+        end
+    else
+        regressandBlock = fill("", 0, numberOfResults+1)
     end
-    
     if length(groups) > 0
         groupBlock = reshape(string.(groups), :, numberOfResults) .|> _transform_labels
-        regressandBlock = [fill("", size(groupBlock, 1)) groupBlock;
-                           regressandBlock]
+        regressandBlock = [regressandBlock;
+                           fill("", size(groupBlock, 1)) groupBlock]
     end
     
     # Regression numbering block (if we do it)
     if number_regressions
         regressionNumberBlock = fill("", 1, numberOfResults + 1)
         for rIndex = 1:numberOfResults
-            regressionNumberBlock[1,rIndex+1] = number_regressions_decoration(rIndex)
+            regressionNumberBlock[1,rIndex+1] = string(number_regressions_decoration(rIndex))
         end
     end
 
