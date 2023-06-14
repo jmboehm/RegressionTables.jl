@@ -80,17 +80,14 @@ regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, 
 
 ```
 """
-function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionModel}...;
+function regtable(rrs...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
     align::Symbol = :r,
-    estimformat::String = "%0.3f",
-    estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
-    statisticformat::String = "%0.3f",
-    below_statistic::Symbol = :se,
-    below_decoration::Function = s::String -> "($s)",
-    regression_statistics::Vector{Symbol} = [:nobs, :r2],
+    #estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
+    below_statistic = STDError,
+    regression_statistics = [Nobs, R2],
     custom_statistics::Union{Missing,NamedTuple} = missing,
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
@@ -100,189 +97,46 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     standardize_coef = false,
     out_buffer = IOBuffer(),
     transform_labels::Union{Dict,Function,Symbol} = identity,
-    renderSettings::RenderSettings = asciiOutput(),
-    print_result = true)
+    renderSettings = AsciiTable,
+    print_result = true
+)
     
+    renderSettings(
+        regtablesingle.(
+            rrs;
+            regression_statistics,
+            labels,
+            fixedeffects,
+            regressors,
+        )...;
+        below_statistic,
+        number_regressions,
+        number_regressions_decoration,
+        groups
+    )
+end
+#=
     _transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
-      
-    # define some functions that makes use of StatsModels' RegressionModels
-    coefnames(r::RegressionModel) = StatsBase.coefnames(r)
-    coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
-    coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move
-                                                                  # to FixedEffectModels 0.8.2
-    # if standardize_coef == true
-    #     function coef(r::TableRegressionModel)
-    #         cc = StatsModels.coef(r)
-    #         return [ cc[i]*std(r.model.pp.X[:,i])/std(r.model.rr.y) for i in 1:length(cc) ]
-    #     end
-    #     function vcov(r::TableRegressionModel)
-    #         vc = StatsModels.vcov(r)
-    #         mul = [ std(r.model.pp.X[:,i])*std(r.model.pp.X[:,j])/(std(r.model.rr.y)*std(r.model.rr.y)) for i in 1:size(cc,1), j in 1:size(cc,1)  ]
-    #         return mul .* vc
-    #     end
-    # else # do not standardize
-    #     function coef(r::TableRegressionModel)
-    #         return StatsModels.coef(r)
-    #     end
-    #     function vcov(r::TableRegressionModel)
-    #         return StatsModels.vcov(r)
-    #     end
-    # end
-    
-    lhs( t :: FunctionTerm ) = Symbol( t.exorig )
-    lhs( t ) = t.sym
-    
-    coef(r::FixedEffectModel) = r.coef
-    vcov(r::FixedEffectModel) = r.vcov
-    coef(r::TableRegressionModel) = StatsModels.coef(r)
-    vcov(r::TableRegressionModel) = StatsModels.vcov(r)
-    coef(r::RegressionModel) = StatsBase.coef(r)
-    vcov(r::RegressionModel) = StatsBase.vcov(r)
-    df_residual(r::FixedEffectModel) = dof_residual(r)
-    df_residual(r::TableRegressionModel) = dof_residual(r)
-    df_residual(r::RegressionModel) = dof_residual(r)
-    yname(r::FixedEffectModel) = r.yname
-    yname(r::TableRegressionModel) = lhs( r.mf.f.lhs ) # returns a Symbol
-    yname(r::RegressionModel) = responsename(r) # returns a Symbol
-    ther2(r::FixedEffectModel) = r.r2
-    ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
-    function ther2(r::RegressionModel)
-        if islinear(r)
-            try # do this in a failsafe way... some packages don't define a r2 even for linear models 
-                return r2(r)
-            catch
-                return NaN
-            end
-        else 
-            return NaN
-        end
-    end
-
-    # print a warning message if standardize_coef == true but one
-    # of the regression results is not a TableRegressionModel
-    if standardize_coef && any(.!isa.(rr,StatsModels.TableRegressionModel))
-        @warn("Standardized coefficients are only shown for TableRegressionModel regression results.")
-    end
-
-    numberOfResults = size(rr,1)
-
-    # Create an RegressionTable from the regression results
-
-    # ordering of regressors:
-    if length(regressors) == 0
-        # construct default ordering: from ordering in regressions (like in Stata)
-        regressorList = Vector{String}()
-        for r in rr # FixedEffectModel
-            names = coefnames(r)
-            for regressorIndex = 1:length(names)
-                if !(any(regressorList .== names[regressorIndex]))
-                    # add to list
-                    push!(regressorList, names[regressorIndex])
-                end
-            end
-        end
-    else
-        # take the list of regressors from the argument
-        regressorList = regressors
-    end
-
-    # for each regressor, check each regression result, calculate statistic, and construct block
-    estimateBlock = Array{String}(undef,0,numberOfResults+1)
-    for regressor in regressorList
-        estimateLine = fill("", below_statistic == :none ? 1 : 2, numberOfResults+1)
-        for resultIndex = 1:numberOfResults
-            thiscnames = coefnames(rr[resultIndex])
-            thiscoef = coef(rr[resultIndex])
-            thisvcov = vcov(rr[resultIndex])
-            if standardize_coef && isa(rr[resultIndex],StatsModels.TableRegressionModel)
-                thiscoef = [ thiscoef[i]*std(rr[resultIndex].model.pp.X[:,i])/std(rr[resultIndex].model.rr.y) for i in 1:length(thiscoef) ]
-                mul = [ std(rr[resultIndex].model.pp.X[:,i])*std(rr[resultIndex].model.pp.X[:,j])/(std(rr[resultIndex].model.rr.y)*std(rr[resultIndex].model.rr.y)) for i in 1:length(thiscoef), j in 1:length(thiscoef)  ]
-                thisvcov  = mul .* thisvcov
-            end
-            thisdf_residual = df_residual(rr[resultIndex])
-            index = findall(regressor .== thiscnames)
-            if !isempty(index)
-                pval = ccdf(FDist(1, thisdf_residual ), abs2(thiscoef[index[1]]/sqrt(thisvcov[index[1],index[1]])))
-                estimateLine[1,resultIndex+1] = estim_decoration(sprintf1(estimformat,thiscoef[index[1]]),pval)
-                if below_statistic == :tstat
-                    s = sprintf1(statisticformat, thiscoef[index[1]]/sqrt(thisvcov[index[1],index[1]]))
-                    estimateLine[2,resultIndex+1] = below_decoration(s)
-                elseif below_statistic == :se
-                    s = sprintf1(statisticformat, sqrt(thisvcov[index[1],index[1]]))
-                    estimateLine[2,resultIndex+1] = below_decoration(s)
-                elseif below_statistic == :blank
-                    estimateLine[2,resultIndex+1] = "" # for the sake of completeness
-                end
-            end
-        end
-        # check if the regressor was not found
-        if estimateLine == fill("", 2, numberOfResults+1)
-           @warn("Regressor $(String(regressor)) not found among regression results.")
-        else
-            # add label on the left:
-            estimateLine[1,1] = haskey(labels,regressor) ? labels[regressor] : _transform_labels(regressor)
-            # add to estimateBlock
-            estimateBlock = [estimateBlock; estimateLine]
-        end
-    end
-      
-    # Regressand block (referred to as `header` in render)
-    #   needs to be separately rendered
-    regressandBlock = fill("", 1, numberOfResults+1)
-    for rIndex = 1:numberOfResults
-        # keep in mind that yname is a Symbol
-        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : _transform_labels(string(yname(rr[rIndex])))
-    end
     
     if length(groups) > 0
         groupBlock = reshape(string.(groups), :, numberOfResults) .|> _transform_labels
         regressandBlock = [fill("", size(groupBlock, 1)) groupBlock;
                            regressandBlock]
     end
-    
-    # Regression numbering block (if we do it)
-    if number_regressions
-        regressionNumberBlock = fill("", 1, numberOfResults + 1)
-        for rIndex = 1:numberOfResults
-            regressionNumberBlock[1,rIndex+1] = number_regressions_decoration(rIndex)
-        end
-    end
 
     # Fixed effects block
-    print_fe_block = print_fe_section && any(isFERegressionResult.(rr))
+    print_fe_block = print_fe_section && any(has_fe.(rr))
     if print_fe_block
 
         # construct list of fixed effects for display
         feList = Vector{AbstractTerm}()
-        for r in rr if isFERegressionResult(r)
+        for r in rr if has_fe(r)
 
             for term in eachterm(r.formula.rhs)
                 if has_fe(term) && !(any(name.(feList) .== name(term)))
                     push!(feList, term)
                 end
             end
-
-            # if isa(r.feformula, Symbol)
-            #     if !(any(feList .== string(r.feformula)))
-            #         # add to list
-            #         push!(feList, string(r.feformula))
-            #     end
-            # elseif r.feformula.args[1] == :+
-            #     x = r.feformula.args
-            #     for i in 2:length(x)
-            #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-            #             if !(any(feList .== string(x[i])))
-            #                 # add to list
-            #                 push!(feList, string(x[i]))
-            #             end
-            #         end
-            #     end
-            # elseif r.feformula.args[1] == :*
-            #     # push the whole interaction
-            #     if !(any(feList .== string(r.feformula)))
-            #         push!(feList, string(r.feformula))
-            #     end
-            # end
 
         end end
         # in case the user supplies a list of FE's, cut down the list
@@ -300,26 +154,12 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
         febyrr = Vector{Vector{AbstractTerm}}()
         for r in rr
             fe = Vector{AbstractTerm}()
-            if isFERegressionResult(r)
+            if has_fe(r)
                 for term in eachterm(r.formula.rhs)
                     if has_fe(term)
                         push!(fe, term)
                     end
                 end
-                # if isa(r.feformula, Symbol)
-                #     # add to list
-                #     push!(fe, string(r.feformula))
-                # elseif r.feformula.args[1] == :+
-                #     x = r.feformula.args
-                #     for i in 2:length(x)
-                #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-                #             # add to list
-                #             push!(fe, string(x[i]))
-                #         end
-                #     end
-                # elseif r.feformula.args[1] == :*
-                #     push!(fe, string(r.feformula))
-                # end
             end
             push!(febyrr, fe)
         end
@@ -352,10 +192,10 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
         estimatorBlock = fill("", 1, numberOfResults+1)
         estimatorBlock[1,1] = haskey(labels, "__LABEL_ESTIMATOR__") ? labels["__LABEL_ESTIMATOR__"] : renderSettings.label_estimator
         for i = 1:numberOfResults
-            if isOLSRegressionResult(rr[i])
-                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_OLS__") ? labels["__LABEL_ESTIMATOR_OLS__"] : renderSettings.label_estimator_ols
-            elseif isIVRegressionResult(rr[i])
+            if has_iv(rr[i])
                 estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_IV__") ? labels["__LABEL_ESTIMATOR_IV__"] : renderSettings.label_estimator_iv
+            if islinear(rr[i])
+                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_OLS__") ? labels["__LABEL_ESTIMATOR_OLS__"] : renderSettings.label_estimator_ols
             else
                 estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_NL__") ? labels["__LABEL_ESTIMATOR_NL__"] : renderSettings.label_estimator_nl
             end
@@ -495,3 +335,4 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     end
 end
 
+=#

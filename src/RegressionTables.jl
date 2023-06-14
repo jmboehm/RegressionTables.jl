@@ -32,20 +32,16 @@ module RegressionTables
     using StatsBase
     using StatsModels
     using Statistics
-
-    using Compat
+    using StatsAPI
 
     import Distributions: ccdf, FDist
-    import FixedEffectModels: FixedEffectModel, has_fe, has_iv, eachterm, FixedEffectTerm #AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
-    import Formatting: sprintf1
+    import Formatting: sprintf1, format
     import GLM: LinearModel
     import StatsModels: TableRegressionModel
 
     import StatsBase: coef, coeftable, confint, deviance, nulldeviance, dof, dof_residual,
                       loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,
                       fit, model_response, r2, r², adjr2, adjr², PValue
-
-    using UnPack: @unpack
     
     ##############################################################################
     ##
@@ -53,8 +49,12 @@ module RegressionTables
     ##
     ##############################################################################
 
-    export regtable, latexOutput, asciiOutput, htmlOutput, RenderSettings, escape_ampersand
+    export regtable, LatexTable, AsciiTable, HTMLTable
     export make_estim_decorator
+    export Nobs, R2, R2McFadden, R2CoxSnell, R2Nagelkerke, R2Adjusted, R2AdjustedMcFadden,
+    R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC
+    export TStat, STDError
+
 
     ##############################################################################
     ##
@@ -63,21 +63,22 @@ module RegressionTables
     ##############################################################################
 
     # main types
-    include("rendersettings.jl")
     include("regressiontable.jl")
+    include("RegressionStatistics.jl")
+    include("regressiontable2.jl")
+    include("header.jl")
 
-    # misc
-    include("util/util.jl")
 
     # main settings
     include("decorations/default_decorations.jl")
+    include("rendersettings/default.jl")
     include("rendersettings/ascii.jl")
     include("rendersettings/latex.jl")
     include("rendersettings/html.jl")
     include("label_transforms/default_transforms.jl")
 
     # main functions
-    include("header.jl")
+    
     include("render.jl")
     include("regtable.jl")
 

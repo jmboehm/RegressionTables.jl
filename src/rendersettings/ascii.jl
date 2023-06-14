@@ -1,43 +1,28 @@
-function asciiOutput(outfile::String = "")
-    asciiRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "$s"
-    asciiTableHeader(numberOfResults::Int64, align::String) = ""
-    asciiTableFooter(numberOfResults::Int64, align::String) = ""
-    asciiHeaderRule(headerCellStartEnd::Vector{Vector{Int64}}) = "-"
-    toprule = "-"
-    midrule = "-"
-    bottomrule = "-"
-    headerrule = asciiHeaderRule
-    headercolsep = "   "
-    colsep = "   "
-    linestart = ""
-    linebreak = ""
-
-    label_fe_yes = "Yes"
-    label_fe_no = ""
-
-    label_statistic_n = "N"
-    label_statistic_r2 = "R2"
-    label_statistic_adjr2 = "Adjusted R2"
-    label_statistic_r2_within = "Within-R2"
-    label_statistic_f = "F"
-    label_statistic_p = "F-test p value"
-    label_statistic_f_kp = "First-stage F statistic"
-    label_statistic_p_kp = "First-stage p value"
-    label_statistic_dof = "Degrees of Freedom"
-
-    label_estimator = "Estimator"
-    label_estimator_ols = "OLS"
-    label_estimator_iv = "IV"
-    label_estimator_nl = "NL"
-
-    foutfile = outfile
-    encapsulateRegressand = asciiRegressandTransform
-    header = asciiTableHeader
-    footer = asciiTableFooter
-    return RenderSettings(toprule, midrule, bottomrule, headerrule, headercolsep, colsep, linestart,
-        linebreak, label_fe_yes, label_fe_no,
-        label_statistic_n, label_statistic_r2, label_statistic_adjr2, label_statistic_r2_within,
-        label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, label_statistic_dof,
-        label_estimator, label_estimator_ols, label_estimator_iv, label_estimator_nl,
-        foutfile, encapsulateRegressand, header, footer)
+function total_length(tab, r=1:size(tab, 2), widths=colwidths(tab), sep=colsep(tab))
+    sum(widths[r]) + (length(r)-1) * length(sep)
 end
+
+encapsulateRegressand(::AbstractAscii, s, args...) = "$s"
+tablestart(::AbstractAscii) = ""
+tableend(::AbstractAscii) = ""
+headerrule(tab::AbstractAscii, l = total_length(tab)) = "-" ^ l
+function print_headerrule(io::IO, tab::AbstractAscii, row::HeaderRow)
+    for (i, value) in enumerate(row.values)
+        if length(first(value)) > 0
+            print(io, headerrule(tab, total_length(tab, last(value))))
+        else
+            print(io, " " ^ total_length(tab, last(value)))
+        end
+        if i < length(row.values)
+            print(io, colsep(tab))
+        end
+    end
+    println(io)
+end
+toprule(tab::AbstractAscii, l = total_length(tab)) = "-" ^ l
+midrule(tab::AbstractAscii, l = total_length(tab)) = "-" ^ l
+bottomrule(tab::AbstractAscii, l = total_length(tab)) = "-" ^ l
+headercolsep(::AbstractAscii) = "   "
+colsep(::AbstractAscii) = "   "
+linestart(::AbstractAscii) = ""
+linebreak(::AbstractAscii) = ""

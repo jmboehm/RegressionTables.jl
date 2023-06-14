@@ -1,102 +1,70 @@
-import RegressionTables: columns
+struct HeaderRow
+    values::Vector{Pair{String, UnitRange{Int}}} # value, column range
+    parent::AbstractRenderType
+end
+struct Header
+    rows::Vector{HeaderRow}
+    parent::AbstractRenderType
+end
 
-align_table(tab) = "l" * ("r" ^ (columns(tab) - 1))
-
-function column_widths(tab, align)
-    n_columns = columns(tab)
-    
-    if length(align) != n_columns
-        error("align string has invalid length.")
-    end
-
-    # construct column width, first from the maximum of the bodies' column widths.
-    colWidths = zeros(Int64, n_columns)
-    for colIndex = 1:n_columns
-        if (align[colIndex] == 'l') || (align[colIndex] == 'r') || (align[colIndex] == 'c')
-            colWidths[colIndex] = maximum([length(b[r,colIndex]) for b in tab.bodies for r=1:size(b,1) ])
+function HeaderRow(tab::AbstractRenderType, i::Int)
+    data = header(tab)[i, :]
+    values = Vector{Pair{String, UnitRange{Int}}}()
+    x = first(data)
+    j_start = firstindex(data)
+    j_end = firstindex(data)
+    for i in eachindex(data)
+        if data[i] != x
+            push!(values, x => j_start:j_end)
+            x = data[i]
+            j_start = i
+            j_end = i
         else
-            error("Invalid character in align string. Only 'l', 'r', 'c' are allowed.")
+            j_end = i
         end
     end
-
-    colWidths
+    # push last value
+    push!(values, x => j_start:j_end)
+    return HeaderRow(values, tab)
 end
 
-function header(tab, header, settings, colWidths)
-  # header
-  headerLabels = Vector{String}(undef,0)
-  headerWidths = Vector{Int64}(undef,0)
-  headerCellStartEnd = Vector{Vector{Int64}}(undef,0)
-  # first column is empty (top left)
-  push!(headerLabels, "")
-  push!(headerWidths, colWidths[1])
-  push!(headerCellStartEnd, [1,1])
-  # first regression result
-  push!(headerLabels, header[1,2])
-  push!(headerWidths, colWidths[2])
-  push!(headerCellStartEnd, [2,2])
-  if columns(tab)>2
-      for rIndex = 3:size(header,2)
-          if header[1,rIndex] == header[1,rIndex-1]
-              headerWidths[end] += length(settings.headercolsep) + colWidths[rIndex]
-              headerCellStartEnd[end][2] += 1
-          else
-              push!(headerLabels, header[1,rIndex])
-              push!(headerWidths, colWidths[rIndex])
-              push!(headerCellStartEnd, [rIndex, rIndex])
-          end
-      end
-  end
-  
-  headerArray = Array{String}(undef,1,length(headerLabels))
-  headerArray[1,1] = ""
-  for i = 2:size(headerArray,2)
-      headerArray[1,i] = settings.encapsulateRegressand(headerLabels[i],headerCellStartEnd[i][1],headerCellStartEnd[i][2] )
-  end
-  
-  (headerArray=headerArray, headerLabels=headerLabels, headerWidths=headerWidths, headerCellStartEnd=headerCellStartEnd)
-end
-
-"""
-    now it could be that a columns of the header is wider than the colWidth of the bodies.
-    in that case, make the last column of the bodies wider.
-"""
-function adjust_widths!(colWidths, header, settings)
-    @unpack headerArray, headerCellStartEnd, headerLabels, headerWidths = header
-    
-    adjusted = false
-    
-    for i = 2:size(headerArray,2)
-        totalWidth = sum([colWidths[cind] for cind in headerCellStartEnd[i][1] : headerCellStartEnd[i][2]]) + length(settings.colsep)*(headerCellStartEnd[i][2] - headerCellStartEnd[i][1])
-        if length(headerArray[1,i])>totalWidth
-            adjusted = true
-            # extend width of cells
-            colWidths[headerCellStartEnd[i][2]] +=  (length(headerArray[1,i])-totalWidth)
-            headerWidths[i] += (length(headerArray[1,i])-totalWidth)
-        end
+function Header(tab::AbstractRenderType)
+    data = header(tab)
+    rows = Vector{HeaderRow}()
+    for i in 1:size(data, 1)
+        push!(rows, HeaderRow(tab, i))
     end
-    (adjusted = adjusted,
-     h = (headerArray=headerArray, headerLabels=headerLabels, headerWidths=headerWidths, headerCellStartEnd=headerCellStartEnd))
+    return Header(rows, tab)
 end
 
-# distinguish two cases:
-#   if headerrule gives a string of length one, put into table, and repeat the string
-function headerrule(header, settings)
-    @unpack headerArray, headerCellStartEnd, headerLabels, headerWidths = header
-    headerArray = copy(headerArray)
-    
-    hr = settings.headerrule(headerCellStartEnd)
-    if length(hr) == 1
-        secondRow = Array{String}(undef,1,length(headerLabels))
-        secondRow[1,1] = ""
-        for i = 2:size(secondRow,2)
-            secondRow[1,i] = (length(settings.midrule) == 1 ? settings.midrule ^ headerWidths[i] : settings.midrule)
+function Base.print(io::IO, row::HeaderRow; not_last_row=true)
+    print(io, linestart(row.parent))
+    for (i, value) in enumerate(row.values)
+        s = if !not_last_row || length(first(value)) == 0
+            first(value)
+        else
+            encapsulateRegressand(row.parent, first(value), last(value)[1], last(value)[end])
         end
-        headerArray = [headerArray; secondRow]
-        print_headerrule_separately = false
-    else
-        print_headerrule_separately = true
+        print_cell(
+            io,
+            row.parent,
+            s,
+            total_length(row.parent, last(value)),
+            'c',
+            i < length(row.values);
+            hdr=true
+        )
     end
-    (headerArray = headerArray, 
-     hr = (headerrule=hr, print_headerrule_separately=print_headerrule_separately))
+    println(io, linebreak(row.parent))
+    if not_last_row
+        print_headerrule(io, row.parent, row)
+    end
 end
+
+function Base.print(io::IO, header::Header)
+    for (i, row) in enumerate(header.rows)
+        not_last_row = i < length(header.rows)
+        print(io, row, not_last_row=not_last_row)
+    end
+    println(io, midrule(header.parent))
+end 
