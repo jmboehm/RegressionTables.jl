@@ -1,13 +1,13 @@
 struct HeaderRow
     values::Vector{Pair{String, UnitRange{Int}}} # value, column range
-    parent::AbstractRenderType
+    parent::RegressionTable
 end
 struct Header
     rows::Vector{HeaderRow}
-    parent::AbstractRenderType
+    parent::RegressionTable
 end
 
-function HeaderRow(tab::AbstractRenderType, i::Int)
+function HeaderRow(tab::RegressionTable, i::Int)
     data = header(tab)[i, :]
     values = Vector{Pair{String, UnitRange{Int}}}()
     x = first(data)
@@ -28,7 +28,7 @@ function HeaderRow(tab::AbstractRenderType, i::Int)
     return HeaderRow(values, tab)
 end
 
-function Header(tab::AbstractRenderType)
+function Header(tab::RegressionTable)
     data = header(tab)
     rows = Vector{HeaderRow}()
     for i in 1:size(data, 1)

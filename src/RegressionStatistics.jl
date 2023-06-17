@@ -3,86 +3,155 @@ abstract type AbstractRegressionStatistic{T} end
 struct Nobs{T<:Union{Int, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-Nobs(x::RegressionModel) = Nobs(nobs(x))
-label(tab::AbstractRenderType, x::Type{<:Nobs}) = "N"
+Nobs(x::RegressionModel) = try
+    Nobs(nobs(x))
+catch
+    Nobs(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:Nobs}) = "N"
 
 struct R2{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-R2(x::RegressionModel) = R2(r2(x))
-label(tab::AbstractRenderType, x::Type{<:R2}) = "R2"
+R2(x::RegressionModel) = try
+    R2(r2(x))
+catch
+    R2(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:R2}) = "R2"
 
 struct R2McFadden{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-R2McFadden(x::RegressionModel) = R2McFadden(r2(x, :McFadden))
-label(tab::AbstractRenderType, x::Type{<:R2McFadden}) = "McFadden " * label(tab, R2)
+R2McFadden(x::RegressionModel) = try
+    R2McFadden(r2(x, :McFadden))
+catch
+    R2McFadden(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:R2McFadden}) = "McFadden " * label(rndr, R2)
 
 struct R2CoxSnell{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-R2CoxSnell(x::RegressionModel) = R2CoxSnell(r2(x, :CoxSnell))
-label(tab::AbstractRenderType, x::Type{<:R2CoxSnell}) = "Cox-Snell " * label(tab, R2)
+R2CoxSnell(x::RegressionModel) = try
+    R2CoxSnell(r2(x, :CoxSnell))
+catch
+    R2CoxSnell(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:R2CoxSnell}) = "Cox-Snell " * label(rndr, R2)
 
 struct R2Nagelkerke{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-R2Nagelkerke(x::RegressionModel) = R2Nagelkerke(r2(x, :Nagelkerke))
-label(tab::AbstractRenderType, x::Type{<:R2Nagelkerke}) = "Nagelkerke " * label(tab, R2)
+R2Nagelkerke(x::RegressionModel) = try
+    R2Nagelkerke(r2(x, :Nagelkerke))
+catch
+    R2Nagelkerke(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:R2Nagelkerke}) = "Nagelkerke " * label(rndr, R2)
 
 struct R2Deviance{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-R2Deviance(x::RegressionModel) = R2Deviance(r2(x, :devianceratio))
-label(tab::AbstractRenderType, x::Type{<:R2Deviance}) = "Deviance " * label(tab, R2)
+R2Deviance(x::RegressionModel) = try
+    R2Deviance(r2(x, :devianceratio))
+catch
+    R2Deviance(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:R2Deviance}) = "Deviance " * label(rndr, R2)
 
 struct AdjR2{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-AdjR2(x::RegressionModel) = AdjR2(adjr2(x))
-label(tab::AbstractRenderType, x::Type{<:AdjR2}) = "Adjusted " * label(tab, R2)
+AdjR2(x::RegressionModel) = try
+    AdjR2(adjr2(x))
+catch
+    AdjR2(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:AdjR2}) = "Adjusted " * label(rndr, R2)
 
 struct AdjR2McFadden{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-AdjR2McFadden(x::RegressionModel) = AdjR2McFadden(adjr2(x, :McFadden))
-label(tab::AbstractRenderType, x::Type{<:AdjR2McFadden}) = "McFadden " * label(tab, AdjR2)
+AdjR2McFadden(x::RegressionModel) = try
+    AdjR2McFadden(adjr2(x, :McFadden))
+catch
+    AdjR2McFadden(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:AdjR2McFadden}) = "McFadden " * label(rndr, AdjR2)
 
 struct AdjR2Deviance{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-AdjR2Deviance(x::RegressionModel) = AdjR2Deviance(adjr2(x, :devianceratio))
-label(tab::AbstractRenderType, x::Type{<:AdjR2Deviance}) = "Deviance " * label(tab, AdjR2)
+AdjR2Deviance(x::RegressionModel) = try
+    AdjR2Deviance(adjr2(x, :devianceratio))
+catch
+    AdjR2Deviance(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:AdjR2Deviance}) = "Deviance " * label(rndr, AdjR2)
 
 struct DOF{T<:Union{Int, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-DOF(x::RegressionModel) = DOF(dof(x))
-label(tab::AbstractRenderType, x::Type{<:DOF}) = "Degrees of Freedom"
+DOF(x::RegressionModel) = try
+    DOF(dof(x))
+catch
+    DOF(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:DOF}) = "Degrees of Freedom"
 
 struct LogLikelihood{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-LogLikelihood(x::RegressionModel) = LogLikelihood(loglikelihood(x))
-label(tab::AbstractRenderType, x::Type{<:LogLikelihood}) = "Log Likelihood"
+LogLikelihood(x::RegressionModel) = try
+    LogLikelihood(loglikelihood(x))
+catch
+    LogLikelihood(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:LogLikelihood}) = "Log Likelihood"
 
 struct AIC{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-AIC(x::RegressionModel) = AIC(aic(x))
-label(tab::AbstractRenderType, x::Type{<:AIC}) = "AIC"
+AIC(x::RegressionModel) = try
+    AIC(aic(x))
+catch
+    AIC(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:AIC}) = "AIC"
 
 struct AICC{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-AICC(x::RegressionModel) = AICC(aicc(x))
-label(tab::AbstractRenderType, x::Type{<:AICC}) = "AICC"
+AICC(x::RegressionModel) = try
+    AICC(aicc(x))
+catch
+    AICC(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:AICC}) = "AICC"
 
 struct BIC{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
-BIC(x::RegressionModel) = BIC(aicc(x))
-label(tab::AbstractRenderType, x::Type{<:BIC}) = "BIC"
+BIC(x::RegressionModel) = try
+    BIC(aicc(x))
+catch
+    BIC(nothing)
+end
+label(rndr::AbstractRenderType, x::Type{<:BIC}) = "BIC"
+
+struct FStat{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
+    val::T
+end
+FStat(r::RegressionModel) = FStat(nothing)
+RegressionTables.label(rndr::AbstractRenderType, x::Type{<:FStat}) = "F"
+
+struct FStatPValue{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
+    val::T
+end
+FStatPValue(r::RegressionModel) = FStatPValue(nothing)
+RegressionTables.label(rndr::AbstractRenderType, x::Type{<:FStatPValue}) =
+    RegressionTables.label(rndr, FStat) * "-test " * RegressionTables.label_p(rndr) *" value"
 
 
 
@@ -118,4 +187,4 @@ struct RegressionType
     val::Symbol
 end
 value(x::RegressionType) = x.val
-label(tab::AbstractRenderType, x::Type{RegressionType}) = "Estimator"
+label(rndr::AbstractRenderType, x::Type{RegressionType}) = "Estimator"

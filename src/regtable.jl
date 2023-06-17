@@ -98,7 +98,8 @@ function regtable(rrs...;
     out_buffer = IOBuffer(),
     transform_labels::Union{Dict,Function,Symbol} = identity,
     renderSettings = AsciiTable,
-    print_result = true
+    print_result = true,
+    extralines = [],
 )
     
     renderSettings(
@@ -112,7 +113,8 @@ function regtable(rrs...;
         below_statistic,
         number_regressions,
         number_regressions_decoration,
-        groups
+        groups,
+        extralines
     )
 end
 #=

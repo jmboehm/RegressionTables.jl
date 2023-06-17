@@ -1,49 +1,62 @@
 
-function update_widths!(tab)
-    x = maximum(length.(to_string.(Ref(tab), body(tab))), dims=1)
-    hdr = Header(tab)
-    for (i, row) in enumerate(hdr.rows)
-        for (j, value) in enumerate(row.values)
-            s = encapsulateRegressand(tab, first(value), last(value)[1], last(value)[end])
-            diff = length(s) - sum(x[last(value)]) # difference between current and new width
-            if diff > 0
-                # increase width
-                to_add = Int(round(diff / length(last(value))))
-                x[last(value)] .+= to_add
-                if length(last(value)) * to_add != diff # did not quite add enough
-                    x[last(value)[end]] += diff - to_add
+function calc_widths(rows::Vector{DataRow}, rndr)
+    out_lengths = fill(0, length(rows[1]))
+    for row in rows
+        for (i, value) in enumerate(row.data)
+            s = full_string(value, rndr)
+            if length(s) == 0
+                continue
+            end
+            if isa(value, Pair)
+                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(rndr)) * length(last(value))
+                if diff > 0
+                    # increase width
+                    to_add = Int(round(diff / length(last(value))))
+                    out_lengths[last(value)] .+= to_add
+                    if length(last(value)) * to_add < diff # did not quite add enough
+                        out_lengths[last(value)[end]] += diff - length(last(value)) * to_add
+                    end
                 end
+            else
+                out_lengths[i] = max(out_lengths[i], length(s))
             end
         end
     end
-    for i in eachindex(tab.colwidths, x)
-        tab.colwidths[i] = x[i]
-    end
-    x
+    out_lengths
 end
 
-round_digits(tab::AbstractRenderType, x::AbstractRegressionStatistic) = round_digits(tab, value(x))
-round_digits(tab::AbstractRenderType, x::AbstractUnderStatistic) = round_digits(tab, value(x))
-round_digits(tab::AbstractRenderType, x::CoefValue) = round_digits(tab, value(x))
-round_digits(tab::AbstractRenderType, x::Float64) = 3
+function update_widths!(row::DataRow, new_lengths, rndr)
+    @assert length(row) == length(new_lengths) "Wrong number of lengths"
+    for (i, value) in enumerate(row.data)
+        if isa(value, Pair)
+            row.colwidths[i] = sum(new_lengths[last(value)]) + length(colsep(rndr)) * (length(last(value))-1)
+        else
+            row.colwidths[i] = new_lengths[i]
+        end
+    end
+end
 
-to_string(tab::AbstractRenderType, x; args...) = "$x"
-to_string(tab::AbstractRenderType, x::Int; args...) = format(x, commas=true)
-to_string(tab::AbstractRenderType, x::Float64; digits=round_digits(tab, x)) = format(x, precision=digits)
-to_string(tab::AbstractRenderType, x::Nothing; args...) = ""
-to_string(tab::AbstractRenderType, x::Missing; args...) = ""
-to_string(tab::AbstractRenderType, x::AbstractString; args...) = String(x)
-to_string(tab::AbstractRenderType, x::Bool; args...) = x ? "Yes" : ""
-to_string(tab::AbstractRenderType, x::AbstractRegressionStatistic; digits=round_digits(tab, x)) = to_string(tab, value(x); digits)
-to_string(tab::AbstractRenderType, x::AbstractUnderStatistic; digits=round_digits(tab, x)) = "(" * to_string(tab, value(x); digits) * ")"
-to_string(tab::AbstractRenderType, x::CoefValue; digits=round_digits(tab, x)) = estim_decorator(tab, to_string(tab, value(x); digits), x.pvalue)
-to_string(tab::AbstractRenderType, x::RegressionType; args...) = to_string(tab, value(x))
-to_string(tab::AbstractRenderType, x::Type{T}; args...) where {T <: AbstractRegressionStatistic} = label(tab, T)
-to_string(tab::AbstractRenderType, x::Type{RegressionType}; args...) = label(tab, x)
-to_string(tab::AbstractRenderType, x::Tuple) = join(to_string.(Ref(tab), x), " ")
+round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = round_digits(rndr, value(x))
+round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = round_digits(rndr, value(x))
+round_digits(rndr::AbstractRenderType, x::CoefValue) = round_digits(rndr, value(x))
+round_digits(rndr::AbstractRenderType, x) = 3
 
-function make_padding(tab, value, colWidth, align)
-    s = to_string(tab, value)
+to_string(rndr::AbstractRenderType, x; args...) = "$x"
+to_string(rndr::AbstractRenderType, x::Int; args...) = format(x, commas=true)
+to_string(rndr::AbstractRenderType, x::Float64; digits=round_digits(rndr, x)) = format(x, precision=digits)
+to_string(rndr::AbstractRenderType, x::Nothing; args...) = ""
+to_string(rndr::AbstractRenderType, x::Missing; args...) = ""
+to_string(rndr::AbstractRenderType, x::AbstractString; args...) = String(x)
+to_string(rndr::AbstractRenderType, x::Bool; args...) = x ? "Yes" : ""
+to_string(rndr::AbstractRenderType, x::AbstractRegressionStatistic; digits=round_digits(rndr, x)) = to_string(rndr, value(x); digits)
+to_string(rndr::AbstractRenderType, x::AbstractUnderStatistic; digits=round_digits(rndr, x)) = "(" * to_string(rndr, value(x); digits) * ")"
+to_string(rndr::AbstractRenderType, x::CoefValue; digits=round_digits(rndr, x)) = estim_decorator(rndr, to_string(rndr, value(x); digits), x.pvalue)
+to_string(rndr::AbstractRenderType, x::RegressionType; args...) = to_string(rndr, value(x))
+to_string(rndr::AbstractRenderType, x::Type{T}; args...) where {T <: AbstractRegressionStatistic} = label(rndr, T)
+to_string(rndr::AbstractRenderType, x::Type{RegressionType}; args...) = label(rndr, x)
+to_string(rndr::AbstractRenderType, x::Tuple) = join(to_string.(Ref(rndr), x), " ")
+
+function make_padding(s, colWidth, align)
     if align == 'l'
         s = rpad(s, colWidth)
     elseif align == 'r'
@@ -60,43 +73,4 @@ function make_padding(tab, value, colWidth, align)
     s
 end
 
-function print_cell(io::IO, tab, value, colWidth, align, print_colsep=true; hdr=false)
-    s = make_padding(tab, value, colWidth, align)
-    print(io, s)
-    if print_colsep
-        if hdr
-            print(io, headercolsep(tab))
-        else
-            print(io, colsep(tab))
-        end
-    end
-end
 
-
-# render a whole table
-function Base.print(io::IO, tab::AbstractRenderType)
-    update_widths!(tab)
-
-    hdr = Header(tab)
-    
-    println(io, tablestart(tab))
-    println(io, toprule(tab))
-    print(io, hdr)
-
-    # bodies
-    for row = 1:size(body(tab),1)
-        print(io, linestart(tab))
-        for col in 1:size(body(tab),2)
-            print_cell(io, tab, body(tab)[row,col], colwidths(tab)[col], align(tab)[col], col < size(body(tab),2))
-        end
-        println(io, linebreak(tab))
-        # if we're not at the last block, print the midrule
-        if row ∈ tab.breaks && row != last(tab.breaks)
-            println(io, midrule(tab))
-        end
-    end
-    println(io, bottomrule(tab))
-    # print bottomrule
-    println(io, tableend(tab))
-end
-Base.show(io::IO, tab::AbstractRenderType) = print(io, tab)

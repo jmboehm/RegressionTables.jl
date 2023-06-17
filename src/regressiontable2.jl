@@ -122,7 +122,8 @@ function (::Type{T})(
     stat_below=true,
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
-    groups=[]
+    groups=[],
+    extralines=[],
 ) where T <: AbstractRenderType
 
     hdr = reshape(vcat([""], collect(responsename.(tables))), 1, :)
@@ -166,9 +167,15 @@ function (::Type{T})(
     push!(breaks, size(full_coefs, 1))
     full_coefs = vcat(full_coefs, stats)
     push!(breaks, size(full_coefs, 1))
-    T(
+    breaks = vcat(
+        [size(hdr, 1)],
+        breaks[1:end-1] .+ size(hdr, 1)
+    )
+    RegressionTable(
         hdr,
         full_coefs,
-        breaks
+        T(),
+        breaks;
+        extralines
     )
 end
