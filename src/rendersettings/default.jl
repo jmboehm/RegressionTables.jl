@@ -2,3 +2,6 @@
 label_p(rndr::AbstractRenderType) = "p"
 
 wrapper(rndr::AbstractRenderType, s) = s
+
+interaction_combine(rndr::AbstractRenderType) = " & "
+categorical_equal(rndr::AbstractRenderType) = ":"

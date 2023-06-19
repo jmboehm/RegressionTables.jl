@@ -8,7 +8,7 @@ function calc_widths(rows::Vector{DataRow}, rndr)
                 continue
             end
             if isa(value, Pair)
-                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(rndr)) * length(last(value))
+                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(rndr)) * (length(last(value))-1)
                 if diff > 0
                     # increase width
                     to_add = Int(round(diff / length(last(value))))
@@ -55,6 +55,10 @@ to_string(rndr::AbstractRenderType, x::RegressionType; args...) = to_string(rndr
 to_string(rndr::AbstractRenderType, x::Type{T}; args...) where {T <: AbstractRegressionStatistic} = label(rndr, T)
 to_string(rndr::AbstractRenderType, x::Type{RegressionType}; args...) = label(rndr, x)
 to_string(rndr::AbstractRenderType, x::Tuple) = join(to_string.(Ref(rndr), x), " ")
+to_string(rndr::AbstractRenderType, x::AbstractCoefName) = to_string(rndr, value(x))
+to_string(rndr::AbstractRenderType, x::InteractedCoefName) = join(to_string.(Ref(rndr), values(x)), interaction_combine(rndr))
+to_string(rndr::AbstractRenderType, x::CategoricalCoefName) = "$(value(x))$(categorical_equal(rndr)) $(x.level)"
+to_string(rndr::AbstractRenderType, x::InterceptCoefName) = "(Intercept)"
 
 function make_padding(s, colWidth, align)
     if align == 'l'

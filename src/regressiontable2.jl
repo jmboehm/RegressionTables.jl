@@ -1,7 +1,7 @@
 
-struct RegressionTableSingle
-    responsename::String
-    coefnames::Vector{String}
+struct SimpleRegressionTable
+    responsename::Union{String, <:AbstractCoefName}
+    coefnames::Vector# either string or AbstractCoefName
     coefvalues::Vector{Float64}
     coefstderrors::Vector{Float64}
     coefpvalues::Vector{Float64}
@@ -10,10 +10,10 @@ struct RegressionTableSingle
     statistics::Vector
 end
 
-StatsAPI.responsename(x::RegressionTableSingle) = x.responsename
-StatsAPI.coefnames(x::RegressionTableSingle) = x.coefnames
-StatsAPI.coef(x::RegressionTableSingle) = x.coefvalues
-StatsAPI.stderror(x::RegressionTableSingle) = x.coefstderrors
+StatsAPI.responsename(x::SimpleRegressionTable) = x.responsename
+StatsAPI.coefnames(x::SimpleRegressionTable) = x.coefnames
+StatsAPI.coef(x::SimpleRegressionTable) = x.coefvalues
+StatsAPI.stderror(x::SimpleRegressionTable) = x.coefstderrors
 
 function regressiontype(x::RegressionModel)
     islinear(x) ? :OLS : :NL
@@ -23,16 +23,17 @@ function regtablesingle(
     rr::RegressionModel;
     args...
 )
-    RegressionTableSingle(rr; args...)
+    SimpleRegressionTable(rr; args...)
 end
 
 make_reg_stats(rr, stat::Type{<:AbstractRegressionStatistic}) = stat(rr)
 make_reg_stats(rr, stat) = stat
 make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, first(stat)) => last(stat)
 
+get_coefname(x::MatrixTerm) = mapreduce(get_coefname, vcat, x.terms)
 
 
-function RegressionTableSingle(
+function SimpleRegressionTable(
     rr::RegressionModel;
     regressors::Vector{String} = String[],
     labels::Dict{String, String} = Dict{String, String}(),
@@ -40,7 +41,8 @@ function RegressionTableSingle(
     fixedeffects=nothing,
     args...
 )
-    out_names = coefnames(rr)
+    out_names = get_coefname(formula(rr).rhs)
+    #out_names = coefnames(rr)
     out_coefvalues = coef(rr)
     out_coefstderrors = stderror(rr)
     tt = out_coefvalues ./ out_coefstderrors
@@ -49,7 +51,7 @@ function RegressionTableSingle(
     if length(regressors) > 0
         keep = Int[]
         for i in 1:length(out_names)
-            if out_names in regressors
+            if string(out_names[i]) in regressors
                 push!(keep, i)
             end
         end
@@ -58,8 +60,8 @@ function RegressionTableSingle(
         out_coefstderrors = out_coefstderrors[keep]
         out_pvalue = out_pvalue[keep]
     end
-    RegressionTableSingle(
-        get(labels, string(responsename(rr)), string(responsename(rr))),
+    SimpleRegressionTable(
+        get(labels, get_coefname(formula(rr).lhs), get_coefname(formula(rr).lhs)),
         get.(Ref(labels), out_names, out_names),
         out_coefvalues,
         out_coefstderrors,
@@ -117,7 +119,7 @@ function combine_statistics(tables)
 end
 
 function (::Type{T})(
-    tables::RegressionTableSingle...;
+    tables::SimpleRegressionTable...;
     below_statistic = STDError,
     stat_below=true,
     number_regressions::Bool = true,
