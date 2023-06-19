@@ -3,14 +3,6 @@ tablestart(::AbstractLatex, align) = "\\begin{tabular}{$align}"
 tableend(::AbstractLatex) = "\\end{tabular}"
 headerrule(::AbstractLatex, colmin::Int, colmax::Int) = "\\cmidrule(lr){$(colmin)-$(colmax)}"
 
-function print_headerrule(io, rndr::AbstractLatex, row::HeaderRow)
-    for value in row.values
-        if length(first(value)) > 0
-            print(io, headerrule(rndr, last(value)[1], last(value)[end]))
-        end
-    end
-    println(io)
-end
 toprule(::AbstractLatex) = "\\toprule"
 midrule(::AbstractLatex) = "\\midrule"
 bottomrule(::AbstractLatex) = "\\bottomrule"
@@ -23,8 +15,6 @@ linebreak(::AbstractLatex) = " \\\\ "
 tablestart(tab::RegressionTable{<:AbstractLatex}) = tablestart(tab.render, tab.align)
 tableend(tab::RegressionTable{<:AbstractLatex}) = tableend(tab.render)
 headerrule(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = headerule(tab.render, colmin, colmax)
-
-print_headerrule(io, tab::RegressionTable{<:AbstractLatex}, row::HeaderRow) = print_headerrule(io, tab.render, row)
 
 toprule(tab::RegressionTable{<:AbstractLatex}) = toprule(tab.render)
 midrule(tab::RegressionTable{<:AbstractLatex}) = midrule(tab.render)

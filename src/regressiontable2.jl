@@ -5,7 +5,7 @@ struct SimpleRegressionTable
     coefvalues::Vector{Float64}
     coefstderrors::Vector{Float64}
     coefpvalues::Vector{Float64}
-    fixedeffects::Union{Nothing, Vector{String}}
+    fixedeffects::Union{Nothing, Vector}
     regressiontype::Symbol
     statistics::Vector
 end

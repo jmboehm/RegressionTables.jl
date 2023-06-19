@@ -67,7 +67,6 @@ module RegressionTables
     include("regressiontable.jl")
     include("RegressionStatistics.jl")
     include("regressiontable2.jl")
-    include("header.jl")
 
 
     # main settings

@@ -4,7 +4,7 @@ module RegressionTablesGLFixedEffectModelsExt
 # most things are already loaded
 using GLFixedEffectModels, RegressionTables
 
-function fe_terms(rr::GLRegressionModel)
+function fe_terms(rr::GLFixedEffectModels)
     out = Symbol[]
     for t in eachterm(rr.formula.rhs)
         if has_fe(t)

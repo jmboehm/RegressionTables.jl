@@ -35,17 +35,6 @@ th, td {
 """
 tableend(::AbstractHTML) = "</tbody></table>"
 headerrule(::AbstractHTML) = ""
-function print_headerrule(io::IO, ::AbstractHTML, row::HeaderRow)
-    # if length(headerCellStartEnd)<2
-    #     error("Invalid headerCellStartEnd: need to have at least two columns.")
-    # end
-    # s = ""
-    # for i in headerCellStartEnd[2:end]
-    #     s = s * "\\cmidrule(lr){$(i[1])-$(i[2])}" * " "
-    # end
-    # return s
-    print(io, "")
-end
 
 # toprule: just a spacer <tr>
 toprule(::AbstractHTML) = "<tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
@@ -62,7 +51,6 @@ linebreak(::AbstractHTML) = " </td></tr>"
 tablestart(tab::RegressionTable{<:AbstractHTML}) = tablestart(tab.render)
 tableend(tab::RegressionTable{<:AbstractHTML}) = tableend(tab.render)
 headerrule(tab::RegressionTable{<:AbstractHTML}, colmin::Int, colmax::Int) = headerule(tab.render, colmin, colmax)
-print_headerrule(io, tab::RegressionTable{<:AbstractHTML}, row::HeaderRow) = print_headerrule(io, tab.render, row)
 toprule(tab::RegressionTable{<:AbstractHTML}) = toprule(tab.render)
 midrule(tab::RegressionTable{<:AbstractHTML}) = midrule(tab.render)
 bottomrule(tab::RegressionTable{<:AbstractHTML}) = bottomrule(tab.render)
