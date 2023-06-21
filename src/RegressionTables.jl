@@ -64,17 +64,20 @@ module RegressionTables
     ##############################################################################
 
     # main types
-    include("regressiontable.jl")
+    include("datarow.jl")
     include("RegressionStatistics.jl")
+    include("rendersettings/default.jl")
+    include("rendersettings/ascii.jl")
+    include("rendersettings/latex.jl")
+    include("rendersettings/html.jl")
+    include("regressiontable.jl")
+    
     include("regressiontable2.jl")
 
 
     # main settings
     include("decorations/default_decorations.jl")
-    include("rendersettings/default.jl")
-    include("rendersettings/ascii.jl")
-    include("rendersettings/latex.jl")
-    include("rendersettings/html.jl")
+
     include("label_transforms/default_transforms.jl")
 
     # main functions

@@ -1,3 +1,43 @@
+abstract type AbstractLatex <: AbstractRenderType end
+struct LatexTable <: AbstractLatex end
+
+function full_string(val::Pair, rndr::AbstractLatex, align="c")
+    s = to_string(rndr, first(val))
+    if length(s) == 0
+        s
+    else
+        encapsulateRegressand(rndr, to_string(rndr, first(val)), length(last(val)), align)
+    end
+end
+
+function print_row(io::IO, row::DataRow, rndr::AbstractLatex)
+    for (i, x) in enumerate(row.data)
+        print(
+            io,
+            make_padding(full_string(x, rndr, row.align[i]), row.colwidths[i], row.align[i])
+        )
+        if i < length(row.data)
+            print(io, colsep(rndr))
+        end
+    end
+    println(io, " \\\\")
+    if row.print_underlines
+        for (i, x) in enumerate(row.data)
+            s = isa(x, Pair) ? to_string(rndr, first(x)) : to_string(rndr, x)
+            if length(s) == 0
+                continue
+            end
+            if isa(x, Pair)
+                print(io, headerrule(rndr, first(last(x)), last(last(x))))
+            else
+                print(io, headerrule(rndr, i,i))
+            end
+        end
+        println(io)
+    end
+end
+
+
 encapsulateRegressand(::AbstractLatex, s, cols::Int, align="c") = "\\multicolumn{$cols}{$align}{$s}"
 tablestart(::AbstractLatex, align) = "\\begin{tabular}{$align}"
 tableend(::AbstractLatex) = "\\end{tabular}"

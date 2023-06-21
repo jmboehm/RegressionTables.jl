@@ -41,7 +41,7 @@ function RegressionTables.regtablesingle(
     if length(fe_suffix) > 0
         fekeys = [(x, fe_suffix) for x in fekeys]
     end
-    RegressionTables.SimpleRegressionTable(
+    RegressionTables.SimpleRegressionResult(
         rr;
         fixedeffects = length(fekeys) > 0 ? fekeys : nothing,
         args...

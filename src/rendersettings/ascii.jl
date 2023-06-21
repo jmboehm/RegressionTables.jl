@@ -1,3 +1,35 @@
+abstract type AbstractAscii <: AbstractRenderType end
+struct AsciiTable <: AbstractAscii end
+
+full_string(val::Pair, rndr::AbstractAscii) = to_string(rndr, first(val))
+
+function print_row(io::IO, row::DataRow, rndr::AbstractAscii)
+    for (i, x) in enumerate(row.data)
+        print(
+            io,
+            make_padding(full_string(x, rndr), row.colwidths[i], row.align[i])
+        )
+        if i < length(row.data)
+            print(io, colsep(rndr))
+        end
+    end
+    println(io)
+    if row.print_underlines
+        for (i, x) in enumerate(row.data)
+            s = isa(x, Pair) ? to_string(rndr, first(x)) : to_string(rndr, x)
+            if length(s) > 0
+                print(io, headerrule(rndr, row.colwidths[i]))
+            else
+                print(io, " " ^ row.colwidths[i])
+            end
+            if i < length(row.data)
+                print(io, colsep(rndr))
+            end
+        end
+        println(io)
+    end
+end
+
 function total_length(tab::RegressionTable, r=1:size(tab, 2), widths=colwidths(tab), sep=colsep(tab))
     sum(widths[r]) + (length(r)-1) * length(sep)
 end

@@ -1,3 +1,39 @@
+abstract type AbstractHTML <: AbstractRenderType end
+struct HTMLTable <: AbstractHTML end
+
+function full_string(val::Pair, rndr::AbstractHTML, align='c', print_underlines=false)
+    s = to_string(rndr, first(val))
+    if length(s) == 0
+        s
+    else
+        encapsulateRegressand(rndr, s, length(last(val)), align, print_underlines)
+    end
+end
+
+function print_row(io::IO, row::DataRow, rndr::AbstractHTML)
+    print(io, "<tr>")
+    for (i, x) in enumerate(row.data)
+        if isa(x, Pair)
+            s = full_string(x, rndr, row.align[i], row.print_underlines)
+            if length(s) == 0
+                print(io, "<td></td>")
+                continue
+            end
+            s = make_padding(s, row.colwidths[i], row.align[i])
+
+            print(
+                io,
+                s
+            )
+        else
+            s = make_padding(to_string(rndr, x), row.colwidths[i], row.align[i])
+            print(io, "<td>", s, "</td>")
+        end
+    end
+    println(io, "</tr>")
+end
+
+
 
 function encapsulateRegressand(::AbstractHTML, s, cols::Int, align="c", underline=true)
     align = if align == "c" || align == 'c'

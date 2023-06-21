@@ -138,224 +138,114 @@ function regtable(rrs...;
         extralines
     )
 end
-#=
-    _transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
-    
-    if length(groups) > 0
-        groupBlock = reshape(string.(groups), :, numberOfResults) .|> _transform_labels
-        regressandBlock = [fill("", size(groupBlock, 1)) groupBlock;
-                           regressandBlock]
+
+function combine_fe(tables)
+    fe = String[]
+    for table in tables
+        if !isnothing(table.fixedeffects)
+            fe = union(fe, table.fixedeffects)
+        end
     end
-
-    # Fixed effects block
-    print_fe_block = print_fe_section && any(has_fe.(rr))
-    if print_fe_block
-
-        # construct list of fixed effects for display
-        feList = Vector{AbstractTerm}()
-        for r in rr if has_fe(r)
-
-            for term in eachterm(r.formula.rhs)
-                if has_fe(term) && !(any(name.(feList) .== name(term)))
-                    push!(feList, term)
-                end
-            end
-
-        end end
-        # in case the user supplies a list of FE's, cut down the list
-        if !isempty(fixedeffects)
-            # compare the user-supplied list to `feList`, and keep only those that match
-            for i = length(feList):-1:1
-                if !any(name(feList[i]) .== fixedeffects)
-                    deleteat!(feList, [i])
-                end
-            end
-        end
-
-
-        # construct a list of fixed effects (Term's) for each RegressionResult
-        febyrr = Vector{Vector{AbstractTerm}}()
-        for r in rr
-            fe = Vector{AbstractTerm}()
-            if has_fe(r)
-                for term in eachterm(r.formula.rhs)
-                    if has_fe(term)
-                        push!(fe, term)
-                    end
-                end
-            end
-            push!(febyrr, fe)
-        end
-
-        # construct FE block
-        feBlock = Array{String}(undef,0,numberOfResults+1)
-        for fe in feList
-            feLine = fill("", 1, numberOfResults+1)
-            for resultIndex = 1:numberOfResults
-                index = findall(name(fe) .== name.(febyrr[resultIndex]))
-                if !isempty(index)
-                    feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
-                else
-                    feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
-                end
-            end
-            # check if the regressor was not found
-            if feLine == fill("", 1, numberOfResults+1)
-               @warn("Fixed effect $fe not found in any regression results.")
-            else
-                # add label on the left:
-                feLine[1,1] = haskey(labels,name(fe)) ? labels[name(fe)] : _transform_labels(name(fe))
-                # add to estimateBlock
-                feBlock = [feBlock; feLine]
+    if length(fe) == 0
+        return nothing
+    end
+    mat = zeros(Bool, length(fe), length(tables))
+    for (i, table) in enumerate(tables)
+        if table.fixedeffects !== nothing
+            for (j, f) in enumerate(fe)
+                mat[j, i] = f in table.fixedeffects
             end
         end
     end
-
-    if print_estimator_section
-        estimatorBlock = fill("", 1, numberOfResults+1)
-        estimatorBlock[1,1] = haskey(labels, "__LABEL_ESTIMATOR__") ? labels["__LABEL_ESTIMATOR__"] : renderSettings.label_estimator
-        for i = 1:numberOfResults
-            if has_iv(rr[i])
-                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_IV__") ? labels["__LABEL_ESTIMATOR_IV__"] : renderSettings.label_estimator_iv
-            if islinear(rr[i])
-                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_OLS__") ? labels["__LABEL_ESTIMATOR_OLS__"] : renderSettings.label_estimator_ols
-            else
-                estimatorBlock[1,i+1] =  haskey(labels, "__LABEL_ESTIMATOR_NL__") ? labels["__LABEL_ESTIMATOR_NL__"] : renderSettings.label_estimator_nl
-            end
-        end
-    end
-
-    if length(regression_statistics)>0 || !ismissing(custom_statistics)
-        # we have a statistics block (N, R^2, etc)
-        print_statistics_block = true
-
-        # one line for each custom statistic
-        if !ismissing(custom_statistics)
-            custom_statisticBlock = fill("", length(custom_statistics), numberOfResults+1)
-            for i = 1:length(custom_statistics)
-                stringKey = String(keys(custom_statistics)[i])
-                custom_statisticBlock[i,1] = haskey(labels, "__LABEL_CUSTOM_STATISTIC_$(stringKey)__") ? labels["__LABEL_CUSTOM_STATISTIC_$(stringKey)__"] : stringKey
-                for resultIndex = 1:numberOfResults
-                    custom_statisticBlock[i,resultIndex+1] = typeof(custom_statistics[i][resultIndex]) == String ? custom_statistics[i][resultIndex] : sprintf1(statisticformat,custom_statistics[i][resultIndex])
-                end
-            end
-        end
-
-        # one line for each statistic
-        statisticBlock = fill("", length(regression_statistics), numberOfResults+1)
-        for i = 1:length(regression_statistics)
-            if regression_statistics[i] == :r2_a
-                @warn "Use :adjr2 instead of :r2_a"
-                regression_statistics[i] = :adjr2
-            end
-            if regression_statistics[i] == :nobs
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_N__") ? labels["__LABEL_STATISTIC_N__"] : renderSettings.label_statistic_n
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = sprintf1("%'i",nobs(rr[resultIndex]))
-                end
-            elseif regression_statistics[i] == :r2
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2__") ? labels["__LABEL_STATISTIC_R2__"] : renderSettings.label_statistic_r2
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isnan(ther2(rr[resultIndex])) ? "" : sprintf1(statisticformat, ther2(rr[resultIndex]))
-                end
-            elseif regression_statistics[i] == :adjr2
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_adjr2__") ? labels["__LABEL_STATISTIC_adjr2__"] : renderSettings.label_statistic_adjr2
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :adjr2) && !isnothing(rr[resultIndex].adjr2) ? sprintf1(statisticformat, rr[resultIndex].adjr2) : ""
-                end
-            elseif regression_statistics[i] == :r2_within
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_WITHIN__") ? labels["__LABEL_STATISTIC_R2_WITHIN__"] : renderSettings.label_statistic_r2_within
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :r2_within) && !isnothing(rr[resultIndex].r2_within) ? sprintf1(statisticformat, rr[resultIndex].r2_within) : ""
-                end
-            elseif regression_statistics[i] == :f
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_F__") ? labels["__LABEL_STATISTIC_F__"] : renderSettings.label_statistic_f
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :F) ? sprintf1(statisticformat, rr[resultIndex].F) : ""
-                end
-            elseif regression_statistics[i] == :p
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_P__") ? labels["__LABEL_STATISTIC_P__"] : renderSettings.label_statistic_p
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :p) ? sprintf1(statisticformat, rr[resultIndex].p) : ""
-                end
-            elseif regression_statistics[i] == :f_kp
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_F_KP__") ? labels["__LABEL_STATISTIC_F_KP__"] : renderSettings.label_statistic_f_kp
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :F_kp) && !isnothing(rr[resultIndex].F_kp) ? sprintf1(statisticformat, rr[resultIndex].F_kp) : ""
-                end
-            elseif regression_statistics[i] == :p_kp
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_P_KP__") ? labels["__LABEL_STATISTIC_P_KP__"] : renderSettings.label_statistic_p_kp
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :p_kp) && !isnothing(rr[resultIndex].p_kp) ? sprintf1(statisticformat, rr[resultIndex].p_kp) : ""
-                end
-            elseif regression_statistics[i] == :dof
-                statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_DOF__") ? labels["__LABEL_STATISTIC_DOF__"] : renderSettings.label_statistic_dof
-                for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :dof_residual) ? sprintf1("%i",rr[resultIndex].dof_residual) : ""
-                end
-            end
-
-        end
-        statisticBlock = !ismissing(custom_statistics) ? vcat(custom_statisticBlock, statisticBlock) : statisticBlock
-    else
-        print_statistics_block = false
-    end
-
-    # construct alignment string:
-    if align ∉ [:l,:c,:r]
-        error("`align` keyword needs to be one of [:r,:c,:l]")
-    end
-    align_results = "l" * (string(align) ^ numberOfResults)
-
-    bodyBlocks = [estimateBlock]
-
-    if print_fe_block
-        push!(bodyBlocks, feBlock)
-    end
-
-    if print_estimator_section
-        push!(bodyBlocks, estimatorBlock)
-    end
-
-    if print_statistics_block
-        push!(bodyBlocks, statisticBlock)
-    end
-
-
-    # if we're numbering the regression columns, add a block before the other stuff
-
-    if number_regressions
-        insert!(bodyBlocks,1,regressionNumberBlock)
-    end
-
-    # create RegressionTable
-    tab = RegressionTable(numberOfResults+1, "", regressandBlock, bodyBlocks , "")
-
-    # create output stream
-    if renderSettings.outfile == ""
-        outstream = out_buffer
-    else
-        try
-            outstream = open(renderSettings.outfile, "w")
-        catch ex
-            error("Error opening file $(renderSettings.outfile): $(ex)")
-        end
-    end
-
-    render(outstream, tab , align_results, renderSettings )
-
-    # if we're writing to a file, close it
-    if renderSettings.outfile != ""
-        close(outstream)
-    else # else print the table
-        # if desired
-        if print_result
-            println(Compat.String(take!(copy(outstream))))
-        else
-            # return the buffer
-            take!(copy(outstream))
-        end
-    end
+    hcat(fe, mat)
 end
 
-=#
+function combine_statistics(tables)
+    types_strings = []
+    for t in tables
+        for s in t.statistics
+            if isa(s, AbstractRegressionStatistic)
+                push!(types_strings, typeof(s))
+            elseif isa(s, Pair)
+                push!(types_strings, last(s))
+            end
+        end
+    end
+    types_strings = unique(types_strings)
+    mat = Matrix{Any}(missing, length(types_strings), length(tables))
+    for (i, t) in enumerate(tables)
+        for (j, s) in enumerate(t.statistics)
+            if isa(s, AbstractRegressionStatistic)
+                mat[j, i] = s
+            elseif isa(s, Pair)
+                mat[j, i] = first(s)
+            end
+        end
+    end
+    hcat(types_strings, mat)
+end
+
+
+function (::Type{T})(
+    tables::SimpleRegressionResult...;
+    below_statistic = STDError,
+    stat_below=true,
+    number_regressions::Bool = true,
+    number_regressions_decoration::Function = i::Int64 -> "($i)",
+    groups=[],
+    extralines=[],
+) where T <: AbstractRenderType
+
+    hdr = reshape(vcat([""], collect(responsename.(tables))), 1, :)
+    if length(groups) > 0
+        hdr = vcat(groups, hdr)
+    end
+    if number_regressions
+        hdr = vcat(
+            hdr,
+            reshape(vcat([""], number_regressions_decoration.(1:length(tables))), 1, :)
+        )
+    end
+    nms = union(coefnames.(tables)...)
+    coefvalues = Matrix{Any}(missing, length(nms), length(tables))
+    coefbelow = Matrix{Any}(missing, length(nms), length(tables))
+    for (i, table) in enumerate(tables)
+        for (j, nm) in enumerate(nms)
+            if nm in coefnames(table)
+                k = findfirst(coefnames(table) .== nm)
+                coefvalues[j, i] = CoefValue(coef(table)[k], table.coefpvalues[k])
+                coefbelow[j, i] = below_statistic(stderror(table)[k], coef(table)[k])
+            end
+        end
+    end
+    if stat_below
+        temp1 = hcat(nms, coefvalues)
+        temp2 = hcat(fill(missing, length(nms)), coefbelow)
+        full_coefs = vcat((zip([temp1[x:x, :] for x in 1:size(temp1, 1)], [temp2[x:x, :] for x in 1:size(temp2, 1)])...)...)
+    else
+        full_coefs = hcat(nms, [(x, y) for (x, y) in zip(coefvalues, coefbelow)])
+    end
+    all_fe = combine_fe(tables)
+    regressiontype = vcat([RegressionType], [RegressionType(t.regressiontype) for t in tables])
+    stats = combine_statistics(tables)
+    breaks = [size(full_coefs, 1)]
+    if all_fe !== nothing
+        full_coefs = vcat(full_coefs, all_fe)
+        push!(breaks, size(full_coefs, 1))
+    end
+    full_coefs = vcat(full_coefs, reshape(regressiontype, 1, :))
+    push!(breaks, size(full_coefs, 1))
+    full_coefs = vcat(full_coefs, stats)
+    push!(breaks, size(full_coefs, 1))
+    breaks = vcat(
+        [size(hdr, 1)],
+        breaks[1:end-1] .+ size(hdr, 1)
+    )
+    RegressionTable(
+        hdr,
+        full_coefs,
+        T(),
+        breaks;
+        extralines
+    )
+end
