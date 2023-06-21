@@ -2,31 +2,14 @@ module RegressionTablesFixedEffectModelsExt
 
 using FixedEffectModels, RegressionTables
 
-struct FStatIV{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
-    val::T
-end
-FStatIV(r::RegressionModel) = FStatIV(nothing)
-RegressionTables.label(rndr::RegressionTables.AbstractRenderType, x::Type{<:FStatIV}) = "First-stage " * RegressionTables.label(rndr, FStat) * " statistic"
-
-struct FStatIVPValue{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
-    val::T
-end
-FStatIVPValue(r::RegressionModel) = FStatIVPValue(nothing)
-RegressionTables.label(rndr::RegressionTables.AbstractRenderType, x::Type{<:FStatIVPValue}) = "First-stage " * RegressionTables.label_p(rndr) * " value"
-
-struct R2Within{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
-    val::T
-end
-R2Within(r::RegressionModel) = R2Within(nothing)
-RegressionTables.label(rndr::RegressionTables.AbstractRenderType, x::Type{<:R2Within}) = "Within-" * RegressionTables.label(rndr, R2)
 
 RegressionTables.FStat(x::FixedEffectModel) = FStat(x.F)
 RegressionTables.FStatPValue(x::FixedEffectModel) = FStatPvalue(x.p)
 
-FStatIV(x::FixedEffectModel) = FStatIV(x.F_kp) # is a value or missing already
-FStatIVPValue(x::FixedEffectModel) = FStatIVPvalue(x.p_kp) # is a value or missing already
+RegressionTables.FStatIV(x::FixedEffectModel) = FStatIV(x.F_kp) # is a value or missing already
+RegressionTables.FStatIVPValue(x::FixedEffectModel) = FStatIVPvalue(x.p_kp) # is a value or missing already
 
-R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a value or missing already
+RegressionTables.R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a value or missing already
 
 RegressionTables.regressiontype(x::FixedEffectModel) = has_iv(x) ? :IV : :OLS
 
@@ -64,7 +47,5 @@ function RegressionTables.regtablesingle(
         args...
     )
 end
-
-export FStatIV, FStatIVPvalue, R2Within
 
 end

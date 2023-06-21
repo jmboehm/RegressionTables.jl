@@ -80,6 +80,24 @@ regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, 
 
 ```
 """
+function add_blank(groups::Matrix, n)
+    if size(groups, 2) < n
+        groups = hcat(fill("", size(groups, 1)), groups)
+        add_blank(groups, n)
+    else
+        groups
+    end
+end
+function add_blank(groups::Vector{Vector}, n)
+    out = Vector{Vector}()
+    for g in groups
+        if length(g) < n
+            g = vcat(fill("", n - length(g)), g)
+        end
+        push!(out, g)
+    end
+    groups
+end
 function regtable(rrs...;
     regressors::Vector{String} = Vector{String}(),
     fixedeffects::Vector{String} = Vector{String}(),
@@ -101,7 +119,9 @@ function regtable(rrs...;
     print_result = true,
     extralines = [],
 )
-    
+
+    transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
+    groups = add_blank(groups, length(rrs)+1)
     renderSettings(
         regtablesingle.(
             rrs;
@@ -109,6 +129,7 @@ function regtable(rrs...;
             labels,
             fixedeffects,
             regressors,
+            transform_labels
         )...;
         below_statistic,
         number_regressions,

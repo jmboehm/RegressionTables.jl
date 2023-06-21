@@ -39,6 +39,7 @@ function SimpleRegressionTable(
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = [Nobs, R2],
     fixedeffects=nothing,
+    transform_labels = identity,
     args...
 )
     out_names = get_coefname(formula(rr).rhs)
@@ -61,8 +62,8 @@ function SimpleRegressionTable(
         out_pvalue = out_pvalue[keep]
     end
     SimpleRegressionTable(
-        get(labels, get_coefname(formula(rr).lhs), get_coefname(formula(rr).lhs)),
-        get.(Ref(labels), out_names, out_names),
+        get(labels, get_coefname(formula(rr).lhs), transform_labels(get_coefname(formula(rr).lhs))),
+        get.(Ref(labels), out_names, transform_labels.(out_names)),
         out_coefvalues,
         out_coefstderrors,
         out_pvalue,

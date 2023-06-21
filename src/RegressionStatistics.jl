@@ -140,18 +140,36 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{<:BIC}) = "BIC"
 
-struct FStat{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
+struct FStat{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
 FStat(r::RegressionModel) = FStat(nothing)
-RegressionTables.label(rndr::AbstractRenderType, x::Type{<:FStat}) = "F"
+label(rndr::AbstractRenderType, x::Type{<:FStat}) = "F"
 
-struct FStatPValue{T<:Union{Float64, Nothing}} <: RegressionTables.AbstractRegressionStatistic{T}
+struct FStatPValue{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T
 end
 FStatPValue(r::RegressionModel) = FStatPValue(nothing)
-RegressionTables.label(rndr::AbstractRenderType, x::Type{<:FStatPValue}) =
-    RegressionTables.label(rndr, FStat) * "-test " * RegressionTables.label_p(rndr) *" value"
+label(rndr::AbstractRenderType, x::Type{<:FStatPValue}) = label(rndr, FStat) * "-test " * label_p(rndr) *" value"
+
+struct FStatIV{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
+    val::T
+end
+FStatIV(r::RegressionModel) = FStatIV(nothing)
+label(rndr::AbstractRenderType, x::Type{<:FStatIV}) = "First-stage " * label(rndr, FStat) * " statistic"
+
+struct FStatIVPValue{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
+    val::T
+end
+FStatIVPValue(r::RegressionModel) = FStatIVPValue(nothing)
+label(rndr::AbstractRenderType, x::Type{<:FStatIVPValue}) = "First-stage " * label_p(rndr) * " value"
+
+struct R2Within{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
+    val::T
+end
+R2Within(r::RegressionModel) = R2Within(nothing)
+label(rndr::AbstractRenderType, x::Type{<:R2Within}) = "Within-" * label(rndr, R2)
+
 
 
 
@@ -205,8 +223,6 @@ struct CoefName <: AbstractCoefName
 end
 value(x::CoefName) = x.name
 Base.string(x::CoefName) = value(x)
-
-
 function Base.get(x::Dict{String, String}, val::CoefName, def::CoefName)
     if haskey(x, value(val))
         return x[value(val)]
@@ -215,6 +231,7 @@ function Base.get(x::Dict{String, String}, val::CoefName, def::CoefName)
     end
 end
 get_coefname(x::AbstractTerm) = CoefName(coefnames(x))
+Base.replace(x::CoefName, r::Pair) = CoefName(replace(value(x), r))
 
 # for interactionterm
 struct InteractedCoefName <: AbstractCoefName
@@ -238,6 +255,7 @@ get_coefname(x::InteractionTerm) =
         (args...) -> InteractedCoefName(collect(args)),
         (StatsModels.vectorize(get_coefname.(x.terms)))...
     )
+Base.replace(x::InteractedCoefName, r::Pair) = InteractedCoefName(replace.(values(x), Ref(r)))
 
 # for categoricalterm
 struct CategoricalCoefName <: AbstractCoefName
@@ -259,9 +277,17 @@ function Base.get(x::Dict{String, String}, val::CategoricalCoefName, def::Catego
     end
 end
 
+function Base.replace(x::CategoricalCoefName, r::Pair)
+    CategoricalCoefName(
+        replace(value(x), r),
+        replace(x.level, r)
+    )
+end
+
 struct InterceptCoefName <: AbstractCoefName end
 Base.string(x::InterceptCoefName) = "(Intercept)"
 get_coefname(x::InterceptTerm{H}) where {H} = H ? InterceptCoefName() : []
 Base.get(x::Dict{String, String}, val::InterceptCoefName, def::InterceptCoefName) = get(x, string(val), def)
+Base.replace(x::InterceptCoefName, r::Pair) = InterceptCoefName()
 
 

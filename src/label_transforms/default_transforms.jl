@@ -1,5 +1,5 @@
 function _escape(repl_dict::AbstractDict)
-    function escape(s::String)  
+    function escape(s)  
         for (old, new) in repl_dict
             s = replace.(s, Ref(old => new))
         end
