@@ -1,4 +1,10 @@
 
+default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_round_digits(rndr, value(x))
+default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_round_digits(rndr, value(x))
+default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
+default_round_digits(rndr::AbstractRenderType, x) = 3
+
+#region
 """
 Produces a publication-quality regression table, similar to Stata's `esttab` and R's `stargazer`.
 
@@ -80,6 +86,7 @@ regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, 
 
 ```
 """
+#endregion
 function add_blank(groups::Matrix, n)
     if size(groups, 2) < n
         groups = hcat(fill("", size(groups, 1)), groups)
@@ -103,10 +110,10 @@ function regtable(rrs...;
     fixedeffects::Vector{String} = Vector{String}(),
     labels::Dict{String,String} = Dict{String,String}(),
     align::Symbol = :r,
+    header_align::Symbol = :c,
     #estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
     below_statistic = STDError,
     regression_statistics = [Nobs, R2],
-    custom_statistics::Union{Missing,NamedTuple} = missing,
     number_regressions::Bool = true,
     number_regressions_decoration::Function = i::Int64 -> "($i)",
     groups = [],
@@ -119,7 +126,8 @@ function regtable(rrs...;
     print_result = true,
     extralines = [],
 )
-
+    @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
+    @assert header_align ∈ (:l, :r, :c) "header_align must be one of :l, :r, :c"
     transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
     groups = add_blank(groups, length(rrs)+1)
     renderSettings(
@@ -135,7 +143,9 @@ function regtable(rrs...;
         number_regressions,
         number_regressions_decoration,
         groups,
-        extralines
+        extralines,
+        align='l' * join(fill(align, length(rrs)), ""),
+        header_align='l' * join(fill(header_align, length(rrs)), ""),
     )
 end
 
@@ -185,6 +195,38 @@ function combine_statistics(tables)
     hcat(types_strings, mat)
 end
 
+push_DataRow!(data::Vector{DataRow}, ::Nothing, args...) = data
+function push_DataRow!(data::Vector{DataRow}, vals::Matrix, args...; vargs...)
+    for i in 1:size(vals, 1)
+        push!(data, vals[i, :])
+    end
+end
+function push_DataRow!(data::Vector{DataRow}, vals::Vector{Vector}, args...; vargs...)
+    for v in vals
+        push!(data, vals[i])
+    end
+end
+push_DataRow!(data::Vector{DataRow{T}}, val::DataRow, args...; vargs...) where {T<:AbstractRenderType} = push!(data, T(val))
+function push_DataRow!(data::Vector{DataRow}, vals::AbstractVector, l, align, colwidths, print_underlines::Bool, rndr::AbstractRenderType; combine_equals=print_underlines)
+    if length(vals) == 0
+        return data
+    end
+    if length(vals) < l
+        vals = vcat(fill("", l - length(vals)), vals)
+    end
+    push!(
+        data,
+        DataRow(
+            vals,
+            align,
+            colwidths,
+            print_underlines,
+            rndr;
+            combine_equals=combine_equals
+        )
+    )
+end
+
 
 function (::Type{T})(
     tables::SimpleRegressionResult...;
@@ -194,18 +236,18 @@ function (::Type{T})(
     number_regressions_decoration::Function = i::Int64 -> "($i)",
     groups=[],
     extralines=[],
+    sections = [:regtype, :fe, :stats, :extralines]
 ) where T <: AbstractRenderType
 
-    hdr = reshape(vcat([""], collect(responsename.(tables))), 1, :)
-    if length(groups) > 0
-        hdr = vcat(groups, hdr)
-    end
+    out = Vector{DataRow{T}}()
+    breaks = Int[]
+    push_DataRow!(out, groups, align_header, colwidths, true, T(); combine_equals=true)
+    push_DataRow!(out, collect(responsename.(tables)), align_header, colwidths, number_regressions, T(); combine_equals=true)
     if number_regressions
-        hdr = vcat(
-            hdr,
-            reshape(vcat([""], number_regressions_decoration.(1:length(tables))), 1, :)
-        )
+        hdr = push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align_header, colwidths, true, T(); combine_equals=false)
     end
+    push!(breaks, length(out))
+
     nms = union(coefnames.(tables)...)
     coefvalues = Matrix{Any}(missing, length(nms), length(tables))
     coefbelow = Matrix{Any}(missing, length(nms), length(tables))
@@ -218,21 +260,52 @@ function (::Type{T})(
             end
         end
     end
+
     if stat_below
-        temp1 = hcat(nms, coefvalues)
-        temp2 = hcat(fill(missing, length(nms)), coefbelow)
-        full_coefs = vcat((zip([temp1[x:x, :] for x in 1:size(temp1, 1)], [temp2[x:x, :] for x in 1:size(temp2, 1)])...)...)
+        for i in 1:size(coefbelow, 1)
+            push_DataRow!(out, coefvalues[i, :], align, colwidths, false, T())
+            push_DataRow!(out, coefbelow[i, :], align, colwidths, false, T())
+        end
     else
-        full_coefs = hcat(nms, [(x, y) for (x, y) in zip(coefvalues, coefbelow)])
+        push_DataRow!(out, [(x, y) for (x, y) in zip(coefvalues, coefbelow)], align, colwidths, false, T())
+    end
+    push!(breaks, length(out))
+
+    for s in sections
+        if s == :fe
+            fe = combine_fe(tables)
+            if !isnothing(fe)
+                push!(out, fe, align, colwidths, false, T())
+                push!(breaks, length(out))
+            end
+        elseif s == :regtype
+            regressiontype = vcat([RegressionType], [RegressionType(t.regressiontype) for t in tables])
+            push!(out, regressiontype, align, colwidths, false, T())
+            push!(breaks, length(out))
+        elseif s == :stats
+            stats = combine_statistics(tables)
+            push!(out, stats, align, colwidths, false, T())
+            push!(breaks, length(out))
+        elseif s == :extralines
+            push!(out, extralines, align, colwidths, false, T())
+            for line in extralines
+                push!(out, line, align, colwidths, false, T())
+            end
+            push!(breaks, length(out))
+        end
     end
     all_fe = combine_fe(tables)
+    push!(out, all_fe)
+    push!(breaks, length(out))
+    
     regressiontype = vcat([RegressionType], [RegressionType(t.regressiontype) for t in tables])
+    push!(out, regressiontype)
+    push!(breaks, length(out))
+
     stats = combine_statistics(tables)
-    breaks = [size(full_coefs, 1)]
-    if all_fe !== nothing
-        full_coefs = vcat(full_coefs, all_fe)
-        push!(breaks, size(full_coefs, 1))
-    end
+    push!(out, stats)
+    push!(breaks, length(out))
+
     full_coefs = vcat(full_coefs, reshape(regressiontype, 1, :))
     push!(breaks, size(full_coefs, 1))
     full_coefs = vcat(full_coefs, stats)

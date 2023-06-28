@@ -15,37 +15,27 @@ RegressionTables.regressiontype(x::FixedEffectModel) = has_iv(x) ? :IV : :OLS
 
 RegressionTables.get_coefname(x::StatsModels.FunctionTerm{typeof(FixedEffectModels.fe)}) = string(x.exorig.args[end])
 
-function fe_terms(rr::RegressionModel)
+function RegressionTables.fe_terms(rr::RegressionModel; fixedeffects=String[], fe_suffix="Fixed-Effects", args...)
     out = []
     if !isdefined(rr, :formula)
-        return out
+        return nothing
     end
     for t in rr.formula.rhs
         if has_fe(t)
             push!(out, RegressionTables.get_coefname(t))
         end
     end
-    out
-end
-
-function RegressionTables.regtablesingle(
-    rr::FixedEffectModel;
-    fixedeffects = String[],
-    fe_suffix = "Fixed-Effects",
-    args...
-)
-    fekeys = fe_terms(rr)
     if length(fixedeffects) > 0
-        fekeys = [x for x in fekeys if string(x) in fixedeffects]
+        out = [x for x in out if string(x) in fixedeffects]
     end
     if length(fe_suffix) > 0
-        fekeys = [(x, fe_suffix) for x in fekeys]
+        out = [(x, fe_suffix) for x in out]
     end
-    RegressionTables.SimpleRegressionResult(
-        rr;
-        fixedeffects = length(fekeys) > 0 ? fekeys : nothing,
-        args...
-    )
+    if length(out) > 0
+        out
+    else
+        nothing
+    end
 end
 
 end

@@ -1,3 +1,5 @@
+get_coefname(x::MatrixTerm) = mapreduce(get_coefname, vcat, x.terms)
+
 abstract type AbstractCoefName end
 (::Type{T})(x::T) where {T<:AbstractCoefName} = x
 Base.broadcastable(x::AbstractCoefName) = Ref(x)

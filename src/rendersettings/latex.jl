@@ -1,39 +1,39 @@
 abstract type AbstractLatex <: AbstractRenderType end
 struct LatexTable <: AbstractLatex end
 
-function full_string(val::Pair, rndr::AbstractLatex, align="c")
-    s = to_string(rndr, first(val))
+function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex
+    s = T(first(val); args...)
     if length(s) == 0
         s
     else
-        encapsulateRegressand(rndr, to_string(rndr, first(val)), length(last(val)), align)
+        encapsulateRegressand(T(), s, length(last(val)), align)
     end
 end
 
-function print_row(io::IO, row::DataRow, rndr::AbstractLatex)
+function print(io::IO, row::DataRow{T}) where T<:AbstractLatex
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(full_string(x, rndr, row.align[i]), row.colwidths[i], row.align[i])
+            make_padding(T(x, row.align[i]), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
-            print(io, colsep(rndr))
+            print(io, colsep(T()))
         end
     end
-    println(io, " \\\\")
+    print(io, " \\\\")
     if row.print_underlines
+        println(io)
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? to_string(rndr, first(x)) : to_string(rndr, x)
+            s = isa(x, Pair) ? T(first(x)) : T(x)
             if length(s) == 0
                 continue
             end
             if isa(x, Pair)
-                print(io, headerrule(rndr, first(last(x)), last(last(x))))
+                print(io, headerrule(T(), first(last(x)), last(last(x))))
             else
-                print(io, headerrule(rndr, i,i))
+                print(io, headerrule(T(), i,i))
             end
         end
-        println(io)
     end
 end
 
@@ -46,7 +46,6 @@ headerrule(::AbstractLatex, colmin::Int, colmax::Int) = "\\cmidrule(lr){$(colmin
 toprule(::AbstractLatex) = "\\toprule"
 midrule(::AbstractLatex) = "\\midrule"
 bottomrule(::AbstractLatex) = "\\bottomrule"
-headercolsep(::AbstractLatex) = " & "
 colsep(::AbstractLatex) = " & "
 linestart(::AbstractLatex) = ""
 linebreak(::AbstractLatex) = " \\\\ "
@@ -59,7 +58,6 @@ headerrule(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = he
 toprule(tab::RegressionTable{<:AbstractLatex}) = toprule(tab.render)
 midrule(tab::RegressionTable{<:AbstractLatex}) = midrule(tab.render)
 bottomrule(tab::RegressionTable{<:AbstractLatex}) = bottomrule(tab.render)
-headercolsep(tab::RegressionTable{<:AbstractLatex}) = headercolsep(tab.render)
 colsep(tab::RegressionTable{<:AbstractLatex}) = colsep(tab.render)
 linestart(tab::RegressionTable{<:AbstractLatex}) = linestart(tab.render)
 linebreak(tab::RegressionTable{<:AbstractLatex}) = linebreak(tab.render)

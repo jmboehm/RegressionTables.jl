@@ -5,9 +5,9 @@ struct SimpleRegressionResult
     coefvalues::Vector{Float64}
     coefstderrors::Vector{Float64}
     coefpvalues::Vector{Float64}
-    fixedeffects::Union{Nothing, Vector}
-    regressiontype::Symbol
     statistics::Vector
+    regressiontype::Symbol
+    fixedeffects::Union{Nothing, Vector}
 end
 
 StatsAPI.responsename(x::SimpleRegressionResult) = x.responsename
@@ -15,55 +15,100 @@ StatsAPI.coefnames(x::SimpleRegressionResult) = x.coefnames
 StatsAPI.coef(x::SimpleRegressionResult) = x.coefvalues
 StatsAPI.stderror(x::SimpleRegressionResult) = x.coefstderrors
 
+SimpleRegressionResult(rr::RegressionModel, f::FormulaTerm, args...; vargs...) =
+    SimpleRegressionResult(rr::RegressionModel, f.lhs, f.rhs, args...; vargs...)
+
+SimpleRegressionResult(rr::RegressionModel, lhs::AbstractTerm, rhs::AbstractTerm, args...; vargs...) =
+    SimpleRegressionResult(rr::RegressionModel, get_coefname(lhs), get_coefname(rhs), args...; vargs...)
+
+function SimpleRegressionResult(
+    rr::RegressionModel,
+    lhs::Union{AbstractString, AbstractCoefName},
+    rhs::Vector,
+    coefvalues::Vector{Float64},
+    coefstderrors::Vector{Float64},
+    coefpvalues::Vector{Float64},
+    regression_statistics::Vector,
+    reg_type::Symbol=regressiontype(rr),
+    fixedeffects::Union{Nothing, Vector}=nothing;
+    labels=Dict{String, String}(),
+    transform_labels=Dict{String, String}(),
+    keep=String[],
+    drop=String[],
+)
+    if length(keep) > 0 || length(drop) > 0
+        to_keep = Int[]
+        for i in 1:length(rhs)
+            if string(rhs[i]) in keep
+                push!(to_keep, i)
+            elseif string(rhs[i]) !in drop
+                push!(to_keep, i)
+            end
+        end
+        rhs = rhs[keep]
+        coefvalues = coefvalues[keep]
+        coefstderrors = coefstderrors[keep]
+        coefpvalues = coefpvalues[keep]
+    end
+    SimpleRegressionResult(
+        replace_name(lhs, labels, transform_labels),
+        replace_name.(rhs, Ref(labels), Ref(transform_labels)),
+        coefvalues,
+        coefstderrors,
+        coefpvalues,
+        make_reg_stats.(Ref(rr), regression_statistics),
+        reg_type,
+        replace_name.(fixedeffects, Ref(labels), Ref(transform_labels)),
+    )
+end
+
+transformer(s::Nothing, repl_dict::AbstractDict) = s
+function transformer(s, repl_dict::AbstractDict)
+    for (old, new) in repl_dict
+        s = replace(s, old => new)
+    end
+    return s
+end
+
+replace_name(s::Union{AbstractString, AbstractCoefName}, exact_dict, repl_dict) = get(exact_dict, s, transformer(s, repl_dict))
+replace_name(s::Nothing, args...) = s
+
 function regressiontype(x::RegressionModel)
     islinear(x) ? :OLS : :NL
 end
-
 
 make_reg_stats(rr, stat::Type{<:AbstractRegressionStatistic}) = stat(rr)
 make_reg_stats(rr, stat) = stat
 make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, first(stat)) => last(stat)
 
-get_coefname(x::MatrixTerm) = mapreduce(get_coefname, vcat, x.terms)
-
+fe_terms(rr::RegressionModel) = nothing
 
 function SimpleRegressionResult(
     rr::RegressionModel;
-    regressors::Vector{String} = String[],
+    keep::Vector{String} = String[],
+    drop::Vector{String} = String[],
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = [Nobs, R2],
-    fixedeffects=nothing,
-    transform_labels = identity,
+    transform_labels = Dict(),
     args...
 )
-    out_names = get_coefname(formula(rr).rhs)
-    #out_names = coefnames(rr)
-    out_coefvalues = coef(rr)
-    out_coefstderrors = stderror(rr)
-    tt = out_coefvalues ./ out_coefstderrors
-    out_pvalue = ccdf.(Ref(FDist(1, dof_residual(rr))), abs2.(tt))
-    
-    if length(regressors) > 0
-        keep = Int[]
-        for i in 1:length(out_names)
-            if string(out_names[i]) in regressors
-                push!(keep, i)
-            end
-        end
-        out_names = out_names[keep]
-        out_coefvalues = out_coefvalues[keep]
-        out_coefstderrors = out_coefstderrors[keep]
-        out_pvalue = out_pvalue[keep]
-    end
+    coefvalues = coef(rr)
+    coefstderrors = stderror(rr)
+    tt = coefvalues ./ coefstderrors
+    coefpvalues = ccdf.(Ref(FDist(1, dof_residual(rr))), abs2.(tt))
     SimpleRegressionResult(
-        get(labels, get_coefname(formula(rr).lhs), transform_labels(get_coefname(formula(rr).lhs))),
-        get.(Ref(labels), out_names, transform_labels.(out_names)),
-        out_coefvalues,
-        out_coefstderrors,
-        out_pvalue,
-        get.(Ref(labels), fixedeffects, fixedeffects),
+        rr,
+        formula(rr),
+        coefvalues,
+        coefstderrors,
+        coefpvalues,
+        regression_statistics,
         regressiontype(rr),
-        make_reg_stats.(Ref(rr), regression_statistics)
+        fe_terms(rr);
+        labels=labels,
+        transform_labels=transform_labels,
+        keep=keep,
+        drop=drop,
     )
 end
 

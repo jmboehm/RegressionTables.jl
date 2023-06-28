@@ -28,7 +28,7 @@ R2McFadden(x::RegressionModel) = try
 catch
     R2McFadden(nothing)
 end
-label(rndr::AbstractRenderType, x::Type{<:R2McFadden}) = "McFadden " * label(rndr, R2)
+label(rndr::AbstractRenderType, x::Type{<:R2McFadden}) = "Pseudo " * label(rndr, R2)
 
 struct R2CoxSnell{T<:Union{Float64, Nothing}} <: AbstractRegressionStatistic{T}
     val::T

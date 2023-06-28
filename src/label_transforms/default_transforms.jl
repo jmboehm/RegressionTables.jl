@@ -24,3 +24,10 @@ function _escape(s::Symbol)
 end
 
 
+transformer(s::Nothing, repl_dict::AbstractDict) = s
+function transformer(s, repl_dict::AbstractDict)
+    for (old, new) in repl_dict
+        s = replace(s, old => new)
+    end
+    return s
+end

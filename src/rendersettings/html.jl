@@ -1,36 +1,33 @@
 abstract type AbstractHTML <: AbstractRenderType end
 struct HTMLTable <: AbstractHTML end
 
-function full_string(val::Pair, rndr::AbstractHTML, align='c', print_underlines=false)
-    s = to_string(rndr, first(val))
+function (::Type{T})(val::Pair; align='c', print_underlines=false, args...) where T<:AbstractHTML
+    s = T(first(val); args...)
     if length(s) == 0
         s
     else
-        encapsulateRegressand(rndr, s, length(last(val)), align, print_underlines)
+        encapsulateRegressand(T(), s, length(last(val)), align, print_underlines)
     end
 end
 
-function print_row(io::IO, row::DataRow, rndr::AbstractHTML)
+function print(io::IO, row::DataRow{T}) where {T<:AbstractHTML}
     print(io, "<tr>")
     for (i, x) in enumerate(row.data)
         if isa(x, Pair)
-            s = full_string(x, rndr, row.align[i], row.print_underlines)
+            s = T(x; align=row.align[i], print_underlines=row.print_underlines)
             if length(s) == 0
                 print(io, "<td></td>")
                 continue
             end
             s = make_padding(s, row.colwidths[i], row.align[i])
 
-            print(
-                io,
-                s
-            )
+            print(io,s)
         else
-            s = make_padding(to_string(rndr, x), row.colwidths[i], row.align[i])
+            s = make_padding(T(x), row.colwidths[i], row.align[i])
             print(io, "<td>", s, "</td>")
         end
     end
-    println(io, "</tr>")
+    print(io, "</tr>")
 end
 
 
@@ -78,8 +75,7 @@ toprule(::AbstractHTML) = "<tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td
 midrule(::AbstractHTML) = "<tr style=\"border-bottom:1px solid\"><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr><tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
 # bottomrule: a slightly larger spacer
 bottomrule(::AbstractHTML) = "<tr><td style=\"padding:0.15cm\" colspan=\"100%\"></td></tr>"
-headercolsep(::AbstractHTML) = " "
-colsep(::AbstractHTML) = ""
+colsep(::AbstractHTML) = "<td></td>"
 linestart(::AbstractHTML) = "<tr><td>"
 linebreak(::AbstractHTML) = " </td></tr>"
 
@@ -90,7 +86,6 @@ headerrule(tab::RegressionTable{<:AbstractHTML}, colmin::Int, colmax::Int) = hea
 toprule(tab::RegressionTable{<:AbstractHTML}) = toprule(tab.render)
 midrule(tab::RegressionTable{<:AbstractHTML}) = midrule(tab.render)
 bottomrule(tab::RegressionTable{<:AbstractHTML}) = bottomrule(tab.render)
-headercolsep(tab::RegressionTable{<:AbstractHTML}) = headercolsep(tab.render)
 colsep(tab::RegressionTable{<:AbstractHTML}) = colsep(tab.render)
 linestart(tab::RegressionTable{<:AbstractHTML}) = linestart(tab.render)
 linebreak(tab::RegressionTable{<:AbstractHTML}) = linebreak(tab.render)

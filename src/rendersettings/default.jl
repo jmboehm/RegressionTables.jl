@@ -1,8 +1,6 @@
 
 abstract type AbstractRenderType end
 
-full_string(val, rndr, args...) = to_string(rndr, val)
-
 label_p(rndr::AbstractRenderType) = "p"
 
 wrapper(rndr::AbstractRenderType, s) = s
@@ -10,29 +8,27 @@ wrapper(rndr::AbstractRenderType, s) = s
 interaction_combine(rndr::AbstractRenderType) = " & "
 categorical_equal(rndr::AbstractRenderType) = ":"
 
-round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = round_digits(rndr, value(x))
-round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = round_digits(rndr, value(x))
-round_digits(rndr::AbstractRenderType, x::CoefValue) = round_digits(rndr, value(x))
-round_digits(rndr::AbstractRenderType, x) = 3
 
-to_string(rndr::AbstractRenderType, x; args...) = "$x"
-to_string(rndr::AbstractRenderType, x::Int; args...) = format(x, commas=true)
-to_string(rndr::AbstractRenderType, x::Float64; digits=round_digits(rndr, x)) = format(x, precision=digits)
-to_string(rndr::AbstractRenderType, x::Nothing; args...) = ""
-to_string(rndr::AbstractRenderType, x::Missing; args...) = ""
-to_string(rndr::AbstractRenderType, x::AbstractString; args...) = String(x)
-to_string(rndr::AbstractRenderType, x::Bool; args...) = x ? "Yes" : ""
-to_string(rndr::AbstractRenderType, x::AbstractRegressionStatistic; digits=round_digits(rndr, x)) = to_string(rndr, value(x); digits)
-to_string(rndr::AbstractRenderType, x::AbstractUnderStatistic; digits=round_digits(rndr, x)) = "(" * to_string(rndr, value(x); digits) * ")"
-to_string(rndr::AbstractRenderType, x::CoefValue; digits=round_digits(rndr, x)) = estim_decorator(rndr, to_string(rndr, value(x); digits), x.pvalue)
-to_string(rndr::AbstractRenderType, x::RegressionType; args...) = to_string(rndr, value(x))
-to_string(rndr::AbstractRenderType, x::Type{T}; args...) where {T <: AbstractRegressionStatistic} = label(rndr, T)
-to_string(rndr::AbstractRenderType, x::Type{RegressionType}; args...) = label(rndr, x)
-to_string(rndr::AbstractRenderType, x::Tuple) = join(to_string.(Ref(rndr), x), " ")
-to_string(rndr::AbstractRenderType, x::AbstractCoefName) = to_string(rndr, value(x))
-to_string(rndr::AbstractRenderType, x::InteractedCoefName) = join(to_string.(Ref(rndr), values(x)), interaction_combine(rndr))
-to_string(rndr::AbstractRenderType, x::CategoricalCoefName) = "$(value(x))$(categorical_equal(rndr)) $(x.level)"
-to_string(rndr::AbstractRenderType, x::InterceptCoefName) = "(Intercept)"
+
+(::Type{T})(x; args...) where {T <: AbstractRenderType} = "$x"
+(::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
+(::Type{T})(x::Int; args...) where {T <: AbstractRenderType} = format(x, commas=true)
+(::Type{T})(x::Float64; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = format(x, precision=digits, commas=true)
+(::Type{T})(x::Nothing; args...) where {T <: AbstractRenderType} = ""
+(::Type{T})(x::Missing; args...) where {T <: AbstractRenderType} = ""
+(::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType} = String(x)
+(::Type{T})(x::Bool; args...) where {T <: AbstractRenderType} = x ? "Yes" : ""
+(::Type{T})(x::AbstractRegressionStatistic; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
+(::Type{T})(x::AbstractUnderStatistic; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, args...) * ")"
+(::Type{T})(x::CoefValue; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(rndr, T(value(x); digits, args...), x.pvalue)
+(::Type{T})(x::RegressionType; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+(::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic} where {T <: AbstractRenderType} = label(T(), V)
+(::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType} = label(T(), x)
+(::Type{T})(x::Tuple; args...) where {T <: AbstractRenderType} = join(T.(x; args...), " ")
+(::Type{T})(x::AbstractCoefName; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+(::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType} = join(T.(values(x); args...), interaction_combine(T()))
+(::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType} = "$(value(x))$(categorical_equal(T())) $(x.level)"
+(::Type{T})(x::InterceptCoefName; args...) where {T <: AbstractRenderType} = "(Intercept)"
 
 
 function make_padding(s, colWidth, align)
