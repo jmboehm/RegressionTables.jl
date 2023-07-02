@@ -10,11 +10,11 @@ function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex
     end
 end
 
-function print(io::IO, row::DataRow{T}) where T<:AbstractLatex
+function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(T(x, row.align[i]), row.colwidths[i], row.align[i])
+            make_padding(T(x; align = row.align[i]), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
             print(io, colsep(T()))
@@ -64,9 +64,9 @@ linebreak(tab::RegressionTable{<:AbstractLatex}) = linebreak(tab.render)
 
 
 
-label(::AbstractLatex, x::Type{<:Nobs}) = "\$N\$"
-label(::AbstractLatex, x::Type{<:R2}) = "\$R^2\$"
-label(::AbstractLatex, x::Type{<:FStat}) = "\$F\$"
+label(::AbstractLatex, x::Type{Nobs}) = "\$N\$"
+label(::AbstractLatex, x::Type{R2}) = "\$R^2\$"
+label(::AbstractLatex, x::Type{FStat}) = "\$F\$"
 label_p(::AbstractLatex) = "\$p\$"
 wrapper(::AbstractLatex, x) = "\$^{$x}\$"
 interaction_combine(::AbstractLatex) = " \$\\times\$ "

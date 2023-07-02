@@ -4,29 +4,49 @@ module RegressionTablesGLFixedEffectModelsExt
 # most things are already loaded
 using GLFixedEffectModels, RegressionTables
 
-function fe_terms(rr::GLFixedEffectModels)
-    out = Symbol[]
-    for t in eachterm(rr.formula.rhs)
-        if has_fe(t)
-            push!(out, fesymbol(t))
-        end
+RegressionTables.default_regression_statistics(rr::GLFixedEffectModel) = [Nobs, R2McFadden]
+function RegressionTables.regressiontype(x::GLFixedEffectModel)
+    if islinear(x)
+        "OLS"
+    elseif isa(x.distribution, Binomial)
+        "Binomial"
+    elseif isa(x.distribution, Poisson)
+        "Poisson"
+    else
+        string(x.distribution)
     end
-    out
+    islinear(x) ? "OLS" : string(x.distribution)
 end
 
-function regtablesingle(
-    rr::GLFixedEffectModels;
-    fixedeffects = String[],
+# necessary because GLFixedEffectModels.jl does not have a formula function
+function RegressionTables.SimpleRegressionResult(
+    rr::GLFixedEffectModel;
+    keep::Vector{String} = String[],
+    drop::Vector{String} = String[],
+    labels::Dict{String, String} = Dict{String, String}(),
+    regression_statistics::Vector = default_regression_statistics(rr),
+    transform_labels = Dict(),
+    fixedeffects=String[],
+    fe_suffix="Fixed-Effects",
     args...
 )
-    fekeys = string.(fe_terms(rr))
-    if length(fixedeffects) > 0
-        fekeys = [x for x in fekeys if x in fixedeffects]
-    end
-    SimpleRegressionResult(
-        rr;
-        fixedeffects = length(fekeys) > 0 ? fekeys : nothing,
-        args...
+    coefvalues = coef(rr)
+    coefstderrors = stderror(rr)
+    tt = coefvalues ./ coefstderrors
+    coefpvalues = ccdf.(Ref(FDist(1, dof_residual(rr))), abs2.(tt))
+    RegressionTables.SimpleRegressionResult(
+        rr,
+        rr.formula_schema,
+        coefvalues,
+        coefstderrors,
+        coefpvalues,
+        regression_statistics,
+        regressiontype(rr),
+        fe_terms(rr; fixedeffects, fe_suffix),
+        labels=labels,
+        transform_labels=transform_labels,
+        keep=keep,
+        drop=drop,
     )
 end
 

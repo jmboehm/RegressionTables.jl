@@ -1,5 +1,5 @@
 
-function estim_decorator(rndr::{T}, s, pval; breaks=[0.01, 0.05, 0.1], sym='*') where {T<:AbstractRenderType}
+function estim_decorator(rndr::T, s, pval; breaks=[0.01, 0.05, 0.1], sym='*') where {T<:AbstractRenderType}
     @assert issorted(breaks)
     (pval >= 0 || isnan(pval)) || @error "p value = $pval, but it needs to be non-negative"
 

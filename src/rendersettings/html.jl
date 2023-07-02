@@ -10,7 +10,7 @@ function (::Type{T})(val::Pair; align='c', print_underlines=false, args...) wher
     end
 end
 
-function print(io::IO, row::DataRow{T}) where {T<:AbstractHTML}
+function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHTML}
     print(io, "<tr>")
     for (i, x) in enumerate(row.data)
         if isa(x, Pair)
@@ -91,8 +91,8 @@ linestart(tab::RegressionTable{<:AbstractHTML}) = linestart(tab.render)
 linebreak(tab::RegressionTable{<:AbstractHTML}) = linebreak(tab.render)
 
 
-label(::AbstractHTML, x::Type{<:Nobs}) = "<i>N</i>"
-label(::AbstractHTML, x::Type{<:R2}) = "<i>R<sup>2</sup></i>"
-label(::AbstractHTML, x::Type{<:FStat}) = "<i>F</i>"
+label(::AbstractHTML, x::Type{Nobs}) = "<i>N</i>"
+label(::AbstractHTML, x::Type{R2}) = "<i>R<sup>2</sup></i>"
+label(::AbstractHTML, x::Type{FStat}) = "<i>F</i>"
 label_p(::AbstractHTML) = "<i>p</i>"
 interaction_combine(::AbstractHTML) = " &times; "

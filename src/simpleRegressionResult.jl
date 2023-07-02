@@ -6,7 +6,7 @@ struct SimpleRegressionResult
     coefstderrors::Vector{Float64}
     coefpvalues::Vector{Float64}
     statistics::Vector
-    regressiontype::Symbol
+    regressiontype::String
     fixedeffects::Union{Nothing, Vector}
 end
 
@@ -29,7 +29,7 @@ function SimpleRegressionResult(
     coefstderrors::Vector{Float64},
     coefpvalues::Vector{Float64},
     regression_statistics::Vector,
-    reg_type::Symbol=regressiontype(rr),
+    reg_type::String=regressiontype(rr),
     fixedeffects::Union{Nothing, Vector}=nothing;
     labels=Dict{String, String}(),
     transform_labels=Dict{String, String}(),
@@ -41,7 +41,7 @@ function SimpleRegressionResult(
         for i in 1:length(rhs)
             if string(rhs[i]) in keep
                 push!(to_keep, i)
-            elseif string(rhs[i]) !in drop
+            elseif !(string(rhs[i]) in drop)
                 push!(to_keep, i)
             end
         end
@@ -71,25 +71,30 @@ function transformer(s, repl_dict::AbstractDict)
 end
 
 replace_name(s::Union{AbstractString, AbstractCoefName}, exact_dict, repl_dict) = get(exact_dict, s, transformer(s, repl_dict))
+replace_name(s::Tuple{<:AbstractCoefName, <:AbstractString}, exact_dict, repl_dict) = (replace_name(s[1], exact_dict, repl_dict), s[2])
 replace_name(s::Nothing, args...) = s
 
 function regressiontype(x::RegressionModel)
-    islinear(x) ? :OLS : :NL
+    islinear(x) ? "OLS" : "NL"
 end
 
 make_reg_stats(rr, stat::Type{<:AbstractRegressionStatistic}) = stat(rr)
 make_reg_stats(rr, stat) = stat
 make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, first(stat)) => last(stat)
 
-fe_terms(rr::RegressionModel) = nothing
+default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
+default_fe_suffix() = "Fixed-Effects"
+fe_terms(rr::RegressionModel; args...) = nothing
 
 function SimpleRegressionResult(
     rr::RegressionModel;
     keep::Vector{String} = String[],
     drop::Vector{String} = String[],
     labels::Dict{String, String} = Dict{String, String}(),
-    regression_statistics::Vector = [Nobs, R2],
+    regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
+    fixedeffects=String[],
+    fe_suffix="Fixed-Effects",
     args...
 )
     coefvalues = coef(rr)
@@ -104,19 +109,10 @@ function SimpleRegressionResult(
         coefpvalues,
         regression_statistics,
         regressiontype(rr),
-        fe_terms(rr);
+        fe_terms(rr; fixedeffects, fe_suffix),
         labels=labels,
         transform_labels=transform_labels,
         keep=keep,
         drop=drop,
     )
-end
-
-
-
-function regtablesingle(
-    rr::RegressionModel;
-    args...
-)
-    SimpleRegressionResult(rr; args...)
 end

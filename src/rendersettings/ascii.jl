@@ -3,7 +3,7 @@ struct AsciiTable <: AbstractAscii end
 
 (::Type{T})(val::Pair; args...) where {T<:AbstractAscii} = T(first(val); args...)
 
-function print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
+function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
     print(io, linestart(T()))# in case we want to add something before the line
     for (i, x) in enumerate(row.data)
         print(

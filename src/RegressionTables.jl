@@ -66,13 +66,13 @@ module RegressionTables
     # main types
     include("datarow.jl")
     include("RegressionStatistics.jl")
+    include("coefnames.jl")
+    include("regressiontable.jl")
+    include("simpleRegressionResult.jl")
     include("rendersettings/default.jl")
     include("rendersettings/ascii.jl")
     include("rendersettings/latex.jl")
     include("rendersettings/html.jl")
-    include("regressiontable.jl")
-    
-    include("regressiontable2.jl")
 
 
     # main settings
@@ -82,7 +82,6 @@ module RegressionTables
 
     # main functions
     
-    include("render.jl")
     include("regtable.jl")
 
 end

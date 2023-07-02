@@ -1,6 +1,4 @@
 
-abstract type AbstractRenderType end
-
 label_p(rndr::AbstractRenderType) = "p"
 
 wrapper(rndr::AbstractRenderType, s) = s
@@ -13,16 +11,16 @@ categorical_equal(rndr::AbstractRenderType) = ":"
 (::Type{T})(x; args...) where {T <: AbstractRenderType} = "$x"
 (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
 (::Type{T})(x::Int; args...) where {T <: AbstractRenderType} = format(x, commas=true)
-(::Type{T})(x::Float64; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = format(x, precision=digits, commas=true)
+(::Type{T})(x::Float64; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = format(x, precision=digits, commas=true)
 (::Type{T})(x::Nothing; args...) where {T <: AbstractRenderType} = ""
 (::Type{T})(x::Missing; args...) where {T <: AbstractRenderType} = ""
 (::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType} = String(x)
 (::Type{T})(x::Bool; args...) where {T <: AbstractRenderType} = x ? "Yes" : ""
-(::Type{T})(x::AbstractRegressionStatistic; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
-(::Type{T})(x::AbstractUnderStatistic; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, args...) * ")"
-(::Type{T})(x::CoefValue; digits=round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(rndr, T(value(x); digits, args...), x.pvalue)
+(::Type{T})(x::AbstractRegressionStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
+(::Type{T})(x::AbstractUnderStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, args...) * ")"
+(::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(T(), T(value(x); digits, args...), x.pvalue)
 (::Type{T})(x::RegressionType; args...) where {T <: AbstractRenderType} = T(value(x); args...)
-(::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic} where {T <: AbstractRenderType} = label(T(), V)
+(::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic} = label(T(), V)
 (::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType} = label(T(), x)
 (::Type{T})(x::Tuple; args...) where {T <: AbstractRenderType} = join(T.(x; args...), " ")
 (::Type{T})(x::AbstractCoefName; args...) where {T <: AbstractRenderType} = T(value(x); args...)

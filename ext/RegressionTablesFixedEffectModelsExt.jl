@@ -11,11 +11,12 @@ RegressionTables.FStatIVPValue(x::FixedEffectModel) = FStatIVPvalue(x.p_kp) # is
 
 RegressionTables.R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a value or missing already
 
-RegressionTables.regressiontype(x::FixedEffectModel) = has_iv(x) ? :IV : :OLS
+RegressionTables.regressiontype(x::FixedEffectModel) = has_iv(x) ? "IV" : "OLS"
 
-RegressionTables.get_coefname(x::StatsModels.FunctionTerm{typeof(FixedEffectModels.fe)}) = string(x.exorig.args[end])
+RegressionTables.get_coefname(x::StatsModels.FunctionTerm{typeof(FixedEffectModels.fe)}) = RegressionTables.CoefName(string(x.exorig.args[end]))
 
-function RegressionTables.fe_terms(rr::RegressionModel; fixedeffects=String[], fe_suffix="Fixed-Effects", args...)
+# will overwrite the primary method if FixedEffectModels is loaded
+function RegressionTables.fe_terms(rr::RegressionModel; fixedeffects=String[], fe_suffix="Fixed-Effects")
     out = []
     if !isdefined(rr, :formula)
         return nothing
@@ -35,6 +36,16 @@ function RegressionTables.fe_terms(rr::RegressionModel; fixedeffects=String[], f
         out
     else
         nothing
+    end
+end
+
+function RegressionTables.default_regression_statistics(rr::FixedEffectModel)
+    if has_iv(rr)
+        [Nobs, R2, R2Within, FStatIV]
+    elseif has_fe(rr)
+        [Nobs, R2, R2Within]
+    else
+        [Nobs, R2]
     end
 end
 

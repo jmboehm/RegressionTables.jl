@@ -1,4 +1,5 @@
 
+
 mutable struct RegressionTable{T<:AbstractRenderType}
     data::Vector{DataRow{T}}
     align::String
@@ -15,6 +16,7 @@ mutable struct RegressionTable{T<:AbstractRenderType}
             colwidths = calc_widths(data)
         end
         update_widths!.(data, Ref(colwidths))
+        println(length.(data))
         @assert all(length.(data) .== length(colwidths)) && length(colwidths) == length(align) "Not all the correct length"
         @assert length(data) .>= maximum(breaks) "Breaks must be less than the number of rows"
         new{T}(data,align, T(), breaks, colwidths)
