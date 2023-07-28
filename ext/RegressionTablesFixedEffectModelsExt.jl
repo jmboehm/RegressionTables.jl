@@ -14,9 +14,10 @@ RegressionTables.R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a va
 RegressionTables.regressiontype(x::FixedEffectModel) = has_iv(x) ? "IV" : "OLS"
 
 RegressionTables.get_coefname(x::StatsModels.FunctionTerm{typeof(FixedEffectModels.fe)}) = RegressionTables.CoefName(string(x.exorig.args[end]))
+RegressionTables.get_coefname(x::FixedEffectModels.FixedEffectTerm) = RegressionTables.CoefName(string(x.x))
 
 # will overwrite the primary method if FixedEffectModels is loaded
-function RegressionTables.fe_terms(rr::RegressionModel; fixedeffects=String[], fe_suffix="Fixed-Effects")
+function RegressionTables.fe_terms(rr::FixedEffectModel; fixedeffects=String[], fe_suffix="Fixed Effects")
     out = []
     if !isdefined(rr, :formula)
         return nothing

@@ -32,7 +32,8 @@ struct InteractedCoefName <: AbstractCoefName
     InteractedCoefName(names::Vector) = new(names)
 end
 Base.values(x::InteractedCoefName) = x.names
-Base.string(x::InteractedCoefName) = join(x.names, " & ")
+Base.string(x::InteractedCoefName) = join(string.(x.names), " & ")
+Base.hash(x::InteractedCoefName, h::UInt) = hash(sort(string.(values(x))), h)
 Base.:(==)(x::InteractedCoefName, y::InteractedCoefName) = sort(string.(values(x))) == sort(string.(values(y)))
 function Base.get(x::Dict{String, String}, val::InteractedCoefName, def::InteractedCoefName)
     # if the interaction exactly matches what would be in StatsModels, just return that
@@ -83,4 +84,22 @@ get_coefname(x::InterceptTerm{H}) where {H} = H ? InterceptCoefName() : []
 Base.get(x::Dict{String, String}, val::InterceptCoefName, def::InterceptCoefName) = get(x, string(val), def)
 Base.replace(x::InterceptCoefName, r::Pair) = InterceptCoefName()
 
+
+function Base.intersect(x::Vector{String}, y::Vector{<:AbstractCoefName})
+    # intersect the string names of x with the values of y
+    # return the values of y
+    #=
+    This is used to get the correct order of the coefficients
+    =#
+    all_names = string.(y)
+    [y[findfirst(a .== all_names)] for a in x]
+end
+function Base.setdiff(x::Vector{<:AbstractCoefName}, y::Vector{String})
+    # setdiff the string names of x with y
+    # return the values of x
+    #=
+    This is used to get the correct order of the coefficients
+    =#
+    [a for a in x if string(x) ∉ y]
+end
 

@@ -18,6 +18,29 @@ function RegressionTables.regressiontype(x::GLFixedEffectModel)
     islinear(x) ? "OLS" : string(x.distribution)
 end
 
+function RegressionTables.fe_terms(rr::GLFixedEffectModel; fixedeffects=String[], fe_suffix="Fixed Effects")
+    out = []
+    if !isdefined(rr, :formula)
+        return nothing
+    end
+    for t in rr.formula.rhs
+        if has_fe(t)
+            push!(out, RegressionTables.get_coefname(t))
+        end
+    end
+    if length(fixedeffects) > 0
+        out = [x for x in out if string(x) in fixedeffects]
+    end
+    if length(fe_suffix) > 0
+        out = [(x, fe_suffix) for x in out]
+    end
+    if length(out) > 0
+        out
+    else
+        nothing
+    end
+end
+
 # necessary because GLFixedEffectModels.jl does not have a formula function
 function RegressionTables.SimpleRegressionResult(
     rr::GLFixedEffectModel;

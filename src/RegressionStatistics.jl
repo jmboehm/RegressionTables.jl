@@ -1,5 +1,7 @@
 abstract type AbstractRegressionStatistic end
 
+abstract type AbstractR2 <: AbstractRegressionStatistic end
+
 struct Nobs <: AbstractRegressionStatistic
     val::Union{Int, Nothing}
 end
@@ -10,7 +12,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{Nobs}) = "N"
 
-struct R2 <: AbstractRegressionStatistic
+struct R2 <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2(x::RegressionModel) = try
@@ -20,7 +22,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{R2}) = "R2"
 
-struct R2McFadden <: AbstractRegressionStatistic
+struct R2McFadden <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2McFadden(x::RegressionModel) = try
@@ -30,7 +32,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(rndr, R2)
 
-struct R2CoxSnell <: AbstractRegressionStatistic
+struct R2CoxSnell <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2CoxSnell(x::RegressionModel) = try
@@ -40,7 +42,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(rndr, R2)
 
-struct R2Nagelkerke <: AbstractRegressionStatistic
+struct R2Nagelkerke <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2Nagelkerke(x::RegressionModel) = try
@@ -50,7 +52,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(rndr, R2)
 
-struct R2Deviance <: AbstractRegressionStatistic
+struct R2Deviance <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2Deviance(x::RegressionModel) = try
@@ -60,7 +62,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(rndr, R2)
 
-struct AdjR2 <: AbstractRegressionStatistic
+struct AdjR2 <: AbstractR2
     val::Union{Float64, Nothing}
 end
 AdjR2(x::RegressionModel) = try
@@ -70,7 +72,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
 
-struct AdjR2McFadden <: AbstractRegressionStatistic
+struct AdjR2McFadden <: AbstractR2
     val::Union{Float64, Nothing}
 end
 AdjR2McFadden(x::RegressionModel) = try
@@ -80,7 +82,7 @@ catch
 end
 label(rndr::AbstractRenderType, x::Type{AdjR2McFadden}) = "McFadden " * label(rndr, AdjR2)
 
-struct AdjR2Deviance <: AbstractRegressionStatistic
+struct AdjR2Deviance <: AbstractR2
     val::Union{Float64, Nothing}
 end
 AdjR2Deviance(x::RegressionModel) = try
@@ -164,7 +166,7 @@ end
 FStatIVPValue(r::RegressionModel) = FStatIVPValue(nothing)
 label(rndr::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(rndr) * " value"
 
-struct R2Within <: AbstractRegressionStatistic
+struct R2Within <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2Within(r::RegressionModel) = R2Within(nothing)
@@ -200,8 +202,13 @@ end
 value(x::CoefValue) = x.val
 
 struct RegressionType
-    val::Symbol
+    val::String
 end
 value(x::RegressionType) = x.val
 label(rndr::AbstractRenderType, x::Type{RegressionType}) = "Estimator"
 
+struct HasControls
+    val::Bool
+end
+value(x::HasControls) = x.val
+label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"

@@ -17,6 +17,7 @@ categorical_equal(rndr::AbstractRenderType) = ":"
 (::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType} = String(x)
 (::Type{T})(x::Bool; args...) where {T <: AbstractRenderType} = x ? "Yes" : ""
 (::Type{T})(x::AbstractRegressionStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
+(::Type{T})(x::AbstractR2; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
 (::Type{T})(x::AbstractUnderStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, args...) * ")"
 (::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(T(), T(value(x); digits, args...), x.pvalue)
 (::Type{T})(x::RegressionType; args...) where {T <: AbstractRenderType} = T(value(x); args...)
@@ -27,6 +28,8 @@ categorical_equal(rndr::AbstractRenderType) = ":"
 (::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType} = join(T.(values(x); args...), interaction_combine(T()))
 (::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType} = "$(value(x))$(categorical_equal(T())) $(x.level)"
 (::Type{T})(x::InterceptCoefName; args...) where {T <: AbstractRenderType} = "(Intercept)"
+(::Type{T})(x::HasControls; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+(::Type{T})(x::Type{V}; args...) where {T <: AbstractRenderType, V <: HasControls} = label(T(), V)
 
 
 function make_padding(s, colWidth, align)

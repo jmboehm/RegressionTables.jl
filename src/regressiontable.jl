@@ -16,7 +16,6 @@ mutable struct RegressionTable{T<:AbstractRenderType}
             colwidths = calc_widths(data)
         end
         update_widths!.(data, Ref(colwidths))
-        println(length.(data))
         @assert all(length.(data) .== length(colwidths)) && length(colwidths) == length(align) "Not all the correct length"
         @assert length(data) .>= maximum(breaks) "Breaks must be less than the number of rows"
         new{T}(data,align, T(), breaks, colwidths)
@@ -33,10 +32,10 @@ RegressionTable(header::Vector, body::Matrix, args...; vargs...) = RegressionTab
 function RegressionTable(
     header::Matrix,
     body::Matrix,
-    rndr::T=AsciiTable(),
+    rndr::T=AsciiTable();
     breaks=[size(header, 1)],
     align='l' * 'r' ^ (size(header, 2) - 1),
-    colwidths=fill(0, size(header, 2));
+    colwidths=fill(0, size(header, 2)),
     header_align='l' * 'c' ^ (size(header, 2) - 1),
     extralines::Vector = DataRow[]
 ) where T<:AbstractRenderType
@@ -70,7 +69,7 @@ function RegressionTable(
     for x in extralines
         push!(out, T(DataRow(x)))
     end
-    return RegressionTable(out, align, rndr, breaks, colwidths)
+    return RegressionTable(out, align, breaks, colwidths)
 end
 # render a whole table
 function Base.print(io::IO, tab::RegressionTable)
@@ -88,3 +87,9 @@ function Base.print(io::IO, tab::RegressionTable)
     println(io, tableend(tab))
 end
 Base.show(io::IO, tab::RegressionTable) = print(io, tab)
+
+function Base.write(x::String, tab::RegressionTable)
+    open(x, "w") do io
+        print(io, tab)
+    end
+end

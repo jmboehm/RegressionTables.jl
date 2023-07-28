@@ -36,20 +36,30 @@ function SimpleRegressionResult(
     keep=String[],
     drop=String[],
 )
-    if length(keep) > 0 || length(drop) > 0
-        to_keep = Int[]
-        for i in 1:length(rhs)
-            if string(rhs[i]) in keep
-                push!(to_keep, i)
-            elseif !(string(rhs[i]) in drop)
-                push!(to_keep, i)
-            end
-        end
-        rhs = rhs[keep]
-        coefvalues = coefvalues[keep]
-        coefstderrors = coefstderrors[keep]
-        coefpvalues = coefpvalues[keep]
-    end
+    # if length(keep) > 0 
+    #     to_keep = Int[]
+    #     for k in keep
+    #         if k in string.(rhs)
+    #             push!(to_keep, findfirst(k .== string.(rhs)))
+    #         end
+    #     end
+    #     println(to_keep)
+    #     rhs = rhs[to_keep]
+    #     coefvalues = coefvalues[to_keep]
+    #     coefstderrors = coefstderrors[to_keep]
+    #     coefpvalues = coefpvalues[to_keep]
+    # elseif length(drop) > 0
+    #     to_keep = Int[]
+    #     for i in 1:length(rhs)
+    #         if !(string(rhs[i]) in drop)
+    #             push!(to_keep, i)
+    #         end
+    #     end
+    #     rhs = rhs[to_keep]
+    #     coefvalues = coefvalues[to_keep]
+    #     coefstderrors = coefstderrors[to_keep]
+    #     coefpvalues = coefpvalues[to_keep]
+    # end
     SimpleRegressionResult(
         replace_name(lhs, labels, transform_labels),
         replace_name.(rhs, Ref(labels), Ref(transform_labels)),
@@ -83,7 +93,6 @@ make_reg_stats(rr, stat) = stat
 make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, first(stat)) => last(stat)
 
 default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
-default_fe_suffix() = "Fixed-Effects"
 fe_terms(rr::RegressionModel; args...) = nothing
 
 function SimpleRegressionResult(
@@ -94,7 +103,7 @@ function SimpleRegressionResult(
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
     fixedeffects=String[],
-    fe_suffix="Fixed-Effects",
+    fe_suffix="Fixed Effects",
     args...
 )
     coefvalues = coef(rr)

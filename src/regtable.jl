@@ -3,13 +3,29 @@ default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) =
 default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_round_digits(rndr, value(x))
 default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
 default_round_digits(rndr::AbstractRenderType, x) = 3
-default_fe_yes(rndr::T) where {T} = T(true)
-default_fe_no(rndr::T) where {T} = T(false)
-default_order(rndr::AbstractRenderType) = [:header, :number_regressions, :coef, :regtype, :fe, :stats, :extralines]
-default_regression_decoration(rndr::AbstractRenderType) = i -> "($i)"
-default_align(rndr::AbstractRenderType) = :r
-default_header_align(rndr::AbstractRenderType) = :c
-default_depvar(rndr::AbstractRenderType) = true
+
+default_fe_yes() = "Yes"
+default_fe_no() = ""
+default_section_order() = [:groups, :depvar, :number_regressions, :break, :coef, :break, :regtype, :break, :fe, :break, :controls, :break, :stats, :extralines]
+default_regression_decoration(rrs) = length(rrs) > 1 ? i -> "($i)" : nothing
+default_align() = :r
+default_header_align() = :c
+default_depvar() = true
+default_number_regressions(rrs) = length(rrs) > 1
+default_print_fe() = true
+default_groups(rrs) = nothing
+default_extralines(rrs) = nothing
+default_keep(rrs) = Vector{String}()
+default_drop(rrs) = Vector{String}()
+default_order(rrs) = Vector{String}()
+default_fixedeffects(rrs) = Vector{String}()
+default_labels() = Dict{String, String}()
+default_below_statistic() = STDError
+default_stat_below() = true
+default_render(rrs) = AsciiTable()
+default_file(rrs) = nothing
+default_fe_suffix() = "Fixed Effects"
+default_print_control_indicator() = true
 
 
 #region
@@ -113,69 +129,77 @@ function add_blank(groups::Vector{Vector}, n)
     end
     groups
 end
-function (::Type{T})(
-    rrs...;
-    keep::Vector{String} = Vector{String}(),
-    drop::Vector{String} = Vector{String}(),
-    #order::Vector{String} = Vector{String}(),
-    fixedeffects::Vector{String} = Vector{String}(),
-    labels::Dict{String,String} = Dict{String,String}(),
-    align::Symbol = default_align(T()),
-    header_align::Symbol = default_header_align(T()),
+function regtable(
+    rrs::RegressionModel...;
+    renderSettings::AbstractRenderType = default_render(rrs),
+    keep::Vector = default_keep(rrs), # allows :last and :end as symbol
+    drop::Vector = default_drop(rrs), # allows :last and :end as symbol
+    order::Vector = default_order(rrs),
+    fixedeffects::Vector{String} = default_fixedeffects(rrs),
+    labels::Dict{String,String} = default_labels(),
+    align::Symbol = default_align(),
+    header_align::Symbol = default_header_align(),
     #estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
-    below_statistic = STDError,# can also be nothing
+    below_statistic = default_below_statistic(),# can also be nothing
+    stat_below::Bool = default_stat_below(),# true means StdError or TStat appears below, false means it appears to the right
     regression_statistics = unique(union(default_regression_statistics.(rrs)...)), # collection of all statistics to be printed
-    groups = nothing, # displayed above the regression variables
-    print_depvar::Bool = true,
-    number_regressions::Bool = length(rrs) > 1, # print the column number if more than 1 regression
-    number_regressions_decoration::Function = default_regression_decoration(T()), # decoration for the column number
+    groups = default_groups(rrs), # displayed above the regression variables
+    print_depvar::Bool = default_depvar(),
+    number_regressions_decoration = default_regression_decoration(rrs), # decoration for the column number, does not display by default if only 1 regression
     print_estimator_section = length(unique(regressiontype.(rrs))) > 1,
-    print_fe_section = true,
-    out_buffer = IOBuffer(),
+    print_fe_section = default_print_fe(), # defaults to true but only matters if fixed effects are present
+    file = default_file(rrs),
     transform_labels::Union{Dict,Symbol} = Dict{String, String}(),
-    print_result = true,
-    print_break_before_extralines = false,
-    extralines = nothing,
-    section_order = default_order(T()),
-    fe_yes = default_fe_yes(T()),
-    fe_no = default_fe_no(T()),
-) where {T <: AbstractRenderType}
+    extralines = default_extralines(rrs),
+    section_order = default_section_order(),
+    fe_yes = default_fe_yes(),
+    fe_no = default_fe_no(),
+    fe_suffix = default_fe_suffix(),
+    print_control_indicator = default_print_control_indicator(),
+)
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
     @assert header_align ∈ (:l, :r, :c) "header_align must be one of :l, :r, :c"
     out_order = []
-    if groups !== nothing
-        push!(out_order, groups)
-    end
     for (i, s) in enumerate(section_order)
-        if s == :header && print_depvar
-            push!(out_order, :header)
-            if !number_regressions
+        if s == :depvar
+            if print_depvar
+                push!(out_order, :depvar)
+            end
+        elseif s == :groups
+            if groups !== nothing
+                push!(out_order, groups)
+            end
+        elseif s == :number_regressions
+            if number_regressions_decoration !== nothing
+                push!(out_order, :number_regressions)
+            end
+        elseif s == :regtype
+            if print_estimator_section
+                push!(out_order, :regtype)
+            end
+        elseif s == :fe
+            if print_fe_section
+                push!(out_order, :fe)
+            end
+        elseif s == :extralines 
+            if extralines !== nothing
+                push!(out_order, extralines)
+            end
+        elseif s == :break
+            if i == 1
+                push!(out_order, :break)
+            elseif last(out_order) != :break
                 push!(out_order, :break)
             end
-        elseif s == :number_regressions && number_regressions
-            push!(out_order, :number_regressions)
-            push!(out_order, :break)
-        elseif s == :coef
-            push!(out_order, :coef)
-            push!(out_order, :break)
-        elseif s == :regtype && print_estimator_section
-            push!(out_order, :regtype)
-            push!(out_order, :break)
-        elseif s == :fe && print_fe_section
-            push!(out_order, :fe)
-            push!(out_order, :break)
-        elseif s == :stats
-            push!(out_order, :stats)
-            push!(out_order, :break)
-        elseif s == :extralines && extralines !== nothing
-            if print_break_before_extralines
-                push!(out_order, :break)
+        elseif s == :controls
+            if print_control_indicator
+                push!(out_order, :controls)
             end
-            push!(out_order, extralines)
-            push!(out_order, :break)
+        else
+            push!(out_order, s)
         end
     end
-    if last(out_order) == :break
+    if last(out_order) == :break && last(section_order) != :break
         pop!(out_order)
     end
     RegressionTable(
@@ -184,19 +208,22 @@ function (::Type{T})(
             regression_statistics,
             labels,
             fixedeffects,
-            keep,
-            drop,
-            transform_labels
+            transform_labels,
+            fe_suffix
         )...;
-        renderSettings=T(),
+        renderSettings,
         below_statistic,
-        number_regressions,
         number_regressions_decoration,
         sections=out_order,
+        stat_below,
         align='l' * join(fill(align, length(rrs)), ""),
         header_align='l' * join(fill(header_align, length(rrs)), ""),
         fe_yes,
-        fe_no
+        fe_no,
+        file,
+        keep,
+        drop,
+        order,
     )
 end
 
@@ -293,14 +320,67 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, 
     )
 end
 
+value_pos(nms, x::String) = value_pos(nms, findfirst(string.(nms) .== x))
+value_pos(nms, x::Int) = x:x
+value_pos(nms, x::UnitRange) = x
+value_pos(nms, x::BitVector) = [i for (i, b) in enumerate(x) if b]
+value_pos(nms, x::Regex) = value_pos(nms, occursin.(x, string.(nms)))
+value_pos(nms, x::Nothing) = Int[]
+function value_pos(nms, x::Symbol)
+    if x == :last
+        value_pos(nms, length(nms))
+    elseif x == :end
+        value_pos(nms, length(nms))
+    else
+        throw(ArgumentError("Symbol $x not recognized"))
+    end
+end
+function value_pos(nms, x::Tuple{Symbol, Int})
+    if x[1] == :last
+        value_pos(nms, length(nms) - x[2] + 1 : length(nms))
+    elseif x[1] == :end
+        value_pos(nms, length(nms) - x[2] + 1)
+    else
+        throw(ArgumentError("Symbol $x not recognized"))
+    end
+end
+
+function reorder_nms_list(nms, order)
+    out = Int[]
+    for o in order
+        x = value_pos(nms, o)
+        for i in x
+            if i ∉ out
+                push!(out, i)
+            end
+        end
+    end
+    for i in 1:length(nms)
+        if i ∉ out
+            push!(out, i)
+        end
+    end
+    nms[out]
+end
+
+build_nm_list(nms, x) = nms[value_pos(nms, x)]
+
+function missing_vars(table::SimpleRegressionResult, coefs::Vector{String})
+    table_coefs = string.(coefnames(table))
+    for x in table_coefs
+        if x ∉ coefs
+            return true
+        end
+    end
+    false
+end
 
 function RegressionTable(
     tables::SimpleRegressionResult...;
     renderSettings::T = AsciiTable(),
     below_statistic = STDError,
     stat_below=true,
-    number_regressions::Bool = true,
-    number_regressions_decoration::Function = i::Int64 -> "($i)",
+    number_regressions_decoration = i::Int64 -> "($i)",
     sections = [
         # can include groups and extralines
         # if a symbol, can also be a pair which adds an extra line as a label
@@ -319,13 +399,29 @@ function RegressionTable(
     header_align='l' * join(fill('c', length(tables)), ""),
     fe_yes = "Yes",
     fe_no = "No",
+    file=nothing,
+    keep = String[],
+    drop = String[],
+    order = String[],
 ) where T <: AbstractRenderType
 
     out = Vector{DataRow{T}}()
     breaks = Int[]
     wdths=fill(0, length(tables)+1)
 
-    nms = union(coefnames.(tables)...)
+    nms = union(coefnames.(tables)...) |> unique
+    if length(order) > 0
+        nms = reorder_nms_list(nms, order)
+    end
+    if length(keep) > 0
+        nms = unique(vcat(build_nm_list.(Ref(nms), keep)...))
+    end
+    if length(drop) > 0 # not currently working
+        if eltype(drop) <: Int
+            drop = nms[drop]
+        end
+        nms = setdiff(nms, drop)
+    end
     coefvalues = Matrix{Any}(missing, length(nms), length(tables))
     coefbelow = Matrix{Any}(missing, length(nms), length(tables))
     for (i, table) in enumerate(tables)
@@ -340,7 +436,7 @@ function RegressionTable(
         end
     end
     in_header = true
-    for s in sections
+    for (i, s) in enumerate(sections)
 
         if isa(s, Pair)
             v = first(s)
@@ -355,10 +451,11 @@ function RegressionTable(
         end
         if v == :break
             push!(breaks, length(out))
-        elseif v == :header
-            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, number_regressions, T(); combine_equals=true)
+        elseif v == :depvar
+            underlines = i + 1 < length(sections) && sections[i+1] != :break
+            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, T(); combine_equals=true)
         elseif v == :number_regressions
-            push_DataRow!(out, number_regressions_decoration.(1:length(tables)), header_align, wdths, true, T(); combine_equals=false)
+            push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, T(); combine_equals=false)
         elseif v == :coef
             in_header = false
             if below_statistic === nothing
@@ -387,12 +484,29 @@ function RegressionTable(
         elseif v == :stats
             stats = combine_statistics(tables)
             push_DataRow!(out, stats, align, wdths, false, T())
+        elseif v == :controls
+            v = missing_vars.(tables, Ref(string.(nms)))
+            if !any(v)
+                continue
+            end
+            dat = vcat(
+                [HasControls],
+                HasControls.(v) |> collect
+            )
+            push_DataRow!(out, dat, align, wdths, false, T())
         end
     end
-    RegressionTable(
+    if length(breaks) == 0
+        breaks = [length(out)]
+    end
+    f = RegressionTable(
         out,
         align,
         breaks,
         #colwidths added automatically
     )
+    if file !== nothing
+        write(file, f)
+    end
+    f
 end

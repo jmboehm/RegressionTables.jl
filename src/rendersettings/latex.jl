@@ -1,9 +1,11 @@
 abstract type AbstractLatex <: AbstractRenderType end
 struct LatexTable <: AbstractLatex end
+struct LatexTableStar <: AbstractLatex end
 
 function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex
     s = T(first(val); args...)
-    if length(s) == 0
+    # need to print the multicolumn version since it will miss & otherwise
+    if length(s) == 0 && length(last(val)) == 1
         s
     else
         encapsulateRegressand(T(), s, length(last(val)), align)
@@ -20,7 +22,7 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
             print(io, colsep(T()))
         end
     end
-    print(io, " \\\\")
+    print(io, " \\\\ ")
     if row.print_underlines
         println(io)
         for (i, x) in enumerate(row.data)
@@ -41,7 +43,9 @@ end
 encapsulateRegressand(::AbstractLatex, s, cols::Int, align="c") = "\\multicolumn{$cols}{$align}{$s}"
 tablestart(::AbstractLatex, align) = "\\begin{tabular}{$align}"
 tableend(::AbstractLatex) = "\\end{tabular}"
-headerrule(::AbstractLatex, colmin::Int, colmax::Int) = "\\cmidrule(lr){$(colmin)-$(colmax)}"
+tablestart(::LatexTableStar, align) = "\\begin{tabular*}{\\textwidth}{$(align[1])@{\\extracolsep{\\fill}}$(align[2:end])}"
+tableend(::LatexTableStar) = "\\end{tabular*}"
+headerrule(::AbstractLatex, colmin::Int, colmax::Int) = "\\cmidrule(lr){$(colmin)-$(colmax)} "
 
 toprule(::AbstractLatex) = "\\toprule"
 midrule(::AbstractLatex) = "\\midrule"
@@ -68,5 +72,5 @@ label(::AbstractLatex, x::Type{Nobs}) = "\$N\$"
 label(::AbstractLatex, x::Type{R2}) = "\$R^2\$"
 label(::AbstractLatex, x::Type{FStat}) = "\$F\$"
 label_p(::AbstractLatex) = "\$p\$"
-wrapper(::AbstractLatex, x) = "\$^{$x}\$"
+#wrapper(::AbstractLatex, x) = #"\$^{$x}\$"
 interaction_combine(::AbstractLatex) = " \$\\times\$ "
