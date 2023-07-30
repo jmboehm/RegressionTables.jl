@@ -17,15 +17,25 @@ struct DataRow{T<:AbstractRenderType}
     ) where {T<:AbstractRenderType}
         @assert length(data) == length(colwidths) == length(align) "Not all the correct length"
         if combine_equals
-            values = Vector{Pair{<:Any, UnitRange{Int}}}()
+            values = []
             new_align = ""
+            new_widths = Int[]
             x = first(data)
             j_start = firstindex(data)
             j_end = firstindex(data)
             for i in eachindex(data)
                 if data[i] != x
-                    push!(values, x => j_start:j_end)
-                    new_align *= align[j_start]
+                    if x == ""
+                        for i in j_start:j_end
+                            push!(values, x)
+                            new_align *= align[i]
+                            push!(new_widths, colwidths[i])
+                        end
+                    else
+                        push!(values, x => j_start:j_end)
+                        new_align *= align[j_start]
+                        push!(new_widths, sum(colwidths[j_start:j_end]))
+                    end
                     x = data[i]
                     j_start = i
                     j_end = i
@@ -33,9 +43,17 @@ struct DataRow{T<:AbstractRenderType}
                     j_end = i
                 end
             end
-            push!(values, x => j_start:j_end)
-            new_align *= align[j_start]
-            new_widths = [sum(colwidths[i]) for i in last.(values)]
+            if x == ""
+                for i in j_start:j_end
+                    push!(values, x)
+                    new_align *= align[i]
+                    push!(new_widths, colwidths[i])
+                end
+            else
+                push!(values, x => j_start:j_end)
+                new_align *= align[j_start]
+                push!(new_widths, sum(colwidths[j_start:j_end]))
+            end
             new{T}(values, new_align, new_widths, print_underlines, rndr)
         else
             new{T}(data, align, colwidths, print_underlines, rndr)
@@ -87,11 +105,14 @@ end
 
 function update_widths!(row::DataRow{T}, new_lengths) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
+    x = 1
     for (i, value) in enumerate(row.data)
         if isa(value, Pair)
             row.colwidths[i] = sum(new_lengths[last(value)]) + length(colsep(T())) * (length(last(value))-1)
+            x += length(last(value))
         else
-            row.colwidths[i] = new_lengths[i]
+            row.colwidths[i] = new_lengths[x]
+            x += 1
         end
     end
 end
