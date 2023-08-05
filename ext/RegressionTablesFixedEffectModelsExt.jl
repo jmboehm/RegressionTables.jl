@@ -11,7 +11,7 @@ RegressionTables.FStatIVPValue(x::FixedEffectModel) = FStatIVPvalue(x.p_kp) # is
 
 RegressionTables.R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a value or missing already
 
-RegressionTables.regressiontype(x::FixedEffectModel) = has_iv(x) ? "IV" : "OLS"
+RegressionTables.RegressionType(x::FixedEffectModel) = RegressionType(Normal(), has_iv(x))
 
 RegressionTables.get_coefname(x::StatsModels.FunctionTerm{typeof(FixedEffectModels.fe)}) = RegressionTables.CoefName(string(x.exorig.args[end]))
 RegressionTables.get_coefname(x::FixedEffectModels.FixedEffectTerm) = RegressionTables.CoefName(string(x.x))

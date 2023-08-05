@@ -201,11 +201,14 @@ struct CoefValue
 end
 value(x::CoefValue) = x.val
 
-struct RegressionType
-    val::String
+struct RegressionType{T}
+    val::T
+    is_iv::Bool
+    RegressionType(x::T, is_iv::Bool=false) where {T<:UnivariateDistribution} = new{T}(x, is_iv)
+    RegressionType(x::T, is_iv::Bool=false) where {T<:AbstractString} = new{T}(x, is_iv)
 end
 value(x::RegressionType) = x.val
-label(rndr::AbstractRenderType, x::Type{RegressionType}) = "Estimator"
+label(rndr::AbstractRenderType, x::Type{<:RegressionType}) = "Estimator"
 
 struct HasControls
     val::Bool

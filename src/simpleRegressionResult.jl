@@ -6,7 +6,7 @@ struct SimpleRegressionResult
     coefstderrors::Vector{Float64}
     coefpvalues::Vector{Float64}
     statistics::Vector
-    regressiontype::String
+    regressiontype::RegressionType
     fixedeffects::Union{Nothing, Vector}
 end
 
@@ -21,6 +21,14 @@ SimpleRegressionResult(rr::RegressionModel, f::FormulaTerm, args...; vargs...) =
 SimpleRegressionResult(rr::RegressionModel, lhs::AbstractTerm, rhs::AbstractTerm, args...; vargs...) =
     SimpleRegressionResult(rr::RegressionModel, get_coefname(lhs), get_coefname(rhs), args...; vargs...)
 
+
+SimpleRegressionResult(rr::RegressionModel, lhs::Union{AbstractString, AbstractCoefName}, rhs::Union{AbstractString, AbstractCoefName}, args...; vargs...) =
+    SimpleRegressionResult(rr, lhs, [rhs], args...; vargs...)
+
+SimpleRegressionResult(rr::RegressionModel, lhs::Vector, rhs::Union{AbstractString, AbstractCoefName}, args...; vargs...) =
+    SimpleRegressionResult(rr, first(lhs), rhs, args...; vargs...)
+SimpleRegressionResult(rr::RegressionModel, lhs::Vector, rhs::Vector, args...; vargs...) =
+    SimpleRegressionResult(rr, first(lhs), rhs, args...; vargs...)
 function SimpleRegressionResult(
     rr::RegressionModel,
     lhs::Union{AbstractString, AbstractCoefName},
@@ -29,37 +37,11 @@ function SimpleRegressionResult(
     coefstderrors::Vector{Float64},
     coefpvalues::Vector{Float64},
     regression_statistics::Vector,
-    reg_type::String=regressiontype(rr),
+    reg_type=RegressionType(rr),
     fixedeffects::Union{Nothing, Vector}=nothing;
     labels=Dict{String, String}(),
     transform_labels=Dict{String, String}(),
-    keep=String[],
-    drop=String[],
 )
-    # if length(keep) > 0 
-    #     to_keep = Int[]
-    #     for k in keep
-    #         if k in string.(rhs)
-    #             push!(to_keep, findfirst(k .== string.(rhs)))
-    #         end
-    #     end
-    #     println(to_keep)
-    #     rhs = rhs[to_keep]
-    #     coefvalues = coefvalues[to_keep]
-    #     coefstderrors = coefstderrors[to_keep]
-    #     coefpvalues = coefpvalues[to_keep]
-    # elseif length(drop) > 0
-    #     to_keep = Int[]
-    #     for i in 1:length(rhs)
-    #         if !(string(rhs[i]) in drop)
-    #             push!(to_keep, i)
-    #         end
-    #     end
-    #     rhs = rhs[to_keep]
-    #     coefvalues = coefvalues[to_keep]
-    #     coefstderrors = coefstderrors[to_keep]
-    #     coefpvalues = coefpvalues[to_keep]
-    # end
     SimpleRegressionResult(
         replace_name(lhs, labels, transform_labels),
         replace_name.(rhs, Ref(labels), Ref(transform_labels)),
@@ -70,6 +52,18 @@ function SimpleRegressionResult(
         reg_type,
         replace_name.(fixedeffects, Ref(labels), Ref(transform_labels)),
     )
+end
+
+function standardize_coef_values(rr::T, coefvalues, coefstderrors) where {T <: RegressionModel}
+    @warn "standardize_coef is not possible for $T"
+    coefvalues, coefstderrors
+end
+
+function standardize_coef_values(std_X::Vector, std_Y, coefvalues::Vector, coefstderrors::Vector)
+    std_X = replace(std_X, 0 => 1) # constant has 0 std, so the interpretation is how many Y std away from 0 is the intercept
+    coefvalues = coefvalues .* std_X ./ std_Y
+    coefstderrors = coefstderrors .* std_X  ./ std_Y
+    coefvalues, coefstderrors
 end
 
 transformer(s::Nothing, repl_dict::AbstractDict) = s
@@ -84,9 +78,7 @@ replace_name(s::Union{AbstractString, AbstractCoefName}, exact_dict, repl_dict) 
 replace_name(s::Tuple{<:AbstractCoefName, <:AbstractString}, exact_dict, repl_dict) = (replace_name(s[1], exact_dict, repl_dict), s[2])
 replace_name(s::Nothing, args...) = s
 
-function regressiontype(x::RegressionModel)
-    islinear(x) ? "OLS" : "NL"
-end
+RegressionType(x::RegressionModel) = islinear(x) ? RegressionType(Normal()) : RegressionType("NL")
 
 make_reg_stats(rr, stat::Type{<:AbstractRegressionStatistic}) = stat(rr)
 make_reg_stats(rr, stat) = stat
@@ -96,9 +88,8 @@ default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
 fe_terms(rr::RegressionModel; args...) = nothing
 
 function SimpleRegressionResult(
-    rr::RegressionModel;
-    keep::Vector{String} = String[],
-    drop::Vector{String} = String[],
+    rr::RegressionModel,
+    standardize_coef=false;
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
@@ -108,6 +99,9 @@ function SimpleRegressionResult(
 )
     coefvalues = coef(rr)
     coefstderrors = stderror(rr)
+    if standardize_coef
+        coefvalues, coefstderrors = standardize_coef_values(rr, coefvalues, coefstderrors)
+    end
     tt = coefvalues ./ coefstderrors
     coefpvalues = ccdf.(Ref(FDist(1, dof_residual(rr))), abs2.(tt))
     SimpleRegressionResult(
@@ -117,11 +111,9 @@ function SimpleRegressionResult(
         coefstderrors,
         coefpvalues,
         regression_statistics,
-        regressiontype(rr),
+        RegressionType(rr),
         fe_terms(rr; fixedeffects, fe_suffix),
         labels=labels,
         transform_labels=transform_labels,
-        keep=keep,
-        drop=drop,
     )
 end

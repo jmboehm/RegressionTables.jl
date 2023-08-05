@@ -5,17 +5,12 @@ module RegressionTablesGLFixedEffectModelsExt
 using GLFixedEffectModels, RegressionTables
 
 RegressionTables.default_regression_statistics(rr::GLFixedEffectModel) = [Nobs, R2McFadden]
-function RegressionTables.regressiontype(x::GLFixedEffectModel)
+function RegressionTables.RegressionType(x::GLFixedEffectModel)
     if islinear(x)
-        "OLS"
-    elseif isa(x.distribution, Binomial)
-        "Binomial"
-    elseif isa(x.distribution, Poisson)
-        "Poisson"
+        RegressionType(Normal())
     else
-        string(x.distribution)
+        RegressionType(x.distribution())
     end
-    islinear(x) ? "OLS" : string(x.distribution)
 end
 
 function RegressionTables.fe_terms(rr::GLFixedEffectModel; fixedeffects=String[], fe_suffix="Fixed Effects")
@@ -44,8 +39,6 @@ end
 # necessary because GLFixedEffectModels.jl does not have a formula function
 function RegressionTables.SimpleRegressionResult(
     rr::GLFixedEffectModel;
-    keep::Vector{String} = String[],
-    drop::Vector{String} = String[],
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
@@ -64,12 +57,10 @@ function RegressionTables.SimpleRegressionResult(
         coefstderrors,
         coefpvalues,
         regression_statistics,
-        regressiontype(rr),
+        RegressionType(rr),
         fe_terms(rr; fixedeffects, fe_suffix),
         labels=labels,
         transform_labels=transform_labels,
-        keep=keep,
-        drop=drop,
     )
 end
 

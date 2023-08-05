@@ -34,14 +34,11 @@ module RegressionTables
     using Statistics
     using StatsAPI
 
-    import Distributions: ccdf, FDist
-    import Formatting: sprintf1, format
-    import GLM: LinearModel
-    import StatsModels: TableRegressionModel
+    using Distributions
+    using Formatting
+    using StatsModels
 
-    import StatsBase: coef, coeftable, confint, deviance, nulldeviance, dof, dof_residual,
-                      loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,
-                      fit, model_response, r2, r², adjr2, adjr², PValue
+    using StatsBase
     
     ##############################################################################
     ##
@@ -54,7 +51,7 @@ module RegressionTables
     export Nobs, R2, R2McFadden, R2CoxSnell, R2Nagelkerke,
     R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC,
     FStat, FStatPValue, FStatIV, FStatIVPvalue, R2Within
-    export TStat, STDError
+    export TStat, STDError, RegressionType
 
 
     ##############################################################################
