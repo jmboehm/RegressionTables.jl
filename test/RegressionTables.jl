@@ -1,4 +1,3 @@
-using Revise
 using RegressionTables
 using FixedEffectModels, GLM, RDatasets, Test
 
