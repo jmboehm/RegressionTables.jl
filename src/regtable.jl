@@ -105,11 +105,6 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     
     _transform_labels = transform_labels isa Function ? transform_labels : _escape(transform_labels)
       
-    # define some functions that makes use of StatsModels' RegressionModels
-    coefnames(r::RegressionModel) = StatsBase.coefnames(r)
-    coefnames(r::TableRegressionModel) = StatsModels.coefnames(r.mf)
-    coefnames(r::FixedEffectModel) = String.(r.coefnames) # this will need to be updated when we move
-                                                                  # to FixedEffectModels 0.8.2
     # if standardize_coef == true
     #     function coef(r::TableRegressionModel)
     #         cc = StatsModels.coef(r)
@@ -129,32 +124,23 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     #     end
     # end
     
-    lhs( t :: FunctionTerm ) = Symbol( t.exorig )
-    lhs( t ) = t.sym
-    
-    coef(r::FixedEffectModel) = r.coef
-    vcov(r::FixedEffectModel) = r.vcov
-    coef(r::TableRegressionModel) = StatsModels.coef(r)
-    vcov(r::TableRegressionModel) = StatsModels.vcov(r)
-    coef(r::RegressionModel) = StatsBase.coef(r)
-    vcov(r::RegressionModel) = StatsBase.vcov(r)
-    df_residual(r::FixedEffectModel) = dof_residual(r)
-    df_residual(r::TableRegressionModel) = dof_residual(r)
-    df_residual(r::RegressionModel) = dof_residual(r)
-    yname(r::FixedEffectModel) = r.responsename
-    yname(r::TableRegressionModel) = lhs( r.mf.f.lhs ) # returns a Symbol
-    yname(r::RegressionModel) = responsename(r) # returns a Symbol
-    ther2(r::FixedEffectModel) = r.r2
-    ther2(r::TableRegressionModel) = isa(r.model, LinearModel) ? r2(r) : NaN
-    function ther2(r::RegressionModel)
+    function r2_or_nothing(r)
         if islinear(r)
             try # do this in a failsafe way... some packages don't define a r2 even for linear models 
-                return r2(r)
+                return StatsAPI.r2(r)
             catch
-                return NaN
+                return nothing
             end
         else 
-            return NaN
+            return nothing
+        end
+    end
+
+    function adjr2_or_nothing(r)
+        try
+            return StatsAPI.adjr2(r)
+        catch
+            return nothing
         end
     end
 
@@ -199,7 +185,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
                 mul = [ std(rr[resultIndex].model.pp.X[:,i])*std(rr[resultIndex].model.pp.X[:,j])/(std(rr[resultIndex].model.rr.y)*std(rr[resultIndex].model.rr.y)) for i in 1:length(thiscoef), j in 1:length(thiscoef)  ]
                 thisvcov  = mul .* thisvcov
             end
-            thisdf_residual = df_residual(rr[resultIndex])
+            thisdf_residual = dof_residual(rr[resultIndex])
             index = findall(regressor .== thiscnames)
             if !isempty(index)
                 pval = ccdf(FDist(1, thisdf_residual ), abs2(thiscoef[index[1]]/sqrt(thisvcov[index[1],index[1]])))
@@ -230,8 +216,8 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     #   needs to be separately rendered
     regressandBlock = fill("", 1, numberOfResults+1)
     for rIndex = 1:numberOfResults
-        # keep in mind that yname is a Symbol
-        regressandBlock[1,rIndex+1] = haskey(labels,string(yname(rr[rIndex]))) ? labels[string(yname(rr[rIndex]))] : _transform_labels(string(yname(rr[rIndex])))
+        # keep in mind that responsename is a Symbol
+        regressandBlock[1,rIndex+1] = haskey(labels,string(responsename(rr[rIndex]))) ? labels[string(responsename(rr[rIndex]))] : _transform_labels(string(responsename(rr[rIndex])))
     end
     
     if length(groups) > 0
@@ -393,12 +379,12 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
             elseif regression_statistics[i] == :r2
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2__") ? labels["__LABEL_STATISTIC_R2__"] : renderSettings.label_statistic_r2
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isnan(ther2(rr[resultIndex])) ? "" : sprintf1(statisticformat, ther2(rr[resultIndex]))
+                    statisticBlock[i,resultIndex+1] = isnothing(r2_or_nothing(rr[resultIndex])) ? "" : sprintf1(statisticformat, r2_or_nothing(rr[resultIndex]))
                 end
             elseif regression_statistics[i] == :adjr2
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_adjr2__") ? labels["__LABEL_STATISTIC_adjr2__"] : renderSettings.label_statistic_adjr2
                 for resultIndex = 1:numberOfResults
-                    statisticBlock[i,resultIndex+1] = isdefined(rr[resultIndex], :adjr2) && !isnothing(rr[resultIndex].adjr2) ? sprintf1(statisticformat, rr[resultIndex].adjr2) : ""
+                    statisticBlock[i,resultIndex+1] = isnothing(adjr2_or_nothing(rr[resultIndex])) ? "" : sprintf1(statisticformat, adjr2_or_nothing(rr[resultIndex]))
                 end
             elseif regression_statistics[i] == :r2_within
                 statisticBlock[i,1] = haskey(labels, "__LABEL_STATISTIC_R2_WITHIN__") ? labels["__LABEL_STATISTIC_R2_WITHIN__"] : renderSettings.label_statistic_r2_within

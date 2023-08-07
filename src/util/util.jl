@@ -6,7 +6,7 @@ isOLSRegressionResult(r::FixedEffectModel) = !has_iv(r)
 # FE and IV regression not supported in GLM.jl
 isFERegressionResult(r::TableRegressionModel) = false
 isIVRegressionResult(r::TableRegressionModel) = false
-isOLSRegressionResult(r::TableRegressionModel) = isa(r.model, LinearModel)
+isOLSRegressionResult(r::TableRegressionModel) = islinear(r)
 
 # this is in particular for GLFixedEffectModels
 function isFERegressionResult(rr::RegressionModel) 
