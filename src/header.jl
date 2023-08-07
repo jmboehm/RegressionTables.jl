@@ -62,7 +62,7 @@ end
     in that case, make the last column of the bodies wider.
 """
 function adjust_widths!(colWidths, header, settings)
-    @unpack headerArray, headerCellStartEnd, headerLabels, headerWidths = header
+    (; headerArray, headerCellStartEnd, headerLabels, headerWidths) = header
     
     adjusted = false
     
@@ -75,14 +75,13 @@ function adjust_widths!(colWidths, header, settings)
             headerWidths[i] += (length(headerArray[1,i])-totalWidth)
         end
     end
-    (adjusted = adjusted,
-     h = (headerArray=headerArray, headerLabels=headerLabels, headerWidths=headerWidths, headerCellStartEnd=headerCellStartEnd))
+    (; adjusted, h=(; headerArray, headerLabels, headerWidths, headerCellStartEnd))
 end
 
 # distinguish two cases:
 #   if headerrule gives a string of length one, put into table, and repeat the string
 function headerrule(header, settings)
-    @unpack headerArray, headerCellStartEnd, headerLabels, headerWidths = header
+    (; headerArray, headerCellStartEnd, headerLabels, headerWidths) = header
     headerArray = copy(headerArray)
     
     hr = settings.headerrule(headerCellStartEnd)
@@ -97,6 +96,5 @@ function headerrule(header, settings)
     else
         print_headerrule_separately = true
     end
-    (headerArray = headerArray, 
-     hr = (headerrule=hr, print_headerrule_separately=print_headerrule_separately))
+    (; headerArray, hr=(; headerrule=hr, print_headerrule_separately))
 end

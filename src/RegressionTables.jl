@@ -55,8 +55,6 @@ module RegressionTables
 
     using StatsBase: loglikelihood, nullloglikelihood, PValue, model_response
 
-    using UnPack: @unpack
-    
     ##############################################################################
     ##
     ## Exported methods and types
