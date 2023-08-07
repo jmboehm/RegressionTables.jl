@@ -96,7 +96,7 @@ struct DOF <: AbstractRegressionStatistic
     val::Union{Int, Nothing}
 end
 DOF(x::RegressionModel) = try
-    DOF(dof(x))
+    DOF(dof_residual(x))
 catch
     DOF(nothing)
 end
@@ -207,6 +207,7 @@ struct RegressionType{T}
     RegressionType(x::T, is_iv::Bool=false) where {T<:UnivariateDistribution} = new{T}(x, is_iv)
     RegressionType(x::T, is_iv::Bool=false) where {T<:AbstractString} = new{T}(x, is_iv)
 end
+RegressionType(x::Type{D}, is_iv::Bool=false) where {D <: UnivariateDistribution} = RegressionType(Base.typename(D).wrapper(), is_iv)
 value(x::RegressionType) = x.val
 label(rndr::AbstractRenderType, x::Type{<:RegressionType}) = "Estimator"
 

@@ -4,7 +4,7 @@ default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = defa
 default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
 default_round_digits(rndr::AbstractRenderType, x) = 3
 
-default_section_order(rndr::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :regtype, :break, :fe, :break, :controls, :break, :stats, :extralines]
+default_section_order(rndr::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]
 default_align(rndr::AbstractRenderType) = :r
 default_header_align(rndr::AbstractRenderType) = :c
 default_depvar(rndr::AbstractRenderType) = true
@@ -177,8 +177,10 @@ function regtable(
             if groups !== nothing
                 push!(sections, groups)
             end
-        elseif s == :number_regressions && number_regressions
-            push!(sections, :number_regressions)
+        elseif s == :number_regressions
+            if number_regressions
+                push!(sections, :number_regressions)
+            end
         elseif s == :regtype
             if print_estimator_section
                 push!(sections, :regtype)
@@ -282,7 +284,8 @@ function regtable(
         elseif v == :coef
             in_header = false
             if below_statistic === nothing
-                push_DataRow!(out, coefvalues, align, wdths, false, renderSettings)
+                temp = hcat(nms, coefvalues)
+                push_DataRow!(out, temp, align, wdths, false, renderSettings)
             else
                 if stat_below
                     temp = hcat(nms, coefvalues)

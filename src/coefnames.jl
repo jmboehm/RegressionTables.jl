@@ -24,6 +24,7 @@ function Base.get(x::Dict{String, String}, val::CoefName, def::CoefName)
     end
 end
 get_coefname(x::AbstractTerm) = CoefName(coefnames(x))
+get_coefname(x::Term) = CoefName(string(x.sym))
 Base.replace(x::CoefName, r::Pair) = CoefName(replace(value(x), r))
 
 # for interactionterm

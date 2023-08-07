@@ -4,10 +4,10 @@ using FixedEffectModels, RegressionTables, Distributions
 
 
 RegressionTables.FStat(x::FixedEffectModel) = FStat(x.F)
-RegressionTables.FStatPValue(x::FixedEffectModel) = FStatPvalue(x.p)
+RegressionTables.FStatPValue(x::FixedEffectModel) = FStatPValue(x.p)
 
 RegressionTables.FStatIV(x::FixedEffectModel) = FStatIV(x.F_kp) # is a value or missing already
-RegressionTables.FStatIVPValue(x::FixedEffectModel) = FStatIVPvalue(x.p_kp) # is a value or missing already
+RegressionTables.FStatIVPValue(x::FixedEffectModel) = FStatIVPValue(x.p_kp) # is a value or missing already
 
 RegressionTables.R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a value or missing already
 
@@ -22,7 +22,12 @@ function RegressionTables.fe_terms(rr::FixedEffectModel; fixedeffects=String[], 
     if !isdefined(rr, :formula)
         return nothing
     end
-    for t in rr.formula.rhs
+    rhs_itr = if isa(rr.formula.rhs, StatsModels.Term)
+        [rr.formula.rhs]
+    else
+        rr.formula.rhs
+    end
+    for t in rhs_itr
         if has_fe(t)
             push!(out, RegressionTables.get_coefname(t))
         end

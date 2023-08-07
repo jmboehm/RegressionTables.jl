@@ -1,4 +1,4 @@
-default_breaks(rndr::AbstractRenderType) = [0.01, 0.05, 0.1]
+default_breaks(rndr::AbstractRenderType) = [0.001, 0.01, 0.05]
 default_symbol(rndr::AbstractRenderType) = '*'
 
 function estim_decorator(rndr::T, s, pval; breaks=default_breaks(T()), sym=default_symbol(T())) where {T<:AbstractRenderType}

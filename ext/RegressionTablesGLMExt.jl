@@ -13,7 +13,7 @@ RegressionTables.standardize_coef_values(x::StatsModels.TableRegressionModel, co
 RegressionTables.RegressionType(x::LinearModel) = RegressionType(Normal())
 RegressionTables.RegressionType(x::GLM.LmResp) = RegressionType(Normal())
 RegressionTables.RegressionType(x::GeneralizedLinearModel) = RegressionType(x.rr)
-RegressionTables.RegressionType(x::GLM.GlmResp{Y, D, L}) where {Y, D, L} = RegressionType(Base.typename(D).wrapper())
+RegressionTables.RegressionType(x::GLM.GlmResp{Y, D, L}) where {Y, D, L} = RegressionType(D)
 
 
 end

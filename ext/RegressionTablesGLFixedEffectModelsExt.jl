@@ -9,7 +9,7 @@ function RegressionTables.RegressionType(x::GLFixedEffectModel)
     if islinear(x)
         RegressionType(Normal())
     else
-        RegressionType(x.distribution())
+        RegressionType(x.distribution)
     end
 end
 
@@ -38,7 +38,8 @@ end
 
 # necessary because GLFixedEffectModels.jl does not have a formula function
 function RegressionTables.SimpleRegressionResult(
-    rr::GLFixedEffectModel;
+    rr::GLFixedEffectModel,
+    standardize_coef=false;
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
@@ -58,7 +59,7 @@ function RegressionTables.SimpleRegressionResult(
         coefpvalues,
         regression_statistics,
         RegressionType(rr),
-        fe_terms(rr; fixedeffects, fe_suffix),
+        RegressionTables.fe_terms(rr; fixedeffects, fe_suffix),
         labels=labels,
         transform_labels=transform_labels,
     )
