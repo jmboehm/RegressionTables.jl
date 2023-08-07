@@ -28,7 +28,7 @@ gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome), dobson,
 # test of forula on lhs
 lm4 = fit(LinearModel, @formula(log(SepalLength) ~ SepalWidth * PetalWidth), df) # testing interactions
 
-function checkfilesarethesame(file1::String, file2::String)
+function filesarethesame(file1::String, file2::String)
 
     f1 = open(file1, "r")
     f2 = open(file2, "r")
@@ -57,6 +57,19 @@ function checkfilesarethesame(file1::String, file2::String)
     end
 end
 
+function checkfilesarethesame(test, reference)
+
+    passed = filesarethesame(test, reference)
+
+    if !passed
+        rm(reference)
+        mv(test, reference)
+    else
+        rm(test)
+    end
+
+    passed
+end
 
 # ASCII TABLES
 
@@ -259,51 +272,3 @@ RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = RegressionTables.htm
 
 RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.htmlOutput(joinpath(dirname(@__FILE__), "tables", "test2.html")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.html"), joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
-
-
-# clean up
-rm(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest7.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest8.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"))
-
-rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
-rm(joinpath(dirname(@__FILE__), "tables", "test3.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
-#rm(joinpath(dirname(@__FILE__), "tables", "test5.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test6.tex"))
-rm(joinpath(dirname(@__FILE__), "tables", "test7.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test8.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test9.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test10.txt"))
-rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
-rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
-
-# to update the reference files, re-create them from the above, then rename
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"),joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"),joinpath(dirname(@__FILE__), "tables", "ftest2_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest3.txt"),joinpath(dirname(@__FILE__), "tables", "ftest3_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"),joinpath(dirname(@__FILE__), "tables", "ftest4_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"),joinpath(dirname(@__FILE__), "tables", "ftest5_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"),joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest7.txt"),joinpath(dirname(@__FILE__), "tables", "ftest7_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest8.txt"),joinpath(dirname(@__FILE__), "tables", "ftest8_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"),joinpath(dirname(@__FILE__), "tables", "ftest9_reference.txt"))
-
-# mv(joinpath(dirname(@__FILE__), "tables", "test1.txt"),joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test2.tex"),joinpath(dirname(@__FILE__), "tables", "test2_reference.tex"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test3.txt"),joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test4.tex"),joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test6.tex"),joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test7.txt"),joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test8.txt"),joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test9.txt"),joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test10.txt"),joinpath(dirname(@__FILE__), "tables", "test10_reference.txt"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test1.html"),joinpath(dirname(@__FILE__), "tables", "test1_reference.html"))
-# mv(joinpath(dirname(@__FILE__), "tables", "test2.html"),joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
