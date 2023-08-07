@@ -36,9 +36,6 @@ module RegressionTables
 
     using Distributions
     using Formatting
-    using StatsModels
-
-    using StatsBase
     
     ##############################################################################
     ##
