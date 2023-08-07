@@ -1,4 +1,5 @@
 [deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 FixedEffectModels = "9d5cd8c9-2029-5cab-9928-427838db53e3"
 GLFixedEffectModels = "bafb0ae5-e5f5-5100-81b6-6a55d777c812"
 GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
