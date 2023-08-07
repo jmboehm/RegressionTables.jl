@@ -158,6 +158,8 @@ function regtable(
     print_control_indicator = default_print_control_indicator(renderSettings),
     digits=nothing,
     digits_stats=nothing,
+    estimformat=nothing,
+    statisticformat=nothing,
     below_decoration::Union{Nothing, Function}=nothing,# can also be a function
     standardize_coef=default_standardize_coef(renderSettings, rrs),# can be vector with same length as rrs
     # needed: estim_decoration
@@ -273,9 +275,13 @@ function regtable(
     end
     if digits !== nothing
         coefvalues = T.(coefvalues; digits)
+    elseif estimformat !== nothing
+        coefvalues = T.(coefvalues; str_format=estimformat)
     end
     if digits_stats !== nothing
         coefbelow = T.(coefbelow; digits=digits_stats)
+    elseif statisticformat !== nothing
+        coefbelow = T.(coefbelow; str_format=statisticformat)
     end
     if below_decoration !== nothing
         coefbelow = below_decoration.(coefbelow)
@@ -334,6 +340,8 @@ function regtable(
             stats = combine_statistics(tables)
             if digits_stats !== nothing
                 stats = T.(stats; digits=digits_stats)
+            elseif statisticformat !== nothing
+                stats = T.(stats; str_format=statisticformat)
             end
             push_DataRow!(out, stats, align, wdths, false, renderSettings)
         elseif v == :controls

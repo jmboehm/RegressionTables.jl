@@ -14,7 +14,13 @@ default_iv_label(rndr::AbstractRenderType) = "IV"
 (::Type{T})(x; args...) where {T <: AbstractRenderType} = "$x"
 (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
 (::Type{T})(x::Int; args...) where {T <: AbstractRenderType} = format(x, commas=true)
-(::Type{T})(x::Float64; digits=default_round_digits(T(), x), commas=true, args...) where {T <: AbstractRenderType} = format(x; precision=digits, commas)
+function (::Type{T})(x::Float64; digits=default_round_digits(T(), x), commas=true, str_format=nothing, args...) where {T <: AbstractRenderType}
+    if str_format !== nothing
+        sprintf1(str_format, x)
+    else
+        format(x; precision=digits, commas)
+    end
+end
 (::Type{T})(x::Nothing; args...) where {T <: AbstractRenderType} = ""
 (::Type{T})(x::Missing; args...) where {T <: AbstractRenderType} = ""
 (::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType} = String(x)
