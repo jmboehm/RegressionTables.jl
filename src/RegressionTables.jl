@@ -29,8 +29,8 @@ module RegressionTables
 
     #using DataFrames
 
-    using StatsBase: RegressionModel
-    using StatsModels: StatsModels, TableRegressionModel, InteractionTerm, FunctionTerm, AbstractTerm, Term
+    using StatsBase
+    using StatsModels
     using Statistics
     using StatsAPI
 

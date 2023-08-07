@@ -1,6 +1,6 @@
-using RDatasets, Distributions
+using RDatasets
 using RegressionTables
-using FixedEffectModels, GLM, MixedModels#, GLFixedEffectModels
+using FixedEffectModels, GLM, MixedModels, GLFixedEffectModels
 using Test
 
 ##
