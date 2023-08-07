@@ -35,10 +35,5 @@ function name(t::InteractionTerm)
     end
     n
 end
-function name(t::FunctionTerm)
-    if t.f === FixedEffectModels.fe
-        string(t.exorig.args[end])
-    else
-        StatsBase.coefnames(t)
-    end
-end
+name(t::FunctionTerm{typeof(FixedEffectModels.fe)}) = string(t.exorig.args[end])
+name(t::FunctionTerm) = StatsBase.coefnames(t)
