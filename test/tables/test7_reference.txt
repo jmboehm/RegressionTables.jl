@@ -17,8 +17,8 @@ SepalLength                                                    -0.313
 -------------------------------------------------------------------------------------------
 Species                                   Yes        Yes          Yes                      
 isSmall                                              Yes                     Yes        Yes
-Species * isWide                                                             Yes           
-PetalLength * isWide                                                                    Yes
+Species & isWide                                                             Yes           
+PetalLength & isWide                                                                    Yes
 -------------------------------------------------------------------------------------------
 Estimator                      OLS        OLS        OLS           IV        OLS        OLS
 -------------------------------------------------------------------------------------------
