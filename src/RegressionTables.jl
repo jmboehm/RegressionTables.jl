@@ -29,21 +29,31 @@ module RegressionTables
 
     #using DataFrames
 
-    using StatsBase
-    using StatsModels
+    using StatsBase: RegressionModel
+    using StatsModels: StatsModels, TableRegressionModel, InteractionTerm, FunctionTerm, AbstractTerm, Term
     using Statistics
 
     using Compat
 
     import Distributions: ccdf, FDist
-    import FixedEffectModels: FixedEffectModel, has_fe, has_iv, eachterm, FixedEffectTerm #AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
+    import FixedEffectModels: FixedEffectModels, FixedEffectModel, has_fe, has_iv, eachterm, FixedEffectTerm, fe #AbstractRegressionResult, RegressionResult, RegressionResultIV, RegressionResultFE, RegressionResultFEIV
     import Formatting: sprintf1
     import GLM: LinearModel
-    import StatsModels: TableRegressionModel
+    
+    using StatsAPI: StatsAPI, coef, coefnames, dof_residual, nobs, vcov
 
-    import StatsBase: coef, coeftable, confint, deviance, nulldeviance, dof, dof_residual,
-                      loglikelihood, nullloglikelihood, nobs, stderr, vcov, residuals, predict,
-                      fit, model_response, r2, r², adjr2, adjr², PValue
+    # define methods for `responsename` and `islinear` that are missing upstream
+    responsename(r)                       = StatsAPI.responsename(r)
+    responsename(r::RegressionModel)      = StatsModels.responsename(r) # returns a Symbol
+    responsename(r::TableRegressionModel) = lhs(r.mf.f.lhs)
+    
+    lhs(t::FunctionTerm) = Symbol(t.exorig)
+    lhs(t) = t.sym
+    
+    islinear(r)                       = StatsAPI.islinear(r)
+    islinear(r::TableRegressionModel) = r.model isa LinearModel
+
+    using StatsBase: loglikelihood, nullloglikelihood, PValue, model_response
 
     using UnPack: @unpack
     
