@@ -201,7 +201,7 @@ using Statistics
 comments = ["Specification", "Baseline", "Preferred"]
 means = ["My custom mean", Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
 mystats = [comments, means]
-RegressionTables.regtable(rr1, rr2; file = joinpath(dirname(@__FILE__), "tables", "test9.txt"), regression_statistics = [:nobs, :r2],extralines = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
+RegressionTables.regtable(rr1, rr2; file = joinpath(dirname(@__FILE__), "tables", "test9.txt"), regression_statistics = [:nobs, :r2],extralines = mystats)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 
 # below_decoration = :none
@@ -243,28 +243,28 @@ RegressionTables.regtable(rr1,rr2,rr3,rr4; file = joinpath(dirname(@__FILE__), "
 # regtable(rr1,rr2,rr3,rr5; renderSettings = latexOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 #
 
-RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = LatexTable, file = joinpath(dirname(@__FILE__), "tables", "test2.tex"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = LatexTable(), file = joinpath(dirname(@__FILE__), "tables", "test2.tex"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.tex"), joinpath(dirname(@__FILE__), "tables", "test2_reference.tex"))
 
-RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = LatexTable, file = joinpath(dirname(@__FILE__), "tables", "test3.tex"), 
+RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = LatexTable(), file = joinpath(dirname(@__FILE__), "tables", "test3.tex"), 
                                            regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof],
                                            align = :c)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.tex"), joinpath(dirname(@__FILE__), "tables", "test3_reference.tex"))
 
 
-RegressionTables.regtable(lm1, lm2, gm1; renderSettings = LatexTable, file = joinpath(dirname(@__FILE__), "tables", "test4.tex"), regression_statistics = [:nobs, :r2])
+RegressionTables.regtable(lm1, lm2, gm1; renderSettings = LatexTable(), file = joinpath(dirname(@__FILE__), "tables", "test4.tex"), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test4.tex"), joinpath(dirname(@__FILE__), "tables", "test4_reference.tex"))
 
-RegressionTables.regtable(lm1, lm2, lm3, gm1; renderSettings = LatexTable, file = joinpath(dirname(@__FILE__), "tables", "test6.tex"), regression_statistics = [:nobs, :r2], transform_labels = :ampersand)
+RegressionTables.regtable(lm1, lm2, lm3, gm1; renderSettings = LatexTable(), file = joinpath(dirname(@__FILE__), "tables", "test6.tex"), regression_statistics = [:nobs, :r2], transform_labels = :ampersand)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test6.tex"), joinpath(dirname(@__FILE__), "tables", "test6_reference.tex"))
 
 
 
 # HTML Tables
-RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = HTMLTable, file = joinpath(dirname(@__FILE__), "tables", "test1.html"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+RegressionTables.regtable(rr1,rr2,rr3,rr5; renderSettings = HTMLTable(), file = joinpath(dirname(@__FILE__), "tables", "test1.html"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.html"), joinpath(dirname(@__FILE__), "tables", "test1_reference.html"))
 
-RegressionTables.regtable(lm1, lm2, gm1; renderSettings = HTMLTable, file = joinpath(dirname(@__FILE__), "tables", "test2.html"), regression_statistics = [:nobs, :r2])
+RegressionTables.regtable(lm1, lm2, gm1; renderSettings = HTMLTable(), file = joinpath(dirname(@__FILE__), "tables", "test2.html"), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test2.html"), joinpath(dirname(@__FILE__), "tables", "test2_reference.html"))
 
 
