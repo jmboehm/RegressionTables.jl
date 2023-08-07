@@ -1,4 +1,3 @@
-using Revise
 using RDatasets, Distributions
 using RegressionTables
 using FixedEffectModels, GLM, MixedModels#, GLFixedEffectModels
