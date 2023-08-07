@@ -64,10 +64,10 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
     while adjusted
       header_vec = map(1:size(tab.header, 1)) do i
         h = header(tab, tab.header[i:i,:], settings, colWidths)
-        @unpack adjusted, h = adjust_widths!(colWidths, h, settings)
-        @unpack headerArray, hr = headerrule(h, settings)
+        (; adjusted, h) = adjust_widths!(colWidths, h, settings)
+        (; headerArray, hr) = headerrule(h, settings)
 
-        (h=h, hr=hr, headerArray=headerArray)
+        (; h, hr, headerArray)
       end
     end
     # START RENDERING
@@ -94,7 +94,7 @@ function render(io::IO, tab::RegressionTable, align::String, settings::RenderSet
 
     # header
     map(header_vec) do head
-        @unpack headerArray, h, hr = head
+        (; headerArray, h, hr) = head
         render(io, headerArray, h.headerWidths, ("c" ^ size(headerArray,2)), settings, isHeader=true)
         if hr.print_headerrule_separately
             println(io, hr.headerrule)
