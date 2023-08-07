@@ -167,6 +167,29 @@ function regtable(
     if isa(transform_labels, Symbol)
         transform_labels = _escape(transform_labels)
     end
+    if isa(below_statistic, Symbol)
+        if below_statistic == :stderror
+            below_statistic = StdError
+        elseif below_statistic == :tstat
+            below_statistic = TStat
+        elseif below_statistic == :none
+            below_statistic = nothing
+        else
+            error("unrecognized below_statistic")
+        end
+    end
+    regression_statistics = replace(
+        regression_statistics,
+        :nobs => Nobs,
+        :r2 => R2,
+        :adjr2 => AdjR2,
+        :r2_within => R2Within,
+        :f => FStat,
+        :p => FStatPValue,
+        :f_kp => FStatIV,
+        :p_kp => FStatIVPValue,
+        :dof => DOF,
+    )
     sections = []
     for (i, s) in enumerate(section_order)
         if s == :depvar

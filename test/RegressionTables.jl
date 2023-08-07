@@ -1,3 +1,4 @@
+using Revise
 using RegressionTables
 using FixedEffectModels, GLM, RDatasets, Test
 
@@ -13,6 +14,7 @@ rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(
 rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(Species)))
 rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(Species)&fe(isWide) + fe(isSmall)))
 rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
+
 
 RegressionTables.default_fe_suffix(x::RegressionTables.AbstractRenderType) = ""
 RegressionTables.default_print_control_indicator(x::RegressionTables.AbstractRenderType) = false
@@ -42,6 +44,8 @@ function checkfilesarethesame(file1::String, file2::String)
 
     close(f1)
     close(f2)
+    s1 = replace(s1, "\r\n" => "\n")
+    s2 = replace(s2, "\r\n" => "\n")
 
     # Character-by-character comparison
     for i=1:length(s1)
@@ -60,7 +64,6 @@ function checkfilesarethesame(file1::String, file2::String)
         @show s2
     end
 end
-
 
 # ASCII TABLES
 
@@ -142,9 +145,14 @@ end
 # labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
 
 
+regtable(rr4,rr5,lm1, lm2, gm1; file =joinpath(dirname(@__FILE__), "tables", "ftest1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"), joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))
 regtable(rr4,rr5,lm1, lm2, gm1; file =joinpath(dirname(@__FILE__), "tables", "ftest1.txt"), regression_statistics = [Nobs, R2, AdjR2, R2Within, FStat, FStatPValue, FStatIV, FStatIVPValue, DOF])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"), joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))
+
 # regressors and labels
+regtable(rr4,rr5,lm1, lm2, gm1; file = joinpath(dirname(@__FILE__), "tables", "ftest2.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], keep = ["SepalLength", "PetalWidth"])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"), joinpath(dirname(@__FILE__), "tables", "ftest2_reference.txt"))
 regtable(rr4,rr5,lm1, lm2, gm1; file = joinpath(dirname(@__FILE__), "tables", "ftest2.txt"), regression_statistics = [Nobs, R2, AdjR2, R2Within, FStat, FStatPValue, FStatIV, FStatIVPValue, DOF], keep = ["SepalLength", "PetalWidth"])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest2.txt"), joinpath(dirname(@__FILE__), "tables", "ftest2_reference.txt"))
 # fixedeffects, estimformat, statisticformat, number_regressions_decoration
@@ -158,25 +166,21 @@ regtable(rr3,rr5,lm1, lm2, gm1; renderSettings=AsciiTableSquare(), file = joinpa
 
 
 struct AsciiTableSquare2 <: RegressionTables.AbstractAscii end
-function RegressionTables.estim_decorator(rndr::AsciiTableSquare2, s, pval::Float64; args...)
-    if pval<0.0
-        error("p value needs to be nonnegative.")
-    end
-    if (pval > 0.05)
-        return "$s"
-    elseif (pval <= 0.05)
-        return "$s<-OMG!"
-    end
-end
-
+RegressionTables.default_breaks(rndr::AsciiTableSquare2) = [0.05]
+RegressionTables.default_symbol(rndr::AsciiTableSquare2) = "<-OMG!"
 AsciiTableSquare2(x::RegressionTables.AbstractUnderStatistic; args...) = "[" * AsciiTableSquare2(RegressionTables.value(x); args...) * "]"
 
+regtable(rr3,rr5,lm1, lm2, gm1; renderSettings=AsciiTableSquare2(), file = joinpath(dirname(@__FILE__), "tables", "ftest4.txt"), below_statistic = :tstat, number_regressions = false)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"), joinpath(dirname(@__FILE__), "tables", "ftest4_reference.txt"))
 regtable(rr3,rr5,lm1, lm2, gm1; renderSettings=AsciiTableSquare2(), file = joinpath(dirname(@__FILE__), "tables", "ftest4.txt"), below_statistic = TStat, number_regressions = false)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest4.txt"), joinpath(dirname(@__FILE__), "tables", "ftest4_reference.txt"))
 # print_fe_section, print_estimator_section
 regtable(rr3,rr5,lm1, lm2, gm1; file = joinpath(dirname(@__FILE__), "tables", "ftest5.txt"), print_fe_section = false, print_estimator_section = false)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest5.txt"), joinpath(dirname(@__FILE__), "tables", "ftest5_reference.txt"))
 # transform_labels and custom labels
+regtable(rr5,rr6,lm1, lm2, lm3; file = joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof], transform_labels = :ampersand,
+labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
 regtable(rr5,rr6,lm1, lm2, lm3; file = joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), regression_statistics = [Nobs, R2, AdjR2, R2Within, FStat, FStatPValue, FStatIV, FStatIVPValue, DOF], transform_labels = :ampersand,
 labels = Dict("SepalLength" => "My dependent variable: SepalLength", "PetalLength" => "Length of Petal", "PetalWidth" => "Width of Petal", "(Intercept)" => "Const." , "isSmall" => "isSmall Dummies", "SpeciesDummy" => "Species Dummies"))
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest6.txt"), joinpath(dirname(@__FILE__), "tables", "ftest6_reference.txt"))
@@ -191,15 +195,23 @@ regtable(rr1,rr5,rr2,rr4; file = joinpath(dirname(@__FILE__), "tables", "ftest8.
 regtable(rr5,rr1,rr2,rr4; file = joinpath(dirname(@__FILE__), "tables", "ftest9.txt"), groups=["grp1" "grp1" "grp2" "grp2"])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"), joinpath(dirname(@__FILE__), "tables", "ftest9_reference.txt"))
 
+regtable(rr1,rr2,rr3,rr5; file = joinpath(dirname(@__FILE__), "tables", "test1.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
 regtable(rr1,rr2,rr3,rr5; file = joinpath(dirname(@__FILE__), "tables", "test1.txt"), regression_statistics = [Nobs, R2, AdjR2, R2Within, FStat, FStatPValue, FStatIV, FStatIVPValue, DOF])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test1.txt"), joinpath(dirname(@__FILE__), "tables", "test1_reference.txt"))
 
+regtable(rr1,rr2,rr3,rr5,rr6,rr7; file = joinpath(dirname(@__FILE__), "tables", "test7.txt"), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test7.txt"), joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
 regtable(rr1,rr2,rr3,rr5,rr6,rr7; file = joinpath(dirname(@__FILE__), "tables", "test7.txt"), regression_statistics = [Nobs, R2, AdjR2, R2Within, FStat, FStatPValue, FStatIV, FStatIVPValue, DOF])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test7.txt"), joinpath(dirname(@__FILE__), "tables", "test7_reference.txt"))
 
+regtable(lm1, lm2, gm1; file = joinpath(dirname(@__FILE__), "tables", "test3.txt"), regression_statistics = [:nobs, :r2])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
 regtable(lm1, lm2, gm1; file = joinpath(dirname(@__FILE__), "tables", "test3.txt"), regression_statistics = [Nobs, R2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test3.txt"), joinpath(dirname(@__FILE__), "tables", "test3_reference.txt"))
 
+regtable(lm1, lm2, lm4; file = joinpath(dirname(@__FILE__), "tables", "test8.txt"), regression_statistics = [:nobs, :r2])
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test8.txt"), joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
 regtable(lm1, lm2, lm4; file = joinpath(dirname(@__FILE__), "tables", "test8.txt"), regression_statistics = [Nobs, R2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test8.txt"), joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
 
@@ -207,10 +219,14 @@ using Statistics
 comments = ["Specification", "Baseline", "Preferred"]
 means = ["My custom mean", Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
 mystats = [comments, means]
+regtable(rr1, rr2; file = joinpath(dirname(@__FILE__), "tables", "test9.txt"), regression_statistics = [:nobs, :r2],extralines = mystats)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 regtable(rr1, rr2; file = joinpath(dirname(@__FILE__), "tables", "test9.txt"), regression_statistics = [Nobs, R2],extralines = mystats)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 
 # below_decoration = :none
+regtable(rr1,rr2,rr3,rr4; file = joinpath(dirname(@__FILE__), "tables", "test10.txt"), below_statistic = :none)
+@test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test10.txt"), joinpath(dirname(@__FILE__), "tables", "test10_reference.txt"))
 regtable(rr1,rr2,rr3,rr4; file = joinpath(dirname(@__FILE__), "tables", "test10.txt"), below_statistic = nothing)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test10.txt"), joinpath(dirname(@__FILE__), "tables", "test10_reference.txt"))
 

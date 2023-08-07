@@ -14,7 +14,7 @@ default_iv_label(rndr::AbstractRenderType) = "IV"
 (::Type{T})(x; args...) where {T <: AbstractRenderType} = "$x"
 (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
 (::Type{T})(x::Int; args...) where {T <: AbstractRenderType} = format(x, commas=true)
-(::Type{T})(x::Float64; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = format(x, precision=digits, commas=true)
+(::Type{T})(x::Float64; digits=default_round_digits(T(), x), commas=true, args...) where {T <: AbstractRenderType} = format(x; precision=digits, commas)
 (::Type{T})(x::Nothing; args...) where {T <: AbstractRenderType} = ""
 (::Type{T})(x::Missing; args...) where {T <: AbstractRenderType} = ""
 (::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType} = String(x)
@@ -22,7 +22,7 @@ default_iv_label(rndr::AbstractRenderType) = "IV"
 (::Type{T})(x::AbstractRegressionStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
 (::Type{T})(x::AbstractR2; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
 (::Type{T})(x::AbstractUnderStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, args...) * ")"
-(::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(T(), T(value(x); digits, args...), x.pvalue)
+(::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(T(), T(value(x); digits, commas=false, args...), x.pvalue)
 (::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic} = label(T(), V)
 (::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType} = label(T(), x)
 (::Type{T})(x::Tuple; args...) where {T <: AbstractRenderType} = join(T.(x; args...), " ")
