@@ -1,7 +1,7 @@
 module RegressionTablesMixedModelsExt
 
 
-using MixedModels, RegressionTables, StatsModels, Statistics
+using MixedModels, RegressionTables, StatsModels, Statistics, Distributions
 
 RegressionTables.default_regression_statistics(rr::MixedModel) = [Nobs, LogLikelihood]
 

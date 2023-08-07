@@ -215,3 +215,9 @@ struct HasControls
 end
 value(x::HasControls) = x.val
 label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"
+
+struct RegressionNumbers
+    val::Int
+end
+value(x::RegressionNumbers) = x.val
+label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""

@@ -2,7 +2,7 @@ module RegressionTablesGLFixedEffectModelsExt
 
 # FixedEffectModels.jl is a dependency for GLFixedEffectModels.jl, so
 # most things are already loaded
-using GLFixedEffectModels, RegressionTables
+using GLFixedEffectModels, RegressionTables, Distributions
 
 RegressionTables.default_regression_statistics(rr::GLFixedEffectModel) = [Nobs, R2McFadden]
 function RegressionTables.RegressionType(x::GLFixedEffectModel)

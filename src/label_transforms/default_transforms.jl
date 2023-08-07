@@ -11,13 +11,13 @@ escape_latex_dict = Dict("&" => "\\&", "%" => "\\%", "\$" => "\\\$", "#" => "\\#
 
 function _escape(s::Symbol)
   if s == :ampersand
-    _escape(Dict("&" => "\\&"))
+    Dict("&" => "\\&")
   elseif s == :underscore
-    _escape(Dict("_" => "\\_"))
+    Dict("_" => "\\_")
   elseif s == :underscore2space
-    _escape(Dict("_" => " "))  
+    Dict("_" => " ")
   elseif s == :latex
-    _escape(escape_latex_dict)
+    escape_latex_dict
   else
     @error "Please provide `:ampersand`, `:underscore`, `:underscore2space`, `:latex`, a `::Dict` or a custom function."
   end

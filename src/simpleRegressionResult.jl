@@ -84,6 +84,7 @@ make_reg_stats(rr, stat::Type{<:AbstractRegressionStatistic}) = stat(rr)
 make_reg_stats(rr, stat) = stat
 make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, first(stat)) => last(stat)
 
+default_regression_statistics(x::AbstractRenderType, rr::RegressionModel) = default_regression_statistics(rr)
 default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
 fe_terms(rr::RegressionModel; args...) = nothing
 

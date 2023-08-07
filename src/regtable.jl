@@ -4,29 +4,30 @@ default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = defa
 default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
 default_round_digits(rndr::AbstractRenderType, x) = 3
 
-default_fe_yes() = "Yes"
-default_fe_no() = ""
-default_section_order() = [:groups, :depvar, :number_regressions, :break, :coef, :break, :regtype, :break, :fe, :break, :controls, :break, :stats, :extralines]
-default_regression_decoration(rrs) = length(rrs) > 1 ? i -> "($i)" : nothing
-default_align() = :r
-default_header_align() = :c
-default_depvar() = true
-default_number_regressions(rrs) = length(rrs) > 1
-default_print_fe() = true
-default_groups(rrs) = nothing
-default_extralines(rrs) = nothing
-default_keep(rrs) = Vector{String}()
-default_drop(rrs) = Vector{String}()
-default_order(rrs) = Vector{String}()
-default_fixedeffects(rrs) = Vector{String}()
-default_labels() = Dict{String, String}()
-default_below_statistic() = STDError
-default_stat_below() = true
+default_section_order(rndr::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :regtype, :break, :fe, :break, :controls, :break, :stats, :extralines]
+default_align(rndr::AbstractRenderType) = :r
+default_header_align(rndr::AbstractRenderType) = :c
+default_depvar(rndr::AbstractRenderType) = true
+default_number_regressions(rndr::AbstractRenderType, rrs) = length(rrs) > 1
+default_print_fe(rndr::AbstractRenderType, rrs) = true
+default_groups(rndr::AbstractRenderType, rrs) = nothing
+default_extralines(rndr::AbstractRenderType, rrs) = nothing
+default_keep(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_drop(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_order(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_fixedeffects(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_labels(rndr::AbstractRenderType) = Dict{String, String}()
+default_below_statistic(rndr::AbstractRenderType) = STDError
+default_stat_below(rndr::AbstractRenderType) = true
 default_render(rrs) = AsciiTable()
-default_file(rrs) = nothing
-default_fe_suffix() = "Fixed Effects"
-default_print_control_indicator() = true
-default_standardize_coef(rrs) = false
+default_file(rndr::AbstractRenderType, rrs) = nothing
+default_fe_suffix(rndr::AbstractRenderType) = "Fixed Effects"
+default_print_control_indicator(rndr::AbstractRenderType) = true
+default_standardize_coef(rndr::AbstractRenderType, rrs) = false
+default_transform_labels(rndr::AbstractRenderType) = Dict{String, String}()
+default_transform_labels(rndr::AbstractLatex) = :latex
+default_print_estimator(rndr::AbstractRenderType, rrs) = length(unique(RegressionType.(rrs))) > 1
+default_regression_statistics(rndr::AbstractRenderType, rrs::Tuple) = unique(union(default_regression_statistics.(rndr, rrs)...))
 
 
 #region
@@ -133,36 +134,39 @@ end
 function regtable(
     rrs::RegressionModel...;
     renderSettings::T = default_render(rrs),
-    keep::Vector = default_keep(rrs), # allows :last and :end as symbol
-    drop::Vector = default_drop(rrs), # allows :last and :end as symbol
-    order::Vector = default_order(rrs), # allows :last and :end as symbol
-    fixedeffects::Vector{String} = default_fixedeffects(rrs),
-    labels::Dict{String,String} = default_labels(),
-    align::Symbol = default_align(),
-    header_align::Symbol = default_header_align(),
+    keep::Vector = default_keep(renderSettings, rrs), # allows :last and :end as symbol
+    drop::Vector = default_drop(renderSettings, rrs), # allows :last and :end as symbol
+    order::Vector = default_order(renderSettings, rrs), # allows :last and :end as symbol
+    fixedeffects::Vector{String} = default_fixedeffects(renderSettings, rrs),
+    labels::Dict{String,String} = default_labels(renderSettings),
+    align::Symbol = default_align(renderSettings),
+    header_align::Symbol = default_header_align(renderSettings),
     #estim_decoration::Function = make_estim_decorator([0.001, 0.01, 0.05]),
-    below_statistic = default_below_statistic(),# can also be nothing
-    stat_below::Bool = default_stat_below(),# true means StdError or TStat appears below, false means it appears to the right
-    regression_statistics = unique(union(default_regression_statistics.(rrs)...)), # collection of all statistics to be printed
-    groups = default_groups(rrs), # displayed above the regression variables
-    print_depvar::Bool = default_depvar(),
-    number_regressions_decoration = default_regression_decoration(rrs), # decoration for the column number, does not display by default if only 1 regression
-    print_estimator_section = length(unique(RegressionType.(rrs))) > 1,
-    print_fe_section = default_print_fe(), # defaults to true but only matters if fixed effects are present
-    file = default_file(rrs),
-    transform_labels::Union{Dict,Symbol} = Dict{String, String}(),
-    extralines = default_extralines(rrs),
-    section_order = default_section_order(),
-    fe_suffix = default_fe_suffix(),
-    print_control_indicator = default_print_control_indicator(),
+    below_statistic = default_below_statistic(renderSettings),# can also be nothing
+    stat_below::Bool = default_stat_below(renderSettings),# true means StdError or TStat appears below, false means it appears to the right
+    regression_statistics = default_regression_statistics(renderSettings, rrs), # collection of all statistics to be printed
+    groups = default_groups(renderSettings, rrs), # displayed above the regression variables
+    print_depvar::Bool = default_depvar(renderSettings),
+    number_regressions::Bool = default_number_regressions(renderSettings, rrs), # decoration for the column number, does not display by default if only 1 regression
+    print_estimator_section = default_print_estimator(renderSettings, rrs),
+    print_fe_section = default_print_fe(renderSettings, rrs), # defaults to true but only matters if fixed effects are present
+    file = default_file(renderSettings, rrs),
+    transform_labels::Union{Dict,Symbol} = default_transform_labels(renderSettings),
+    extralines = default_extralines(renderSettings, rrs),
+    section_order = default_section_order(renderSettings),
+    fe_suffix = default_fe_suffix(renderSettings),
+    print_control_indicator = default_print_control_indicator(renderSettings),
     digits=nothing,
     digits_stats=nothing,
-    below_decoration=nothing,# can also be a function
-    standardize_coef=default_standardize_coef(rrs),# can be vector with same length as rrs
-    # needed: standardize_coef, estim_decoration
+    below_decoration::Union{Nothing, Function}=nothing,# can also be a function
+    standardize_coef=default_standardize_coef(renderSettings, rrs),# can be vector with same length as rrs
+    # needed: estim_decoration
 ) where {T<:AbstractRenderType}
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
     @assert header_align ∈ (:l, :r, :c) "header_align must be one of :l, :r, :c"
+    if isa(transform_labels, Symbol)
+        transform_labels = _escape(transform_labels)
+    end
     sections = []
     for (i, s) in enumerate(section_order)
         if s == :depvar
@@ -173,10 +177,8 @@ function regtable(
             if groups !== nothing
                 push!(sections, groups)
             end
-        elseif s == :number_regressions
-            if number_regressions_decoration !== nothing
-                push!(sections, :number_regressions)
-            end
+        elseif s == :number_regressions && number_regressions
+            push!(sections, :number_regressions)
         elseif s == :regtype
             if print_estimator_section
                 push!(sections, :regtype)
@@ -261,53 +263,53 @@ function regtable(
 
         if isa(s, Pair)
             v = first(s)
-            push_DataRow!(out, DataRow(vcat([last(s)], fill("", length(tables)))), align, wdths, false, T())
+            push_DataRow!(out, DataRow(vcat([last(s)], fill("", length(tables)))), align, wdths, false, renderSettings)
         else
             v = s
         end
         if !isa(v, Symbol)
             al = in_header ? header_align : align
-            push_DataRow!(out, v, al, wdths, in_header, T(); combine_equals=in_header)
+            push_DataRow!(out, v, al, wdths, in_header, renderSettings; combine_equals=in_header)
             continue
         end
         if v == :break
             push!(breaks, length(out))
         elseif v == :depvar
             underlines = i + 1 < length(sections) && sections[i+1] != :break
-            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, T(); combine_equals=true)
+            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, renderSettings; combine_equals=true)
         elseif v == :number_regressions
-            push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, T(); combine_equals=false)
+            push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, renderSettings; combine_equals=false)
         elseif v == :coef
             in_header = false
             if below_statistic === nothing
-                push_DataRow!(out, coefvalues, align, wdths, false, T())
+                push_DataRow!(out, coefvalues, align, wdths, false, renderSettings)
             else
                 if stat_below
                     temp = hcat(nms, coefvalues)
                     for i in 1:size(temp, 1)
-                        push_DataRow!(out, temp[i, :], align, wdths, false, T())
-                        push_DataRow!(out, coefbelow[i, :], align, wdths, false, T())
+                        push_DataRow!(out, temp[i, :], align, wdths, false, renderSettings)
+                        push_DataRow!(out, coefbelow[i, :], align, wdths, false, renderSettings)
                     end
                 else
                     x = [(x, y) for (x, y) in zip(coefvalues, coefbelow)]
                     temp = hcat(nms, x)
-                    push_DataRow!(out, temp, align, wdths, false, T())
+                    push_DataRow!(out, temp, align, wdths, false, renderSettings)
                 end
             end
         elseif v == :fe
             fe = combine_fe(tables)
             if !isnothing(fe)
-                push_DataRow!(out, fe, align, wdths, false, T())
+                push_DataRow!(out, fe, align, wdths, false, renderSettings)
             end
         elseif v == :regtype
             regressiontype = vcat([RegressionType], [t.regressiontype for t in tables])
-            push_DataRow!(out, regressiontype, align, wdths, false, T())
+            push_DataRow!(out, regressiontype, align, wdths, false, renderSettings)
         elseif v == :stats
             stats = combine_statistics(tables)
             if digits_stats !== nothing
                 stats = T.(stats; digits=digits_stats)
             end
-            push_DataRow!(out, stats, align, wdths, false, T())
+            push_DataRow!(out, stats, align, wdths, false, renderSettings)
         elseif v == :controls
             v = missing_vars.(tables, Ref(string.(nms)))
             if !any(v)
@@ -317,7 +319,7 @@ function regtable(
                 [HasControls],
                 HasControls.(v) |> collect
             )
-            push_DataRow!(out, dat, align, wdths, false, T())
+            push_DataRow!(out, dat, align, wdths, false, renderSettings)
         end
     end
     if length(breaks) == 0
@@ -353,7 +355,7 @@ function combine_fe(tables)
             end
         end
     end
-    hcat(fe, out)
+    hcat(fe, mat)
 end
 
 function combine_statistics(tables)
@@ -411,8 +413,6 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, 
         end
         align = align2
         colwidths = colwidths2
-        println(align)
-        println(colwidths)
     end
     push!(
         data,

@@ -1,6 +1,8 @@
 
 abstract type AbstractRenderType end
 
+Base.broadcastable(o::AbstractRenderType) = Ref(o)
+
 struct DataRow{T<:AbstractRenderType}
     data::Vector
     align::String

@@ -31,13 +31,14 @@ default_iv_label(rndr::AbstractRenderType) = "IV"
 (::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType} = "$(value(x))$(categorical_equal(T())) $(x.level)"
 (::Type{T})(x::InterceptCoefName; args...) where {T <: AbstractRenderType} = "(Intercept)"
 (::Type{T})(x::HasControls; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+(::Type{T})(x::RegressionNumbers; args...) where {T <: AbstractRenderType} = "(" * T(value(x); args...) * ")"
 (::Type{T})(x::Type{V}; args...) where {T <: AbstractRenderType, V <: HasControls} = label(T(), V)
 
 (::Type{T})(x::RegressionType; args...) where {T<: AbstractRenderType} = x.is_iv ? T(default_iv_label(T()); args...) : T(value(x); args...)
 (::Type{T})(x::D;args...) where {T<: AbstractRenderType, D<:UnivariateDistribution} = T(string(Base.typename(D).wrapper); args...)
 (::Type{T})(x::InverseGaussian; args...) where {T<: AbstractRenderType} = T("Inverse Gaussian"; args...)
 (::Type{T})(x::NegativeBinomial; args...) where {T<: AbstractRenderType} = T("Negative Binomial"; args...)
-(::Type{T})(x::Normal; args...) where {T<: AbstractRenderType,} = T(default_ols_label(T()); args...)
+(::Type{T})(x::Normal; args...) where {T<: AbstractRenderType} = T(default_ols_label(T()); args...)
 
 function make_padding(s, colWidth, align)
     if align == 'l'

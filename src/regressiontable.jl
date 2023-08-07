@@ -28,7 +28,7 @@ data(tab::RegressionTable) = tab.data
 align(tab::RegressionTable) = tab.align
 colwidths(tab::RegressionTable) = tab.colwidths
 
-RegressionTable(header::Vector, body::Matrix, args...; vargs...) = RegressionTable(reshape(header, :, 1), body, args...; vargs...)
+RegressionTable(header::Vector, body::Matrix, args...; vargs...) = RegressionTable(reshape(header, 1, :), body, args...; vargs...)
 function RegressionTable(
     header::Matrix,
     body::Matrix,

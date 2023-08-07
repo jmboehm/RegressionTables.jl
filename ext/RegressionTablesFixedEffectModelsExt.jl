@@ -1,6 +1,6 @@
 module RegressionTablesFixedEffectModelsExt
 
-using FixedEffectModels, RegressionTables
+using FixedEffectModels, RegressionTables, Distributions
 
 
 RegressionTables.FStat(x::FixedEffectModel) = FStat(x.F)
