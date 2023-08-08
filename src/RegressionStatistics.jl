@@ -200,6 +200,7 @@ struct CoefValue
     pvalue::Float64
 end
 value(x::CoefValue) = x.val
+value_pvalue(x::CoefValue) = x.pvalue
 
 struct RegressionType{T}
     val::T
