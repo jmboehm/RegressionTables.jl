@@ -36,8 +36,7 @@ module RegressionTables
 
     using Distributions
     using Formatting
-    using StatsModels
-
+    
     ##############################################################################
     ##
     ## Exported methods and types
