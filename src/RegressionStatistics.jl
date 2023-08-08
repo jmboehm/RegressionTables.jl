@@ -201,6 +201,8 @@ struct CoefValue
 end
 value(x::CoefValue) = x.val
 value_pvalue(x::CoefValue) = x.pvalue
+value_pvalue(x::Missing) = missing
+value_pvalue(x::Nothing) = nothing
 
 struct RegressionType{T}
     val::T
@@ -223,3 +225,5 @@ struct RegressionNumbers
 end
 value(x::RegressionNumbers) = x.val
 label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
+
+value(x) = missing

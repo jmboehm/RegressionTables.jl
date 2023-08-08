@@ -291,28 +291,53 @@ function regtable(
             end
         end
     end
-    if digits !== nothing
-        coefvalues = T.(coefvalues; digits)
-    elseif estimformat !== nothing
-        coefvalues = T.(coefvalues; str_format=estimformat)
+    #=
+    coefvalues need special treatment since they incorporate both the actual
+    coefvalue and the pvalue, so formatting them with with digits, estimformat or
+    estim_decoration is not straightforward. The following logic is implemented:
+    =#
+    if digits !== nothing || estimformat !== nothing || estim_decoration !== nothing
+        if estim_decoration === nothing
+            if digits !== nothing
+                coefvalues = T.(coefvalues; digits)
+            elseif estimformat !== nothing
+                coefvalues = T.(coefvalues; str_format=estimformat)
+            end
+        else
+            @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
+            @warn("RegressionTables.default_breaks(rndr::AbstractRenderType) = [0.001, 0.01, 0.05]")
+            @warn("or set the default symbol globally by running")
+            @warn("RegressionTables.default_symbol(rndr::AbstractRenderType) = '*'")
+            if digits !== nothing
+                temp_coef = T.(value.(coefvalues); digits)
+            elseif estimformat !== nothing
+                temp_coef = T.(value.(coefvalues); str_format=estimformat)
+            else
+                temp_coef = T.(value.(coefvalues); commas=false)
+            end
+            coefvalues = estim_decoration.(temp_coef, coalesce.(value_pvalue.(coefvalues), 1.0))# coalesce to 1.0 since if missing then it should be insignificant
+        end
     end
-    if digits_stats !== nothing
-        coefbelow = T.(coefbelow; digits=digits_stats)
-    elseif statisticformat !== nothing
-        coefbelow = T.(coefbelow; str_format=statisticformat)
-    end
-    if below_decoration !== nothing
-        @warn("below_decoration is deprecated. Set the below decoration globablly by running")
-        @warn("(::Type{T})(x::RegressionTables.AbstractUnderStatistic; digits=RegressionTables.default_round_digits(T(), x), args...) where {T <: RegressionTables.AbstractRenderType} = \"(\" * T(RegressionTables.value(x); digits, args...) * \")\"")
-        coefbelow = below_decoration.(coefbelow)
-    end
-    if estim_decoration !== nothing
-        @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
-        @warn("RegressionTables.default_breaks(rndr::AbstractRenderType) = [0.001, 0.01, 0.05]")
-        @warn("or set the default symbol globally by running")
-        @warn("RegressionTables.default_symbol(rndr::AbstractRenderType) = '*'")
-        coefvalues = T.(value.(coefvalues); commas=false)
-        coefvalues = estim_decoration.(value.(coefvalues), value_pvalue.(coefvalues))
+    
+    if digits !== nothing || statisticformat !== nothing || below_decoration !== nothing
+        if below_decoration === nothing
+            if digits_stats !== nothing
+                coefbelow = T.(coefbelow; digits=digits_stats)
+            elseif statisticformat !== nothing
+                coefbelow = T.(coefbelow; str_format=statisticformat)
+            end
+        else
+            @warn("below_decoration is deprecated. Set the below decoration globablly by running")
+            @warn("(::Type{T})(x::RegressionTables.AbstractUnderStatistic; digits=RegressionTables.default_round_digits(T(), x), args...) where {T <: RegressionTables.AbstractRenderType} = \"(\" * T(RegressionTables.value(x); digits, args...) * \")\"")
+            if digits_stats !== nothing
+                temp_coef = T.(value.(coefbelow); digits=digits_stats)
+            elseif statisticformat !== nothing
+                temp_coef = T.(value.(coefbelow); str_format=statisticformat)
+            else
+                temp_coef = T.(value.(coefbelow); commas=false)
+            end
+            coefbelow = [x == "" ? x : below_decoration(x) for x in temp_coef]
+        end
     end
 
     align='l' * join(fill(align, length(rrs)), "")
@@ -340,7 +365,7 @@ function regtable(
             if number_regressions_decoration !== nothing
                 @warn("number_regressions_decoration is deprecated, specify decoration globally by running")
                 @warn("(::Type{T})(x::RegressionTables.RegressionNumbers; args...) where {T <: AbstractRenderType} = \"(\" * T(RegressionTables.value(x); args...) * \")\"")
-                push_DataRow!(out, number_regressions_decoration.(RegressionNumbers.(1:length(tables))), align, wdths, false, rndr; combine_equals=false)
+                push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, rndr; combine_equals=false)
             else
                 push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, rndr; combine_equals=false)
             end
