@@ -256,12 +256,12 @@ function regtable(
 
     tables = SimpleRegressionResult.(
         rrs,
-        standardize_coef;
+        standardize_coef,
+        fe_suffix;
         regression_statistics,
         labels,
         fixedeffects,
         transform_labels,
-        fe_suffix,
     )
 
     out = Vector{DataRow{T}}()
@@ -269,14 +269,14 @@ function regtable(
     wdths=fill(0, length(tables)+1)
 
     nms = union(coefnames.(tables)...) |> unique
-    if length(order) > 0
-        nms = reorder_nms_list(nms, order)
-    end
     if length(keep) > 0
         nms = unique(vcat(build_nm_list.(Ref(nms), keep)...))
     end
     if length(drop) > 0
         drop_names!(nms, drop)
+    end
+    if length(order) > 0
+        nms = reorder_nms_list(nms, order)
     end
     coefvalues = Matrix{Any}(missing, length(nms), length(tables))
     coefbelow = Matrix{Any}(missing, length(nms), length(tables))
@@ -292,7 +292,7 @@ function regtable(
         end
     end
     #=
-    coefvalues need special treatment since they incorporate both the actual
+    coefvalues and coefbelow need special treatment since they incorporate both the actual
     coefvalue and the pvalue, so formatting them with with digits, estimformat or
     estim_decoration is not straightforward. The following logic is implemented:
     =#

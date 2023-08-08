@@ -39,12 +39,12 @@ end
 # necessary because GLFixedEffectModels.jl does not have a formula function
 function RegressionTables.SimpleRegressionResult(
     rr::GLFixedEffectModel,
-    standardize_coef=false;
+    standardize_coef=false,
+    fe_suffix="Fixed-Effects";
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
     fixedeffects=String[],
-    fe_suffix="Fixed-Effects",
     args...
 )
     coefvalues = coef(rr)
