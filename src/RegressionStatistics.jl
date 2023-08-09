@@ -175,7 +175,7 @@ label(rndr::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(rndr
 """
 See [`AdjR2McFadden`](@ref) for details.
 """
-const AdjPsuedoR2 = AdjR2McFadden
+const AdjPseudoR2 = AdjR2McFadden
 
 """
 `AdjR2Deviance` is the Deviance Adjusted ``R^2`` of the regression. Labels default to:

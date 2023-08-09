@@ -3,6 +3,77 @@ abstract type AbstractRenderType end
 
 Base.broadcastable(o::AbstractRenderType) = Ref(o)
 
+"""
+    mutable struct DataRow{T<:AbstractRenderType}
+        data::Vector
+        align::String
+        colwidths::Vector{Int}
+        print_underlines::Vector{Bool}
+        rndr::T
+    end
+
+    DataRow(x::DataRow) = x
+
+    (::Type{T})(x::DataRow) where {T<:AbstractRenderType} = DataRow(x.data, x.align, x.colwidths, x.print_underlines, T())
+
+    function DataRow(
+        data::Vector,
+        align,
+        colwidths,
+        print_underlines,
+        rndr::AbstractRenderType;
+        combine_equals=false
+    )
+
+    function DataRow(
+        data::Vector;
+        align="l" * "r" ^ (length(data) - 1),
+        colwidths=fill(0, length(data)),
+        print_underlines=zeros(Bool, length(data)),
+        rndr::AbstractRenderType=AsciiTable(),
+        combine_equals=false
+    )
+
+DataRow forms the fundamental element of a RegressionTable. For a user, these can be passed as 
+additional elements to `group` or `extralines` in [regtable](@ref).
+A DataRow is typed with an [AbstractRenderType](@ref),
+which controls how the DataRow is displayed. The default is [AsciiTable](@ref). The DataRow contains four other elements:
+- `data::Vector`: The data to be displayed in the row. Can be individual elements (e.g., [1, 2, 3]) or pairs with a range
+   (e.g., [1 => 1:2, 2 => 3:4]), or a combination of the two.
+- `align::String`: A string of ('l', 'r', 'c'), one for each element of `data`, indicating that elements alignment.
+- `colwidths::Vector{Int}`: A vector of integers, one for each element of `data`, indicating the width of the column.
+   Can calculate the widths automatically using [calc_widths](@ref) and update them with [update_widths!](@ref).
+- `print_underlines::Vector{Bool}`: A vector of booleans, one for each element of `data`, indicating whether to print
+   an underline under the element. This is useful for printing the header of a table.
+
+!!! note
+    In most cases, it is not necessary to specify the render type for DataRow. While constructing a RegressionTable,
+    the render type is changed to the render type of the RegressionTable.
+
+## Examples
+
+```jldoctest
+julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5])
+   Group 1   Group 2
+
+julia> DataRow(["", "Group 1", "Group 1", "Group 2", "Group 2"]; combine_equals=true)
+   Group 1   Group 2
+
+julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5])
+   Group 1   Group 2
+
+julia> DataRow(["   ", "Group 1" => 2:3, "Group 2" => 4:5]; print_underlines=[false, false, true])
+      Group 1   Group 2
+                -------
+
+julia> DataRow(["Group 0", "Group 1" => 2:3, "Group 2" => 4:5]; colwidths=[20, 20, 20], align="lcr", print_underlines=true)
+Group 0                       Group 1                      Group 2
+--------------------   --------------------   --------------------
+
+julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; rndr=LatexTable())
+ & \\multicolumn{2}{r}{Group 1} & \\multicolumn{2}{r}{Group 2} \\\\ 
+```
+"""
 mutable struct DataRow{T<:AbstractRenderType}
     data::Vector
     align::String
@@ -23,9 +94,14 @@ mutable struct DataRow{T<:AbstractRenderType}
             for i in eachindex(data, colwidths, print_underlines)
                 add_element!(x, data[i], align[i], colwidths[i], print_underlines[i], i)
             end
+        else
+            x = new{T}(data, align, colwidths, print_underlines, rndr)
+        end
+        if all(x.colwidths .== 0)
+            update_widths!(x)
             x
         else
-            new{T}(data, align, colwidths, print_underlines, rndr)
+            x
         end
     end
 end
@@ -134,8 +210,12 @@ function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
     out_lengths
 end
 
-function update_widths!(row::DataRow{T}, new_lengths) where {T}
+function update_widths!(row::DataRow{T}, new_lengths=length.(T.(row.data))) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
+    if length(row.data) == length(new_lengths)
+        row.colwidths = new_lengths
+        return row
+    end
     x = 1
     for (i, value) in enumerate(row.data)
         if isa(value, Pair)
