@@ -51,6 +51,7 @@ function RegressionTable(
                 colwidths,
                 i < size(header, 1),
                 T();# if header is last row, don't print underlines
+                combine_equals=i < size(header, 1)
             )
         )
     end

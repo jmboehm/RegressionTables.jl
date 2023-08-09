@@ -8,12 +8,14 @@ struct SimpleRegressionResult
     statistics::Vector
     regressiontype::RegressionType
     fixedeffects::Union{Nothing, Vector}
+    dof_residual::Int
 end
 
 StatsAPI.responsename(x::SimpleRegressionResult) = x.responsename
 StatsAPI.coefnames(x::SimpleRegressionResult) = x.coefnames
 StatsAPI.coef(x::SimpleRegressionResult) = x.coefvalues
 StatsAPI.stderror(x::SimpleRegressionResult) = x.coefstderrors
+StatsAPI.dof_residual(x::SimpleRegressionResult) = x.dof_residual
 
 SimpleRegressionResult(rr::RegressionModel, f::FormulaTerm, args...; vargs...) =
     SimpleRegressionResult(rr::RegressionModel, f.lhs, f.rhs, args...; vargs...)
@@ -38,7 +40,8 @@ function SimpleRegressionResult(
     coefpvalues::Vector{Float64},
     regression_statistics::Vector,
     reg_type=RegressionType(rr),
-    fixedeffects::Union{Nothing, Vector}=nothing;
+    fixedeffects::Union{Nothing, Vector}=nothing,
+    df=dof_residual(rr);
     labels=Dict{String, String}(),
     transform_labels=Dict{String, String}(),
 )
@@ -51,6 +54,7 @@ function SimpleRegressionResult(
         make_reg_stats.(Ref(rr), regression_statistics),
         reg_type,
         replace_name.(fixedeffects, Ref(labels), Ref(transform_labels)),
+        df
     )
 end
 
@@ -114,6 +118,7 @@ function SimpleRegressionResult(
         regression_statistics,
         RegressionType(rr),
         fe_terms(rr; fixedeffects, fe_suffix),
+        dof_residual(rr);
         labels=labels,
         transform_labels=transform_labels,
     )

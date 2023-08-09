@@ -21,7 +21,7 @@ struct YMean <: RegressionTable.AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 YMean(x::RegressionModel) = try
-    YMean(mean(x.rr.Y))
+    YMean(mean(x.model.rr.y))
 catch
     YMean(nothing)
 end
@@ -349,12 +349,22 @@ abstract type AbstractUnderStatistic end
 struct TStat <: AbstractUnderStatistic
     val::Float64
 end
-TStat(stderror, coef) = TStat(coef / stderror)
+TStat(se, coef, dof=0) = TStat(coef / se)
 
 struct STDError <: AbstractUnderStatistic
     val::Float64
 end
-STDError(stderror, coef) = STDError(stderror)
+STDError(se, coef, dof=0) = STDError(se)
+
+struct ConfInt <: AbstractUnderStatistic
+    val::Tuple{Float64, Float64}
+end
+default_confint_level() = 0.95
+function ConfInt(se, coef, dof; level=default_confint_level())
+    @assert 0 < level < 1 "Confidence level must be between 0 and 1"
+    scale = quantile(TDist(dof), 1 - (1-level) / 2)
+    ConfInt((coef - scale * se, coef + scale * se))
+end
 
 value(x::AbstractUnderStatistic) = x.val
 

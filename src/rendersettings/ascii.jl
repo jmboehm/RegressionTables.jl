@@ -15,11 +15,11 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
         end
     end
     # do not print new line here, let the caller do it
-    if row.print_underlines
+    if any(row.print_underlines)
         println(io)# if print underlines, then need new line
         for (i, x) in enumerate(row.data)
             s = isa(x, Pair) ? T(first(x)) : T(x)
-            if length(s) > 0
+            if length(s) > 0 && row.print_underlines[i]
                 print(io, headerrule(T(), row.colwidths[i]))
             else
                 print(io, " " ^ row.colwidths[i])

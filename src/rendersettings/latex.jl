@@ -23,11 +23,11 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
         end
     end
     print(io, " \\\\ ")
-    if row.print_underlines
+    if any(row.print_underlines)
         println(io)
         for (i, x) in enumerate(row.data)
             s = isa(x, Pair) ? T(first(x)) : T(x)
-            if length(s) == 0
+            if length(s) == 0 || !row.print_underlines[i]
                 continue
             end
             if isa(x, Pair)

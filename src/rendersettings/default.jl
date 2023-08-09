@@ -28,6 +28,7 @@ end
 (::Type{T})(x::AbstractRegressionStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
 (::Type{T})(x::AbstractR2; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
 (::Type{T})(x::AbstractUnderStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, commas=false, args...) * ")"
+(::Type{T})(x::ConfInt; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x)[1]; digits) * ", " * T(value(x)[2]; digits) * ")"
 (::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(T(), T(value(x); digits, commas=false, args...), x.pvalue)
 (::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic} = label(T(), V)
 (::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType} = label(T(), x)

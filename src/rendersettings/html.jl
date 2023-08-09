@@ -14,7 +14,7 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHTML}
     print(io, "<tr>")
     for (i, x) in enumerate(row.data)
         if isa(x, Pair)
-            s = T(x; align=row.align[i], print_underlines=row.print_underlines)
+            s = T(x; align=row.align[i], print_underlines=row.print_underlines[i])
             if length(s) == 0
                 print(io, "<td></td>")
                 continue

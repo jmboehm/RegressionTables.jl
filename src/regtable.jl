@@ -73,70 +73,7 @@ Pass a string to the functions that create a `RenderSettings` to divert output t
 regtable(regressionResult1, regressionResult2; renderSettings = latexOutput("myoutfile.tex"))
 ```
 See the full argument list for details.
-
-### Examples
-```julia
-using RegressionTables, DataFrames, RDatasets, FixedEffectModels
-df = dataset("datasets", "iris")
-df[!,:SpeciesDummy] = categorical(df[!,:Species])
-df[!,:isSmall] = categorical(df[!,:SepalWidth] .< 2.9)
-rr1 = reg(df, @formula(SepalLength ~ SepalWidth))
-rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
-rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + PetalWidth + fe(SpeciesDummy) + fe(isSmall)))
-rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
-rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(SpeciesDummy)))
-# default
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput())
-# display of statistics below estimates
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), below_statistic = :blank)
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), below_decoration = s -> "[\$(s)]")
-# ordering of regressors, leaving out regressors
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), regressors = ["SepalLength";"PetalWidth";"SepalWidth"])
-# format of the estimates
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), estimformat = "%02.5f")
-# replace some variable names by other strings
-regtable(rr1,rr2,rr3; renderSettings = asciiOutput(), labels = Dict(:SepalLength => "My dependent variable: SepalLength", :PetalLength => "Length of Petal", :PetalWidth => "Width of Petal", Symbol("(Intercept)") => "Const." , :isSmall => "isSmall Dummies", :SpeciesDummy => "Species Dummies"))
-# group regressions
-regtable(rr1,rr2,rr4,rr3; renderSettings = asciiOutput(), groups = ["grp1", "grp1", "grp2", "grp2"])
-# do not print the FE block
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), print_fe_section = false)
-# re-order fixed effects
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), fixedeffects = ["isSmall", "SpeciesDummy"])
-# change the yes/no labels in the fixed effect section, and statistics labels
-regtable(rr1,rr2,rr3,rr4; renderSettings = asciiOutput(), labels = Dict("__LABEL_FE_YES__" => "Mhm.", "__LABEL_FE_NO__" => "Nope.", "__LABEL_STATISTIC_N__" => "Number of observations", "__LABEL_STATISTIC_R2__" => "R Squared"))
-# full set of available statistics
-regtable(rr1,rr2,rr3,rr5; renderSettings = asciiOutput(), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
-# LaTeX output
-regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput())
-# LaTeX output to file
-regtable(rr1,rr2,rr3,rr4; renderSettings = latexOutput("myoutfile.tex"))
-# Custom statistics
-comments = ["Baseline", "Preferred"]
-means = [Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
-mystats = NamedTuple{(:comments, :means)}((comments, means))
-regtable(rr1,rr2; renderSettings = asciiOutput(),  custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean"))
-
-```
 """
-#endregion
-function add_blank(groups::Matrix, n)
-    if size(groups, 2) < n
-        groups = hcat(fill("", size(groups, 1)), groups)
-        add_blank(groups, n)
-    else
-        groups
-    end
-end
-function add_blank(groups::Vector{Vector}, n)
-    out = Vector{Vector}()
-    for g in groups
-        if length(g) < n
-            g = vcat(fill("", n - length(g)), g)
-        end
-        push!(out, g)
-    end
-    groups
-end
 function regtable(
     rrs::RegressionModel...;
     renderSettings = nothing,
@@ -144,7 +81,7 @@ function regtable(
     keep::Vector = default_keep(rndr, rrs), # allows :last and :end as symbol
     drop::Vector = default_drop(rndr, rrs), # allows :last and :end as symbol
     order::Vector = default_order(rndr, rrs), # allows :last and :end as symbol
-    fixedeffects::Vector{String} = default_fixedeffects(rndr, rrs),
+    fixedeffects::Vector = default_fixedeffects(rndr, rrs),
     labels::Dict{String,String} = default_labels(rndr),
     align::Symbol = default_align(rndr),
     header_align::Symbol = default_header_align(rndr),
@@ -286,7 +223,7 @@ function regtable(
                 k = findfirst(coefnames(table) .== nm)
                 coefvalues[j, i] = CoefValue(coef(table)[k], table.coefpvalues[k])
                 if below_statistic !== nothing
-                    coefbelow[j, i] = below_statistic(stderror(table)[k], coef(table)[k])
+                    coefbelow[j, i] = below_statistic(stderror(table)[k], coef(table)[k], dof_residual(table))
                 end
             end
         end
@@ -388,7 +325,7 @@ function regtable(
                 end
             end
         elseif v == :fe
-            fe = combine_fe(tables)
+            fe = combine_fe(tables, fixedeffects)
             if !isnothing(fe)
                 push_DataRow!(out, fe, align, wdths, false, rndr)
             end
@@ -430,7 +367,7 @@ function regtable(
     f
 end
 
-function combine_fe(tables)
+function combine_fe(tables, fixedeffects)
     fe = String[]
     for table in tables
         if !isnothing(table.fixedeffects)
@@ -439,6 +376,9 @@ function combine_fe(tables)
     end
     if length(fe) == 0
         return nothing
+    end
+    if length(fixedeffects) > 0
+        fe = unique(vcat(build_nm_list.(Ref(fe), fixedeffects)...))
     end
     mat = zeros(Bool, length(fe), length(tables))
     for (i, table) in enumerate(tables)
@@ -489,6 +429,14 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector{<:Vector}, align, c
 end
 push_DataRow!(data::Vector{DataRow{T}}, val::DataRow, args...; vargs...) where {T<:AbstractRenderType} = push!(data, T(val))
 function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, print_underlines::Bool, rndr::AbstractRenderType; combine_equals=print_underlines)
+    if all(isa.(vals, DataRow) .|| isa.(vals, AbstractVector))
+        for v in vals
+            push_DataRow!(data, v, align, colwidths, print_underlines, rndr; combine_equals)
+        end
+        return data
+    elseif any(isa.(vals, DataRow) .|| isa.(vals, AbstractVector))
+        throw("Cannot combine Vector type elements with individual elements, put each row into its own Vector")
+    end
     l = length(colwidths)
     if length(vals) == 0
         return data
@@ -513,7 +461,7 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, 
             vals,
             align,
             colwidths,
-            print_underlines,
+            vcat([false], fill(print_underlines, length(vals) - 1)), # don't print underline under the leftmost column
             rndr;
             combine_equals=combine_equals
         )
@@ -539,7 +487,7 @@ function value_pos(nms, x::Tuple{Symbol, Int})
     if x[1] == :last
         value_pos(nms, length(nms) - x[2] + 1 : length(nms))
     elseif x[1] == :end
-        value_pos(nms, length(nms) - x[2] + 1)
+        value_pos(nms, length(nms) - x[2])
     else
         throw(ArgumentError("Symbol $x not recognized"))
     end
@@ -587,4 +535,23 @@ function missing_vars(table::SimpleRegressionResult, coefs::Vector{String})
         end
     end
     false
+end
+
+function add_blank(groups::Matrix, n)
+    if size(groups, 2) < n
+        groups = hcat(fill("", size(groups, 1)), groups)
+        add_blank(groups, n)
+    else
+        groups
+    end
+end
+function add_blank(groups::Vector{Vector}, n)
+    out = Vector{Vector}()
+    for g in groups
+        if length(g) < n
+            g = vcat(fill("", n - length(g)), g)
+        end
+        push!(out, g)
+    end
+    groups
 end

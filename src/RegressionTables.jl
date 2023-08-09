@@ -47,7 +47,8 @@ module RegressionTables
     export Nobs, R2, R2McFadden, R2CoxSnell, R2Nagelkerke,
     R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC,
     FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within
-    export TStat, STDError, RegressionType
+    export TStat, STDError, ConfInt, RegressionType
+    export DataRow
 
 
     ##############################################################################
