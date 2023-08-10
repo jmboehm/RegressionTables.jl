@@ -34,6 +34,7 @@ end
 (::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType} = label(T(), x)
 (::Type{T})(x::Tuple; args...) where {T <: AbstractRenderType} = join(T.(x; args...), " ")
 (::Type{T})(x::AbstractCoefName; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+(::Type{T})(x::FixedEffectCoefName; args...) where {T <: AbstractRenderType} = T(value(x); args...) * " Fixed Effects"
 (::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType} = join(T.(values(x); args...), interaction_combine(T()))
 (::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType} = "$(value(x))$(categorical_equal(T())) $(x.level)"
 (::Type{T})(x::InterceptCoefName; args...) where {T <: AbstractRenderType} = "(Intercept)"

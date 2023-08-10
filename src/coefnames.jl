@@ -50,7 +50,7 @@ value(x::CoefName) = x.name
 Base.string(x::CoefName) = value(x)
 function Base.get(x::Dict{String, String}, val::CoefName, def::CoefName)
     if haskey(x, value(val))
-        return x[value(val)]
+        return CoefName(x[value(val)])
     else
         def
     end
@@ -78,7 +78,7 @@ where `interaction_equal` is another function that is settable and varies based 
 - For `AbstractLaTeX`, it defaults to `" \$\\times\$ "`
 - For `AbstractHTML`, it defaults to `" &times; "`
 
-See [Customization](@ref) for more details.
+See [Customization of Defaults](@ref) for more details.
 """
 struct InteractedCoefName <: AbstractCoefName
     names::Vector
@@ -93,7 +93,7 @@ function Base.get(x::Dict{String, String}, val::InteractedCoefName, def::Interac
     # if the interaction exactly matches what would be in StatsModels, just return that
     # otherwise, go through each term in the interactionterm and see if the dict contains those pieces
     if haskey(x, string(val))
-        return x[string(val)]
+        return CoefName(x[string(val)])
     else
         InteractedCoefName(get.(Ref(x), values(val), values(def)))
     end
@@ -134,7 +134,7 @@ get_coefname(x::CategoricalTerm) = [CategoricalCoefName(string(x.sym), string(n)
 function Base.get(x::Dict{String, String}, val::CategoricalCoefName, def::CategoricalCoefName)
     # similar to interactioncoefname, if the categorical term exactly matches what would be in StatsModels, just return that
     if haskey(x, string(val))
-        return x[string(val)]
+        return CoefName(x[string(val)])
     else
         nm = get(x, value(val), value(def))
         lvl = get(x, val.level, def.level)
@@ -157,7 +157,7 @@ in all cases by setting
 ```julia
 RegressionTables.label(::InterceptCoefName) = "My Intercept"
 ```
-See [Customization](@ref) for more details.
+See [Customization of Defaults](@ref) for more details.
 """
 struct InterceptCoefName <: AbstractCoefName end
 
@@ -173,6 +173,20 @@ function Base.replace(x::InterceptCoefName, r::Pair)
         out
     end
 end
+
+struct FixedEffectCoefName <: AbstractCoefName
+    name::AbstractCoefName
+    FixedEffectCoefName(x::AbstractCoefName) = new(x)
+end
+
+value(x::FixedEffectCoefName) = x.name
+Base.string(x::FixedEffectCoefName) = string(x.name)
+Base.get(x::Dict{String, String}, val::FixedEffectCoefName, def::FixedEffectCoefName) =
+    FixedEffectCoefName(get(x, val.name, def.name))
+
+Base.replace(x::FixedEffectCoefName, r::Pair) = FixedEffectCoefName(replace(x.name, r))
+
+
 
 
 function Base.intersect(x::Vector{String}, y::Vector{<:AbstractCoefName})

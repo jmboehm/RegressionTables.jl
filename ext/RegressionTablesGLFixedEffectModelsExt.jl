@@ -13,21 +13,15 @@ function RegressionTables.RegressionType(x::GLFixedEffectModel)
     end
 end
 
-function RegressionTables.fe_terms(rr::GLFixedEffectModel; fixedeffects=String[], fe_suffix="Fixed Effects")
+function RegressionTables.fe_terms(rr::GLFixedEffectModel)
     out = []
     if !isdefined(rr, :formula)
         return nothing
     end
     for t in rr.formula.rhs
         if has_fe(t)
-            push!(out, RegressionTables.get_coefname(t))
+            push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
         end
-    end
-    if length(fixedeffects) > 0
-        out = [x for x in out if string(x) in fixedeffects]
-    end
-    if length(fe_suffix) > 0
-        out = [(x, fe_suffix) for x in out]
     end
     if length(out) > 0
         out
@@ -39,12 +33,10 @@ end
 # necessary because GLFixedEffectModels.jl does not have a formula function
 function RegressionTables.SimpleRegressionResult(
     rr::GLFixedEffectModel,
-    standardize_coef=false,
-    fe_suffix="Fixed-Effects";
+    standardize_coef=false;
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
-    fixedeffects=String[],
     args...
 )
     coefvalues = coef(rr)
@@ -59,7 +51,7 @@ function RegressionTables.SimpleRegressionResult(
         coefpvalues,
         regression_statistics,
         RegressionType(rr),
-        RegressionTables.fe_terms(rr; fixedeffects, fe_suffix),
+        RegressionTables.fe_terms(rr),
         labels=labels,
         transform_labels=transform_labels,
     )

@@ -94,12 +94,10 @@ fe_terms(rr::RegressionModel; args...) = nothing
 
 function SimpleRegressionResult(
     rr::RegressionModel,
-    standardize_coef=false,
-    fe_suffix="Fixed Effects";
+    standardize_coef=false;
     labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
     transform_labels = Dict(),
-    fixedeffects=String[],
     args...
 )
     coefvalues = coef(rr)
@@ -117,7 +115,7 @@ function SimpleRegressionResult(
         coefpvalues,
         regression_statistics,
         RegressionType(rr),
-        fe_terms(rr; fixedeffects, fe_suffix),
+        fe_terms(rr),
         dof_residual(rr);
         labels=labels,
         transform_labels=transform_labels,
