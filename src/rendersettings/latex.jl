@@ -1,3 +1,9 @@
+"""
+    abstract type AbstractLatex <: AbstractRenderType end
+
+The abstract type for most plain text rendering. Printing is defined using the `AbstractLatex`, so
+new tables (with different defaults) can be created by subtyping `AbstractLatex` with minimal effort.
+"""
 abstract type AbstractLatex <: AbstractRenderType end
 struct LatexTable <: AbstractLatex end
 struct LatexTableStar <: AbstractLatex end
@@ -8,7 +14,7 @@ function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex
     if length(s) == 0 && length(last(val)) == 1
         s
     else
-        encapsulateRegressand(T(), s, length(last(val)), align)
+        multicolumn(T(), s, length(last(val)), align)
     end
 end
 
@@ -40,7 +46,7 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
 end
 
 
-encapsulateRegressand(::AbstractLatex, s, cols::Int, align="c") = "\\multicolumn{$cols}{$align}{$s}"
+multicolumn(::AbstractLatex, s, cols::Int, align="c") = "\\multicolumn{$cols}{$align}{$s}"
 tablestart(::AbstractLatex, align) = "\\begin{tabular}{$align}"
 tableend(::AbstractLatex) = "\\end{tabular}"
 tablestart(::LatexTableStar, align) = "\\begin{tabular*}{\\textwidth}{$(align[1])@{\\extracolsep{\\fill}}$(align[2:end])}"

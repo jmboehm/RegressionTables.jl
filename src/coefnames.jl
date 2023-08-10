@@ -1,8 +1,32 @@
 get_coefname(x::MatrixTerm) = mapreduce(get_coefname, vcat, x.terms)
 
+"""
+    abstract type AbstractCoefName end
+
+These names largely mirror their equivalents in [StatsModels.jl](https://github.com/JuliaStats/StatsModels.jl).
+The main difference here is that the names are always based on strings (instead of symbols). There are also
+several default functions that are resused (e.g., `get` and `replace`) to make relabeling coefficients easier.
+
+AbstractCoefName simply acts as a parent type to the other types. The other types are:
+- [`CoefName`](@ref): for `Term`, `ContinuousTerm` and `FunctionTerm`
+- [`InteractedCoefName`](@ref): for `InteractionTerm`
+- [`CategoricalCoefName`](@ref): for `CategoricalTerm`
+- [`InterceptCoefName`](@ref): for `ConstantTerm`
+
+Using the function [`get_coefname`](@ref) will return the appropriate type for the term.
+"""
 abstract type AbstractCoefName end
 (::Type{T})(x::T) where {T<:AbstractCoefName} = x
 Base.broadcastable(x::AbstractCoefName) = Ref(x)
+
+"""
+    get_coefname(x::AbstractTerm)::CoefName
+    get_coefname(x::Term)::CoefName
+    get_coefname(x::InteractionTerm)::InteractedCoefName
+    get_coefname(x::InterceptTerm{H})::InterceptCoefName
+    get_coefname(x::CategoricalTerm)::CategoricalCoefName
+"""
+function get_coefname end
 
 # for functionterm and continuousterm
 #=
@@ -10,10 +34,18 @@ It might be nice to add a separate functionterm piece so that the internals coul
 change just like InteractedCoefName, but the internals are not parsed in the same way
 which makes that extremely difficult to do
 =#
+"""
+    struct CoefName <: AbstractCoefName
+        name::String
+    end
+
+Used to store the name of a coefficient. This is used for `Term`, `ContinuousTerm` and `FunctionTerm`.
+"""
 struct CoefName <: AbstractCoefName
     name::String
     CoefName(name::String) = new(name)
 end
+
 value(x::CoefName) = x.name
 Base.string(x::CoefName) = value(x)
 function Base.get(x::Dict{String, String}, val::CoefName, def::CoefName)
@@ -27,11 +59,32 @@ get_coefname(x::AbstractTerm) = CoefName(coefnames(x))
 get_coefname(x::Term) = CoefName(string(x.sym))
 Base.replace(x::CoefName, r::Pair) = CoefName(replace(value(x), r))
 
-# for interactionterm
+"""
+    struct InteractedCoefName <: AbstractCoefName
+        names::Vector
+    end
+
+Used to store the different coefficient names that makes up an InteractionTerm. The internals of the
+vector are typically [`CoefName`](@ref), but can also be strings.
+
+In a regression, each element of the vector is typically displayed as "name1 & name2 & ..." (in AsciiTables).
+You can change this by setting:
+```julia
+(::Type{T})(x::RegressionTables.InteractedCoefName; args...) where {T <: RegressionTables.AbstractRenderType} =
+    join(RegressionTables.value.(x), RegressionTables.interaction_equal(T()))
+```
+where `interaction_equal` is another function that is settable and varies based on [`AbstractRenderType`](@ref).
+- For `AbstractAscii`, it defaults to `" & "`
+- For `AbstractLaTeX`, it defaults to `" \$\\times\$ "`
+- For `AbstractHTML`, it defaults to `" &times; "`
+
+See [Customization](@ref) for more details.
+"""
 struct InteractedCoefName <: AbstractCoefName
     names::Vector
     InteractedCoefName(names::Vector) = new(names)
 end
+
 Base.values(x::InteractedCoefName) = x.names
 Base.string(x::InteractedCoefName) = join(string.(x.names), " & ")
 Base.hash(x::InteractedCoefName, h::UInt) = hash(sort(string.(values(x))), h)
@@ -52,12 +105,29 @@ get_coefname(x::InteractionTerm) =
     )
 Base.replace(x::InteractedCoefName, r::Pair) = InteractedCoefName(replace.(values(x), Ref(r)))
 
-# for categoricalterm
+"""
+    struct CategoricalCoefName <: AbstractCoefName
+        name::String
+        level::String
+    end
+
+Used to store the name of a coefficient for a `CategoricalTerm`. The `level` is the level of the categorical.
+In other words, the `name` is the column name, the `level` is the category within that column.
+
+In a regression, the display of categorical terms is typically displayed as "name: level". You can change
+this by setting:
+```julia
+(::Type{T})(x::RegressionTables.CategoricalCoefName; args...) where {T <: RegressionTables.AbstractRenderType} =
+    "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(T())) \$(x.level)"
+```
+where `categorical_equal` is another function that defaults to ": ", so that is also settable.
+"""
 struct CategoricalCoefName <: AbstractCoefName
     name::String
     level::String
     CategoricalCoefName(name::String, level::String) = new(name, level)
 end
+
 value(x::CategoricalCoefName) = x.name
 Base.string(x::CategoricalCoefName) = "$(value(x)): $(x.level)"
 get_coefname(x::CategoricalTerm) = [CategoricalCoefName(string(x.sym), string(n)) for n in x.contrasts.termnames]
@@ -79,11 +149,30 @@ function Base.replace(x::CategoricalCoefName, r::Pair)
     )
 end
 
+"""
+    struct InterceptCoefName <: AbstractCoefName end
+
+Used as a simple indicator for the existence of an intercept term. This allows relabeling of the intercept
+in all cases by setting
+```julia
+RegressionTables.label(::InterceptCoefName) = "My Intercept"
+```
+See [Customization](@ref) for more details.
+"""
 struct InterceptCoefName <: AbstractCoefName end
+
 Base.string(x::InterceptCoefName) = "(Intercept)"
 get_coefname(x::InterceptTerm{H}) where {H} = H ? InterceptCoefName() : []
 Base.get(x::Dict{String, String}, val::InterceptCoefName, def::InterceptCoefName) = get(x, string(val), def)
-Base.replace(x::InterceptCoefName, r::Pair) = InterceptCoefName()
+function Base.replace(x::InterceptCoefName, r::Pair)
+    v = string(x)
+    out = replace(v, r)
+    if out == v
+        InterceptCoefName()
+    else
+        out
+    end
+end
 
 
 function Base.intersect(x::Vector{String}, y::Vector{<:AbstractCoefName})

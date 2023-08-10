@@ -1,5 +1,59 @@
 
 
+"""
+    mutable struct RegressionTable{T<:AbstractRenderType}
+        data::Vector{DataRow{T}}
+        align::String
+        render::T
+        breaks::Vector{Int}
+        colwidths::Vector{Int}
+    end
+
+    RegressionTable(header::Vector, body::Matrix, args...; vargs...)
+    RegressionTable(
+        header::Matrix,
+        body::Matrix,
+        rndr::T=AsciiTable();
+        breaks=[size(header, 1)],
+        align='l' * 'r' ^ (size(header, 2) - 1),
+        colwidths=fill(0, size(header, 2)),
+        header_align='l' * 'c' ^ (size(header, 2) - 1),
+        extralines::Vector = DataRow[]
+    ) where T<:AbstractRenderType
+
+The general container. This provides some general information about the table. The [`DataRow`](@ref) handles the main printing,
+but this provides other necessary information, especially the `break` field, which is used to determine where to put the
+lines (e.g., `\\midrule` in LaTeX).
+- `data`: A vector of [`DataRow`](@ref) objects.
+- `align`: A string of characters, one for each column, indicating the alignment of the column. The characters are
+    `l` for left, `c` for center, and `r` for right.
+- `render`: The render type of the table. This must be the same as the render type of the [`DataRow`](@ref) objects and is used for convenience.
+- `breaks`: A vector of integers, indicating where to put the lines (e.g., `\\midrule` in LaTeX). When displayed, the break will be placed after
+   the line number is printed (breaks = [5] will print a break after the 5th line is printed).
+- `colwidths`: A vector of integers, one for each column, indicating the width of the column. Can calculate the widths
+    automatically using [`calc_widths`](@ref) and update them with [`update_widths!`](@ref).
+
+This type also has two convenience constructors which might be helpful if using this package to print summary statistics.
+
+## Example
+```jldoctest; setup=:(using RegressionTables, RDatasets, DataFrames)
+df = RDatasets.dataset("datasets", "iris");
+df = describe(df, :mean, :std, :q25, :median, :q75; cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"]);
+RegressionTables.RegressionTable(names(df), Matrix(df))
+
+# output
+
+ 
+----------------------------------------------------
+variable       mean    std     q25    median    q75
+----------------------------------------------------
+SepalLength   5.843   0.828   5.100    5.800   6.400
+SepalWidth    3.057   0.436   2.800    3.000   3.300
+PetalLength   3.758   1.765   1.600    4.350   5.100
+PetalWidth    1.199   0.762   0.300    1.300   1.800
+----------------------------------------------------
+```
+"""
 mutable struct RegressionTable{T<:AbstractRenderType}
     data::Vector{DataRow{T}}
     align::String
@@ -49,7 +103,7 @@ function RegressionTable(
                 header[i, :],
                 header_align,
                 colwidths,
-                i < size(header, 1),
+                fill(i < size(header, 1), size(header, 2)),
                 T();# if header is last row, don't print underlines
                 combine_equals=i < size(header, 1)
             )
@@ -62,7 +116,7 @@ function RegressionTable(
                 body[i, :],
                 align,
                 colwidths,
-                false,
+                fill(false, size(header, 2)),
                 T()
             )
         )

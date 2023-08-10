@@ -27,10 +27,21 @@ catch
 end
 RegressionTable.label(rndr::AbstractRenderType, x::Type{YMean}) = "Mean of Y"
 ```
-```
 """
 abstract type AbstractRegressionStatistic end
 
+
+"""
+    abstract type AbstractR2 <: AbstractRegressionStatistic end
+
+Parent type for all ``R^2`` statistics. This is available to change the formatting of all ``R^2`` statistics.
+For example, if the desired display for ``R^2`` is in the percentage term, run:
+```julia
+(::Type{T})(x::RegressionTable.AbstractR2; vargs...) where {T<:RegressionTable.AbstractRenderType} = T(x.val * 100; digits=2) * "%"
+# add second definition since Latex needs % escaped
+(::Type{T})(x::RegressionTable.AbstractR2; vargs...) where {T<:RegressionTable.AbstractLatex} = T(x.val * 100; digits=2) * "\\%"
+```
+"""
 abstract type AbstractR2 <: AbstractRegressionStatistic end
 
 """

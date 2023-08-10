@@ -37,50 +37,6 @@ rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + f
 ##
 regtable(rr1,rr2,rr4,rr3; groups = ["My Group:", "grp1" => 2:3, "grp2" => 4:5])
 ##
-x = DataRow(["  ", "Group 1" => 2:3, "Group 2" => 4:5]; print_underlines=[false, false, true])
-##
-DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; colwidths=[20, 20, 20], align="lcr", print_underlines=true)# colwidths set to show alignment
-##
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5])
-
-julia> DataRow(["", "Group 1", "Group 1", "Group 2", "Group 2"]; combine_equals=true)
-#   Group 1   Group 2
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; print_underlines=true)
-#   Group 1   Group 2
-
-julia> DataRow(["   ", "Group 1" => 2:3, "Group 2" => 4:5]; print_underlines=[false, false, true])
-#     Group 1   Group 2
-               -------
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; colwidths=[20, 20, 20], align="lcr", print_underlines=true)# colwidths set to show alignment
-#                              Group 1                      Group 2
-#                       --------------------   --------------------
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; rndr=LatexTable())
-# & \\multicolumn{2}{r}{Group 1} & \\multicolumn{2}{r}{Group 2} \\\\ 
-
-##
-
-```jldoctest
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5])
-   Group 1   Group 2
-
-julia> DataRow(["", "Group 1", "Group 1", "Group 2", "Group 2"]; combine_equals=true)
-   Group 1   Group 2
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5])
-   Group 1   Group 2
-
-julia> DataRow(["   ", "Group 1" => 2:3, "Group 2" => 4:5]; print_underlines=[false, false, true])
-     Group 1   Group 2
-               -------
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; colwidths=[20, 20, 20], align="lcr", print_underlines=true)# colwidths set to show alignment
-                              Group 1                      Group 2
-                       --------------------   --------------------
-
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; rndr=LatexTable())
- & \\multicolumn{2}{r}{Group 1} & \\multicolumn{2}{r}{Group 2} \\\\ 
-```
+df = RDatasets.dataset("datasets", "iris");
+df = describe(df, :mean, :std, :q25, :median, :q75; cols=["SepalLength", "SepalWidth", "PetalLength", "PetalWidth"]);
+RegressionTables.RegressionTable(names(df), Matrix(df))

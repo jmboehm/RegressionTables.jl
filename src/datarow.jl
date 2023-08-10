@@ -1,4 +1,10 @@
 
+"""
+    abstract type AbstractRenderType end
+
+The generic top level type for render types. Most defaults are set here unless there is a reason it needs to be set at
+a lower level. Subtypes are still abstract types and include [`AbstractAscii`](@ref), [`AbstractLatex`](@ref), and [`AbstractHTML`](@ref).
+"""
 abstract type AbstractRenderType end
 
 Base.broadcastable(o::AbstractRenderType) = Ref(o)
@@ -35,14 +41,14 @@ Base.broadcastable(o::AbstractRenderType) = Ref(o)
     )
 
 DataRow forms the fundamental element of a RegressionTable. For a user, these can be passed as 
-additional elements to `group` or `extralines` in [regtable](@ref).
-A DataRow is typed with an [AbstractRenderType](@ref),
+additional elements to `group` or `extralines` in [`regtable`](@ref).
+A DataRow is typed with an [`AbstractRenderType`](@ref),
 which controls how the DataRow is displayed. The default is [AsciiTable](@ref). The DataRow contains four other elements:
 - `data::Vector`: The data to be displayed in the row. Can be individual elements (e.g., [1, 2, 3]) or pairs with a range
    (e.g., [1 => 1:2, 2 => 3:4]), or a combination of the two.
 - `align::String`: A string of ('l', 'r', 'c'), one for each element of `data`, indicating that elements alignment.
 - `colwidths::Vector{Int}`: A vector of integers, one for each element of `data`, indicating the width of the column.
-   Can calculate the widths automatically using [calc_widths](@ref) and update them with [update_widths!](@ref).
+   Can calculate the widths automatically using [`calc_widths`](@ref) and update them with [`update_widths!`](@ref).
 - `print_underlines::Vector{Bool}`: A vector of booleans, one for each element of `data`, indicating whether to print
    an underline under the element. This is useful for printing the header of a table.
 
@@ -184,6 +190,12 @@ end
 
 Base.show(io::IO, row::DataRow) = print(io, row)
 
+"""
+    calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
+
+Calculate the widths of each column in the table. For rows with multicolumn cells, the width of the multicolumn is divided evenly
+among the columns it spans.
+"""
 function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
     out_lengths = fill(0, length(rows[1]))
     for row in rows
@@ -210,6 +222,12 @@ function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
     out_lengths
 end
 
+"""
+    update_widths!(row::DataRow{T}, new_lengths=length.(T.(row.data))) where {T}
+
+Updates the widths of each column in the row. If lengths are provided, then it should equate to the total number
+of columns in the table, not the number of elements in the row.
+"""
 function update_widths!(row::DataRow{T}, new_lengths=length.(T.(row.data))) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
     if length(row.data) == length(new_lengths)

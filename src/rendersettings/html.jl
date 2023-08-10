@@ -1,3 +1,9 @@
+"""
+    abstract type AbstractHTML <: AbstractRenderType end
+
+The abstract type for most plain text rendering. Printing is defined using the `AbstractHTML`, so
+new tables (with different defaults) can be created by subtyping `AbstractHTML` with minimal effort.
+"""
 abstract type AbstractHTML <: AbstractRenderType end
 struct HTMLTable <: AbstractHTML end
 
@@ -6,7 +12,7 @@ function (::Type{T})(val::Pair; align='c', print_underlines=false, args...) wher
     if length(s) == 0
         s
     else
-        encapsulateRegressand(T(), s, length(last(val)), align, print_underlines)
+        multicolumn(T(), s, length(last(val)), align, print_underlines)
     end
 end
 
@@ -32,7 +38,7 @@ end
 
 
 
-function encapsulateRegressand(::AbstractHTML, s, cols::Int, align="c", underline=true)
+function multicolumn(::AbstractHTML, s, cols::Int, align="c", underline=true)
     align = if align == "c" || align == 'c'
         "center"
     elseif align == "l" || align == 'l'

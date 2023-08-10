@@ -9,7 +9,7 @@ rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)
 rr3 = reg(df, @formula(SepalLength ~ SepalWidth * PetalLength + PetalWidth + fe(SpeciesDummy)))
 rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
 ```
-# Keep, Drop and Order arguments
+# Keep Drop and Order Arguments
 
 ```@contents
 Pages=["keep_order_drop.md"]

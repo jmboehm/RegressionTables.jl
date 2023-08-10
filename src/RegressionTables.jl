@@ -48,7 +48,7 @@ module RegressionTables
     R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC,
     FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within, PseudoR2, AdjPseudoR2
     export TStat, STDError, ConfInt, RegressionType
-    export DataRow
+    export DataRow, RegressionTable
 
 
     ##############################################################################
