@@ -41,7 +41,7 @@ See [Keep Drop and Order Arguments](@ref)
 
 ## Formatting Estimates, Statistics and decimal points
 
-Also see [Customization](@ref)
+Also see [Customization of Defaults](@ref)
 
 ```@repl example_run
 regtable(rr1,rr2,rr3,rr4; estimformat = "%02.5f")
@@ -84,7 +84,7 @@ regtable(rr1,rr2,rr3,rr4; fixedeffects = [r"isSmall", "SpeciesDummy"])
 
 ## Change Labels for Regression Statistics
 
-Also see [Customization](@ref)
+Also see [Customization of Defaults](@ref)
 
 ```@repl example_run
 regtable(rr1,rr2,rr3,rr4; regression_statistics=[Nobs => "Number of Observations", R2, AdjR2 => "Adj. R2"])

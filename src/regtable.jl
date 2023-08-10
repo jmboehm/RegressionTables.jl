@@ -1,35 +1,295 @@
 
+"""
+    default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic)
+
+Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the general setting of 3 digits
+
+## Examples
+
+```jldoctest; setup = :(using RegressionTables)
+julia> x = R2(1.234567);
+
+julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractRegressionStatistic) = 4;
+
+julia> AsciiTable(x)
+"1.2346"
+
+julia> LatexTable(x)
+"1.2346"
+```
+"""
 default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_round_digits(rndr, value(x))
+"""
+    default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic)
+
+Default for under statistics ([`TStat`](@ref), [`STDError`](@ref)), defaults to the general setting of 3 digits
+
+## Examples
+
+```jldoctest; setup = :(using RegressionTables)
+julia> x = STDError(1.234567);
+
+julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.AbstractUnderStatistic) = 4;
+
+julia> AsciiTable(x)
+"(1.2346)"
+
+julia> LatexTable(x) # unchanged since the round_digits was only changed for Ascii
+"(1.234)"
+```
+"""
 default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_round_digits(rndr, value(x))
+"""
+    default_round_digits(rndr::AbstractRenderType, x::.CoefValue)
+
+Default for [`CoefValue`](@ref), defaults to the general setting of 3 digits
+
+## Examples
+
+```jldoctest; setup = :(using RegressionTables)
+julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
+
+julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2;
+
+julia> HTMLTable(x)
+"1.23"
+```
+"""
 default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
+"""
+    default_round_digits(rndr::AbstractRenderType, x)
+
+The default for for all other values not otherwise specified, defaults to 3 digits
+
+## Examples
+    
+```jldoctest; setup = :(using RegressionTables)
+julia> x = 1.234567;
+
+julia> y = TStat(1.234567);
+
+julia> RegressionTables.default_round_digits(::AbstractRenderType, x) = 4;
+
+julia> AsciiTable(x)
+"1.2346"
+
+julia> AsciiTable(y) # Also changes since the default_round_digits for other types default to this value
+"(1.2346)"
+```
+"""
 default_round_digits(rndr::AbstractRenderType, x) = 3
 
+"""
+    default_section_order(rndr::AbstractRenderType)
+
+Default section order for the table, defaults to
+`[:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]`
+
+`:break` is a special keyword that adds a line break between sections (e.g. between `\\midrule` in Latex)
+"""
 default_section_order(rndr::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]
+
+"""
+    default_align(rndr::AbstractRenderType)
+
+Defaults to `:r` for all render types, possible options are :r, :l, :c
+This affects each part of the table after the header and the leftmost column
+always has the `:l` alignment
+"""
 default_align(rndr::AbstractRenderType) = :r
+
+"""
+    default_header_align(rndr::AbstractRenderType)
+
+Defaults to `:c` for all render types, possible options are :r, :l, :c
+This affects the header (all sections up before :coef, see [`default_section_order`](@ref))
+of each part of the table
+"""
 default_header_align(rndr::AbstractRenderType) = :c
+
+"""
+    default_depvar(rndr::AbstractRenderType)
+
+Defaults to `true` for all render types, if `false` the dependent variable ("Y") is not printed
+"""
 default_depvar(rndr::AbstractRenderType) = true
+
+"""
+    default_number_regressions(rndr::AbstractRenderType, rrs)
+
+Defaults to `true` if there is more than one regression, if `false` the regression number is not printed
+"""
 default_number_regressions(rndr::AbstractRenderType, rrs) = length(rrs) > 1
+
+"""
+    default_print_fe(rndr::AbstractRenderType, rrs)
+
+Defaults to `true`, but the section will not be printed if there are not fixed effects.
+If `false` the fixed effects are not printed
+"""
 default_print_fe(rndr::AbstractRenderType, rrs) = true
+
+"""
+    default_groups(rndr::AbstractRenderType, rrs)
+
+Defaults to `nothing`, groups are printed above the dependent variable
+Setting a default should also use `rrs` (the regression results) since
+that determines the number of columns in the table.
+"""
 default_groups(rndr::AbstractRenderType, rrs) = nothing
+
+"""
+    default_extralines(rndr::AbstractRenderType, rrs)
+
+Defaults to `nothing`, extra lines are printed at the end of the table.
+Setting a default should also use `rrs` (the regression results) since
+that determines the number of columns in the table.
+"""
 default_extralines(rndr::AbstractRenderType, rrs) = nothing
+
+"""
+    default_keep(rndr::AbstractRenderType, rrs)
+
+Defaults to `Vector{String}()`, which means all variables are printed.
+Also see [Keep Order and Drop Arguments](@ref) for more information.
+"""
 default_keep(rndr::AbstractRenderType, rrs) = Vector{String}()
+
+"""
+    default_drop(rndr::AbstractRenderType, rrs)
+
+Defaults to `Vector{String}()`, which means no variables are dropped.
+Also see [Keep Order and Drop Arguments](@ref) for more information.
+"""
 default_drop(rndr::AbstractRenderType, rrs) = Vector{String}()
+
+"""
+    default_order(rndr::AbstractRenderType, rrs)
+
+Defaults to `Vector{String}()`, which means the order is not changed.
+Also see [Keep Order and Drop Arguments](@ref) for more information.
+
+In settings where the primary variables of interest are static throughout
+the tests, it can help to set `default_order` to a regex that includes
+that variable. For example, if the primary variables are interactions, then
+```julia
+RegressionTables.default_order(::AbstractRenderType, rrs) = [r" & "]
+```
+will prioritize the interactions in the table.
+"""
 default_order(rndr::AbstractRenderType, rrs) = Vector{String}()
+
+"""
+    default_fixedeffects(rndr::AbstractRenderType, rrs)
+
+Defaults to `Vector{String}()`, which means any fixed effects available are printed.
+"""
 default_fixedeffects(rndr::AbstractRenderType, rrs) = Vector{String}()
+
+"""
+    default_labels(rndr::AbstractRenderType)
+
+Defaults to `Dict{String, String}()`, which means no coefficients are changed.
+If you have a master dictionary of variables to change, it can help to set
+`default_labels` to that dictionary. It is also possible to set
+`default_labels` for each table type, allowing for labels to escape special characters in Latex.
+
+## Examples
+
+```julia
+RegressionTables.default_labels(rndr::AbstractRenderType) = Dict("first" => "New First", "second" => "X > Y")
+RegressionTables.default_labels(rndr::RegressionTables.AbstractLatex) = Dict("first" => "New First", "second" => "X \$>\$ Y")
+```
+"""
 default_labels(rndr::AbstractRenderType) = Dict{String, String}()
+
+"""
+    default_below_statistic(rndr::AbstractRenderType)
+
+Defaults to `STDError`, which means the standard error is printed below the coefficient.
+See [`AbstractBelowStatistic`](@ref) for more information.
+"""
 default_below_statistic(rndr::AbstractRenderType) = STDError
+
+"""
+    default_stat_below(rndr::AbstractRenderType)
+
+Defaults to `true`, which means the standard error (or t-stat) is printed below the coefficient.
+If `false`, the standard error is printed to the right of the coefficient (in the same column)
+"""
 default_stat_below(rndr::AbstractRenderType) = true
-default_render(renderSettings::Nothing, rrs) = AsciiTable()
-default_render(renderSettings::AbstractRenderType, rrs) = renderSettings
-default_render(renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[1]
-default_file(rndr::AbstractRenderType, renderSettings, rrs) = nothing
+
+"""
+    default_rndr(rrs)
+
+Defaults to `AsciiTable()`, any concrete [`AbstractRenderType`](@ref) is allowed
+"""
+default_rndr(rrs) = AsciiTable()
+default_rndr(renderSettings::Nothing, rrs) = default_rndr(rrs)
+default_rndr(renderSettings::AbstractRenderType, rrs) = renderSettings
+default_rndr(renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[1]
+
+"""
+    default_file(rndr::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs)
+
+Defaults to `nothing`, which means no file is saved.
+"""
+default_file(rndr::AbstractRenderType, rrs) = nothing
+default_file(rndr::AbstractRenderType, renderSettings, rrs) = default_file(rndr, rrs)
 default_file(rndr::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[2]
+
+"""
+    default_fe_suffix(rndr::AbstractRenderType)
+
+Defaults to `"Fixed Effects"`, which is printed with any fixed effects that are included.
+"""
 default_fe_suffix(rndr::AbstractRenderType) = "Fixed Effects"
+
+"""
+    default_print_control_indicator(rndr::AbstractRenderType)
+
+Defaults to `true`, which means if the regression has any variables ommitted
+(due to `keep` or `drop`), then a line is placed with `Controls` and `Yes`.
+"""
 default_print_control_indicator(rndr::AbstractRenderType) = true
+
+"""
+    default_standardize_coef(rndr::AbstractRenderType, rrs)
+
+Defaults to `false`. Standardizing the coefficient divides the coefficient by its standard deviation
+and multiplies it by the standard deviation of the dependent variable. It is only possible
+for models that store the matrix, such as those in [GLM.jl](https://github.com/JuliaStats/GLM.jl) and [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl).
+If it is not possible, the coefficients will not change.
+"""
 default_standardize_coef(rndr::AbstractRenderType, rrs) = false
+
+"""
+    default_transform_labels(rndr::AbstractRenderType) = Dict{String, String}()
+    default_transform_labels(rndr::AbstractLatex) = :latex
+
+`transform_labels` apply a `replace` function to the coefficients, dependent variables and fixed effects.
+The default for `AbstractLatex` is used to escape special characters in Latex.
+"""
 default_transform_labels(rndr::AbstractRenderType) = Dict{String, String}()
 default_transform_labels(rndr::AbstractLatex) = :latex
+
+"""
+    default_print_estimator(rndr::AbstractRenderType, rrs)
+
+Defaults to `true` if more than one type of estimator is used. For example,
+if all regressions are "OLS", then this section will default to `false`, while
+if one regression is "OLS" and another is "IV", then this section will default to `true`.
+"""
 default_print_estimator(rndr::AbstractRenderType, rrs) = length(unique(RegressionType.(rrs))) > 1
+
+"""
+    default_regression_statistics(rndr::AbstractRenderType, rrs)
+
+Defaults to a union of the default_regression_statistics for each regression.
+For example, an "OLS" regression (with no fixed effects) will default to including
+`[Nobs, R2]`, and a Probit regression will include `[Nobs, PseudoR2]`,
+so the default will be `[Nobs, R2, PseudoR2]`.
+"""
 default_regression_statistics(rndr::AbstractRenderType, rrs::Tuple) = unique(union(default_regression_statistics.(rndr, rrs)...))
 
 asciiOutput(file::String) = (AsciiTable(), file)
@@ -77,7 +337,7 @@ See the full argument list for details.
 function regtable(
     rrs::RegressionModel...;
     renderSettings = nothing,
-    rndr::T = default_render(renderSettings, rrs),
+    rndr::T = default_rndr(renderSettings, rrs),
     keep::Vector = default_keep(rndr, rrs), # allows :last and :end as symbol
     drop::Vector = default_drop(rndr, rrs), # allows :last and :end as symbol
     order::Vector = default_order(rndr, rrs), # allows :last and :end as symbol
@@ -193,8 +453,7 @@ function regtable(
 
     tables = SimpleRegressionResult.(
         rrs,
-        standardize_coef,
-        fe_suffix;
+        standardize_coef;
         regression_statistics,
         labels,
         fixedeffects,
