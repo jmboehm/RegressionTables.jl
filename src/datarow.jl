@@ -10,7 +10,7 @@ abstract type AbstractRenderType end
 Base.broadcastable(o::AbstractRenderType) = Ref(o)
 
 """
-    mutable struct DataRow{T<:AbstractRenderType}
+    mutable struct DataRow{T<:AbstractRenderType} <: AbstractVector{String}
         data::Vector
         align::String
         colwidths::Vector{Int}
@@ -52,6 +52,9 @@ which controls how the DataRow is displayed. The default is [AsciiTable](@ref). 
 - `print_underlines::Vector{Bool}`: A vector of booleans, one for each element of `data`, indicating whether to print
    an underline under the element. This is useful for printing the header of a table.
 
+DataRow is a subtype of `AbstractVector{String}`. It implements `getindex` and `setindex!`, which allows changing of individual
+elements.
+
 !!! note
     In most cases, it is not necessary to specify the render type for DataRow. While constructing a RegressionTable,
     the render type is changed to the render type of the RegressionTable.
@@ -80,7 +83,7 @@ julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; rndr=LatexTable())
  & \\multicolumn{2}{r}{Group 1} & \\multicolumn{2}{r}{Group 2} \\\\ 
 ```
 """
-mutable struct DataRow{T<:AbstractRenderType}
+mutable struct DataRow{T<:AbstractRenderType} <: AbstractVector{String}
     data::Vector
     align::String
     colwidths::Vector{Int}
@@ -176,6 +179,38 @@ function add_element!(row::DataRow, val::Pair, align_i, colwidth_i, print_underl
     row
 end
 
+Base.size(x::DataRow) = (length(x.data),)
+function Base.getindex(row::DataRow{T}, i) where {T}
+    v = 0
+    for x in row.data
+        if isa(x, Pair)
+            v += length(last(x))
+        else
+            v += 1
+        end
+        if v >= i
+            return T(x)
+        end
+    end
+    error("Index $i out of bounds")
+end
+function Base.setindex!(row::DataRow, val, i)
+    v = 0
+    for j in eachindex(row.data)
+        x = row.data[j]
+        if isa(x, Pair)
+            v += length(last(x))
+        else
+            v += 1
+        end
+        if v >= i
+            row.data[j] = val
+            return val
+        end
+    end
+    error("Index $i out of bounds")
+end
+Base.IndexStyle(::Type{<:DataRow}) = IndexLinear()
 function Base.length(x::DataRow)
     out = 0
     for x in x.data
@@ -189,6 +224,9 @@ function Base.length(x::DataRow)
 end
 
 Base.show(io::IO, row::DataRow) = print(io, row)
+
+Base.display(row::DataRow) = show(row)
+Base.display(x::MIME, row::DataRow) = show(row)
 
 """
     calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}

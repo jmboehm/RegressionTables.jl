@@ -151,7 +151,7 @@ default_extralines(rndr::AbstractRenderType, rrs) = nothing
     default_keep(rndr::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means all variables are printed.
-Also see [Keep Order and Drop Arguments](@ref) for more information.
+Also see [Keep Drop and Order Arguments](@ref) for more information.
 """
 default_keep(rndr::AbstractRenderType, rrs) = Vector{String}()
 
@@ -159,7 +159,7 @@ default_keep(rndr::AbstractRenderType, rrs) = Vector{String}()
     default_drop(rndr::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means no variables are dropped.
-Also see [Keep Order and Drop Arguments](@ref) for more information.
+Also see [Keep Drop and Order Arguments](@ref) for more information.
 """
 default_drop(rndr::AbstractRenderType, rrs) = Vector{String}()
 
@@ -167,7 +167,7 @@ default_drop(rndr::AbstractRenderType, rrs) = Vector{String}()
     default_order(rndr::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means the order is not changed.
-Also see [Keep Order and Drop Arguments](@ref) for more information.
+Also see [Keep Drop and Order Arguments](@ref) for more information.
 
 In settings where the primary variables of interest are static throughout
 the tests, it can help to set `default_order` to a regex that includes
@@ -681,7 +681,7 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Matrix, args...; vargs...)
         push_DataRow!(data, vals[i, :], args...; vargs...)
     end
 end
-function push_DataRow!(data::Vector{<:DataRow}, vals::Vector{<:Vector}, align, colwidths, print_underlines::Bool, rndr::AbstractRenderType; combine_equals=print_underlines)
+function push_DataRow!(data::Vector{<:DataRow}, vals::Vector{<:AbstractVector}, align, colwidths, print_underlines::Bool, rndr::AbstractRenderType; combine_equals=print_underlines)
     for v in vals
         push_DataRow!(data, v, align, colwidths, print_underlines, rndr; combine_equals)
     end
