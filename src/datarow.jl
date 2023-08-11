@@ -225,6 +225,8 @@ end
 
 Base.show(io::IO, row::DataRow) = print(io, row)
 
+Base.show(io::IO, x::MIME{Symbol("text/plain")}, row::DataRow) = show(io, row)
+
 Base.display(row::DataRow) = show(row)
 Base.display(x::MIME, row::DataRow) = show(row)
 

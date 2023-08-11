@@ -9,13 +9,15 @@ Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the
 ```jldoctest; setup = :(using RegressionTables)
 julia> x = R2(1.234567);
 
-julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractRegressionStatistic) = 4;
+julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4;
 
 julia> AsciiTable(x)
 "1.2346"
 
 julia> LatexTable(x)
 "1.2346"
+
+julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 3; # reset to default
 ```
 """
 default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_round_digits(rndr, value(x))
@@ -29,13 +31,15 @@ Default for under statistics ([`TStat`](@ref), [`STDError`](@ref)), defaults to 
 ```jldoctest; setup = :(using RegressionTables)
 julia> x = STDError(1.234567);
 
-julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.AbstractUnderStatistic) = 4;
+julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4;
 
 julia> AsciiTable(x)
 "(1.2346)"
 
 julia> LatexTable(x) # unchanged since the round_digits was only changed for Ascii
-"(1.234)"
+"(1.235)"
+
+julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 3; # reset to default
 ```
 """
 default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_round_digits(rndr, value(x))
@@ -53,6 +57,8 @@ julia> RegressionTables.default_round_digits(::AbstractRenderType, x::Regression
 
 julia> HTMLTable(x)
 "1.23"
+
+julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 3; # reset to default
 ```
 """
 default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
@@ -70,11 +76,13 @@ julia> y = TStat(1.234567);
 
 julia> RegressionTables.default_round_digits(::AbstractRenderType, x) = 4;
 
-julia> AsciiTable(x)
+julia> LatexTable(x)
 "1.2346"
 
-julia> AsciiTable(y) # Also changes since the default_round_digits for other types default to this value
+julia> LatexTable(y) # Also changes since the default_round_digits for other types default to this value
 "(1.2346)"
+
+julia> RegressionTables.default_round_digits(t::AbstractRenderType, x) = 3; # reset to default
 ```
 """
 default_round_digits(rndr::AbstractRenderType, x) = 3

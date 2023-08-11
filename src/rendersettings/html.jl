@@ -102,3 +102,7 @@ label(::AbstractHTML, x::Type{R2}) = "<i>R<sup>2</sup></i>"
 label(::AbstractHTML, x::Type{FStat}) = "<i>F</i>"
 label_p(::AbstractHTML) = "<i>p</i>"
 interaction_combine(::AbstractHTML) = " &times; "
+
+# if both MIME is html and the table is an HTMLTable, then show the table as html
+Base.show(io::IO, x::MIME{Symbol("text/html")}, tab::RegressionTable{<:AbstractHTML}) = show(io, tab)
+Base.show(io::IO, x::MIME{Symbol("text/markdown")}, tab::RegressionTable{<:AbstractHTML}) = show(io, tab)

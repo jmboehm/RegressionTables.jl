@@ -62,7 +62,7 @@ julia> t[1, 2] = "Mean of Variable";
 
 julia> t[2, 3] = 0;
 
-julia> RegressionTables.update_widths!(t) # necessary if a column gets longer
+julia> RegressionTables.update_widths!(t); # necessary if a column gets longer
 
 julia> t
  
@@ -102,13 +102,20 @@ Base.size(tab::RegressionTable) = (length(data(tab)), length(data(tab)[1]))
 Base.size(tab::RegressionTable, i::Int) = size(tab)[i]
 Base.getindex(tab::RegressionTable, i::Int, j::Int) = data(tab)[i][j]
 Base.setindex!(tab::RegressionTable, val, i::Int, j::Int) = data(tab)[i][j] = val
+Base.getindex(tab::RegressionTable, i::Int) = data(tab)[i]
+function Base.setindex!(tab::RegressionTable{T}, val::DataRow, i::Int) where {T}
+    data(tab)[i] = T(val)
+    update_widths!(tab)
+    tab
+end
+
+Base.setindex!(tab::RegressionTable, val::AbstractVector, i::Int) = setindex!(tab, DataRow(val), i)
 function Base.insert!(tab::RegressionTable{T}, i::Int, row:: DataRow) where {T}
     @assert length(row) == length(data(tab)[2]) "Row is not the correct length"
     x = T(row)
     insert!(data(tab), i, x)
-    colwidths = calc_widths(data)
-    update_widths!.(data, Ref(colwidths))
-    data
+    update_widths!(tab)
+    tab
 end
 
 Base.insert!(tab::RegressionTable, i::Int, row::AbstractVector) = insert!(tab, i, DataRow(row))
@@ -193,7 +200,7 @@ function Base.print(io::IO, tab::RegressionTable)
     println(io, tableend(tab))
 end
 Base.show(io::IO, tab::RegressionTable) = print(io, tab)
-Base.show(io::IO, x::MIME{Symbol("text/plain")}, tab::RegressionTable) = print(io, tab) # ignore mime type since a display type is already specified
+Base.show(io::IO, x::MIME{Symbol("text/plain")}, tab::RegressionTable) = show(io, tab) # ignore mime type since a display type is already specified
 Base.display(tab::RegressionTable) = show(tab)
 Base.display(v::MIME, tab::RegressionTable) = show(tab)
 
