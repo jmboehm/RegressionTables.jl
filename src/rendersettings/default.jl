@@ -25,7 +25,8 @@ Will render x as a string
 """
     (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType}
 
-By default, will render the first element of the pair according to the render type
+By default, will render the first element of the pair according to the render type. In cases of [`AbstractLatex`](@ref)
+or [`AbstractHTML`](@ref), uses the second element to determine number of columns to span.
 """
 (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
 
@@ -243,3 +244,30 @@ function make_padding(s, colWidth, align)
     end
     s
 end
+
+tablestart(::AbstractRenderType) = ""
+toprule(::AbstractRenderType) = ""
+midrule(::AbstractRenderType) = ""
+bottomrule(::AbstractRenderType) = ""
+tableend(::AbstractRenderType) = ""
+
+linestart(::AbstractRenderType) = ""
+lineend(::AbstractRenderType) = ""
+colsep(::AbstractRenderType) = "   "
+underline(::AbstractRenderType) = ""
+
+# functions to make dispatch easier
+tablestart(tab::RegressionTable{<:AbstractRenderType}) = tablestart(tab.rndr)
+toprule(tab::RegressionTable{<:AbstractRenderType}) = toprule(tab.rndr)
+midrule(tab::RegressionTable{<:AbstractRenderType}) = midrule(tab.rndr)
+bottomrule(tab::RegressionTable{<:AbstractRenderType}) = bottomrule(tab.rndr)
+tableend(tab::RegressionTable{<:AbstractRenderType}) = tableend(tab.rndr)
+
+linestart(tab::RegressionTable{<:AbstractRenderType}) = linestart(tab.rndr)
+lineend(tab::RegressionTable{<:AbstractRenderType}) = lineend(tab.rndr)
+colsep(tab::RegressionTable{<:AbstractRenderType}) = colsep(tab.rndr)
+underline(tab::RegressionTable{<:AbstractRenderType}) = underline(tab.rndr)
+linestart(row::DataRow{<:AbstractRenderType}) = linestart(row.rndr)
+lineend(row::DataRow{<:AbstractRenderType}) = lineend(row.rndr)
+colsep(row::DataRow{<:AbstractRenderType}) = colsep(row.rndr)
+underline(row::DataRow{<:AbstractRenderType}) = underline(row.rndr)

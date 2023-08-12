@@ -19,6 +19,7 @@ function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex
 end
 
 function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
+    print(io, linestart(T()))
     for (i, x) in enumerate(row.data)
         print(
             io,
@@ -28,7 +29,7 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
             print(io, colsep(T()))
         end
     end
-    print(io, " \\\\ ")
+    print(io, lineend(T()))
     if any(row.print_underlines)
         println(io)
         for (i, x) in enumerate(row.data)
@@ -37,9 +38,9 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
                 continue
             end
             if isa(x, Pair)
-                print(io, headerrule(T(), first(last(x)), last(last(x))))
+                print(io, underline(T(), first(last(x)), last(last(x))))
             else
-                print(io, headerrule(T(), i,i))
+                print(io, underline(T(), i,i))
             end
         end
     end
@@ -51,26 +52,19 @@ tablestart(::AbstractLatex, align) = "\\begin{tabular}{$align}"
 tableend(::AbstractLatex) = "\\end{tabular}"
 tablestart(::LatexTableStar, align) = "\\begin{tabular*}{\\textwidth}{$(align[1])@{\\extracolsep{\\fill}}$(align[2:end])}"
 tableend(::LatexTableStar) = "\\end{tabular*}"
-headerrule(::AbstractLatex, colmin::Int, colmax::Int) = "\\cmidrule(lr){$(colmin)-$(colmax)} "
+underline(::AbstractLatex, colmin::Int, colmax::Int) = "\\cmidrule(lr){$(colmin)-$(colmax)} "
 
 toprule(::AbstractLatex) = "\\toprule"
 midrule(::AbstractLatex) = "\\midrule"
 bottomrule(::AbstractLatex) = "\\bottomrule"
 colsep(::AbstractLatex) = " & "
 linestart(::AbstractLatex) = ""
-linebreak(::AbstractLatex) = " \\\\ "
+lineend(::AbstractLatex) = " \\\\ "
 
 # functions to make multiple dispatch easier
-tablestart(tab::RegressionTable{<:AbstractLatex}) = tablestart(tab.render, tab.align)
-tableend(tab::RegressionTable{<:AbstractLatex}) = tableend(tab.render)
-headerrule(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = headerule(tab.render, colmin, colmax)
+tablestart(tab::RegressionTable{<:AbstractLatex}) = tablestart(tab.rndr, tab.align)
+underline(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = headerule(tab.rndr, colmin, colmax)
 
-toprule(tab::RegressionTable{<:AbstractLatex}) = toprule(tab.render)
-midrule(tab::RegressionTable{<:AbstractLatex}) = midrule(tab.render)
-bottomrule(tab::RegressionTable{<:AbstractLatex}) = bottomrule(tab.render)
-colsep(tab::RegressionTable{<:AbstractLatex}) = colsep(tab.render)
-linestart(tab::RegressionTable{<:AbstractLatex}) = linestart(tab.render)
-linebreak(tab::RegressionTable{<:AbstractLatex}) = linebreak(tab.render)
 
 
 

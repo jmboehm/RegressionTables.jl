@@ -1,11 +1,3 @@
-function _escape(repl_dict::AbstractDict)
-    function escape(s)  
-        for (old, new) in repl_dict
-            s = replace.(s, Ref(old => new))
-        end
-        return s
-    end
-end
 
 escape_latex_dict = Dict("&" => "\\&", "%" => "\\%", "\$" => "\\\$", "#" => "\\#", "_" => "\\_", "{" => "\\{", "}" => "\\}")
 

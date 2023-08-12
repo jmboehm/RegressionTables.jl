@@ -15,7 +15,7 @@ rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(Species)&fe(isWide) + fe(is
 rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
 
 
-RegressionTables.default_fe_suffix(x::RegressionTables.AbstractRenderType) = ""
+RegressionTables.default_print_fe_suffix(x::RegressionTables.AbstractRenderType) = false
 RegressionTables.default_print_control_indicator(x::RegressionTables.AbstractRenderType) = false
 RegressionTables.default_regression_statistics(x::RegressionTables.AbstractRenderType, rrs::Tuple) = [Nobs, R2]
 RegressionTables.default_print_estimator(x::RegressionTables.AbstractRenderType, rrs) = true

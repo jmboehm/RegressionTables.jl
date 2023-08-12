@@ -1,5 +1,7 @@
 [deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 FixedEffectModels = "9d5cd8c9-2029-5cab-9928-427838db53e3"
 GLFixedEffectModels = "bafb0ae5-e5f5-5100-81b6-6a55d777c812"
 GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"

@@ -247,11 +247,11 @@ default_file(rndr::AbstractRenderType, renderSettings, rrs) = default_file(rndr,
 default_file(rndr::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[2]
 
 """
-    default_fe_suffix(rndr::AbstractRenderType)
+    default_print_fe_suffix(rndr::AbstractRenderType)
 
-Defaults to `"Fixed Effects"`, which is printed with any fixed effects that are included.
+Whether or not a suffix will be applied to the fixed effects, defaults to `true`.
 """
-default_fe_suffix(rndr::AbstractRenderType) = "Fixed Effects"
+default_print_fe_suffix(rndr::AbstractRenderType) = true
 
 """
     default_print_control_indicator(rndr::AbstractRenderType)
@@ -365,7 +365,7 @@ function regtable(
     transform_labels::Union{Dict,Symbol} = default_transform_labels(rndr),
     extralines = default_extralines(rndr, rrs),
     section_order = default_section_order(rndr),
-    fe_suffix = default_fe_suffix(rndr),
+    print_fe_suffix = default_print_fe_suffix(rndr),
     print_control_indicator = default_print_control_indicator(rndr),
     standardize_coef=default_standardize_coef(rndr, rrs),# can be vector with same length as rrs
     digits=nothing,
@@ -592,7 +592,7 @@ function regtable(
                 end
             end
         elseif v == :fe
-            fe = combine_fe(tables, fixedeffects)
+            fe = combine_fe(tables, fixedeffects; print_fe_suffix)
             if !isnothing(fe)
                 push_DataRow!(out, fe, align, wdths, false, rndr)
             end
@@ -634,7 +634,7 @@ function regtable(
     f
 end
 
-function combine_fe(tables, fixedeffects)
+function combine_fe(tables, fixedeffects; print_fe_suffix=true)
     fe = String[]
     for table in tables
         if !isnothing(table.fixedeffects)
@@ -654,6 +654,9 @@ function combine_fe(tables, fixedeffects)
                 mat[j, i] = f in table.fixedeffects
             end
         end
+    end
+    if !print_fe_suffix
+        fe = value.(fe)
     end
     hcat(fe, mat)
 end

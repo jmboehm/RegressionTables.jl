@@ -56,7 +56,7 @@ RegressionTables.default_below_statistic
 RegressionTables.default_stat_below
 RegressionTables.default_rndr
 RegressionTables.default_file
-RegressionTables.default_fe_suffix
+RegressionTables.default_print_fe_suffix
 RegressionTables.default_print_control_indicator
 RegressionTables.default_standardize_coef
 RegressionTables.default_print_estimator

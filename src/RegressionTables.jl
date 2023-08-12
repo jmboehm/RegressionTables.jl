@@ -50,6 +50,8 @@ module RegressionTables
     export TStat, STDError, ConfInt, RegressionType
     export DataRow, RegressionTable
 
+    export make_estim_decorator
+
 
     ##############################################################################
     ##

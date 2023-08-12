@@ -36,3 +36,23 @@ function estim_decorator(rndr::T, s, pval; breaks=default_breaks(T()), sym=defau
 
     T(s)*deco
 end
+
+function make_estim_decorator(breaks=[0.01, 0.05, 0.1], sym='*'; wrapper=identity)
+    @assert issorted(breaks)
+    @warn("`make_estim_decorator` is deprecated, set breaks by running `RegressionTables.default_breaks(::AbstractRenderType) = $breaks`,")
+    @warn("set symbol by running `RegressionTables.default_symbol(::AbstractRenderType) = $sym`,")
+    @warn("and set wrapper by running `RegressionTables.wrapper(::AbstractRenderType, deco) = $wrapper(deco)`")
+    function estim_decorator(s, pval)
+        (pval >= 0 || isnan(pval)) || @error "p value = $pval, but it needs to be non-negative"
+
+        i0 = findfirst(pval .<= breaks)
+        i = isnothing(i0) ? length(breaks) + 1 : i0
+
+        deco = sym^(length(breaks) - (i - 1))
+        if deco != ""
+            deco = wrapper(deco)
+        end
+
+        "$s"*deco
+    end
+end

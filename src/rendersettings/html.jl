@@ -73,7 +73,7 @@ th, td {
 <tbody>
 """
 tableend(::AbstractHTML) = "</tbody></table>"
-headerrule(::AbstractHTML) = ""
+underline(::AbstractHTML) = ""
 
 # toprule: just a spacer <tr>
 toprule(::AbstractHTML) = "<tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
@@ -83,18 +83,7 @@ midrule(::AbstractHTML) = "<tr style=\"border-bottom:1px solid\"><td style=\"pad
 bottomrule(::AbstractHTML) = "<tr><td style=\"padding:0.15cm\" colspan=\"100%\"></td></tr>"
 colsep(::AbstractHTML) = "<td></td>"
 linestart(::AbstractHTML) = "<tr><td>"
-linebreak(::AbstractHTML) = " </td></tr>"
-
-# functions to make multiple dispatch easier
-tablestart(tab::RegressionTable{<:AbstractHTML}) = tablestart(tab.render)
-tableend(tab::RegressionTable{<:AbstractHTML}) = tableend(tab.render)
-headerrule(tab::RegressionTable{<:AbstractHTML}, colmin::Int, colmax::Int) = headerule(tab.render, colmin, colmax)
-toprule(tab::RegressionTable{<:AbstractHTML}) = toprule(tab.render)
-midrule(tab::RegressionTable{<:AbstractHTML}) = midrule(tab.render)
-bottomrule(tab::RegressionTable{<:AbstractHTML}) = bottomrule(tab.render)
-colsep(tab::RegressionTable{<:AbstractHTML}) = colsep(tab.render)
-linestart(tab::RegressionTable{<:AbstractHTML}) = linestart(tab.render)
-linebreak(tab::RegressionTable{<:AbstractHTML}) = linebreak(tab.render)
+lineend(::AbstractHTML) = " </td></tr>"
 
 
 label(::AbstractHTML, x::Type{Nobs}) = "<i>N</i>"
