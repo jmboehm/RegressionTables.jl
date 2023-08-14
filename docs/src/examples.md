@@ -3,8 +3,8 @@
 Pages=["examples.md"]
 ```
 Setup for the following examples:
-```@meta example_run
-DocTestSetup = quote
+```@meta
+DocTestSetup = quote # hide
     using RegressionTables, DataFrames, RDatasets, FixedEffectModels, GLM;
     df = dataset("datasets", "iris");
     df[!,:isSmall] = df[!,:SepalWidth] .< 2.9;
@@ -14,7 +14,8 @@ DocTestSetup = quote
     rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(Species)));
     rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(Species)));
     rr6 = glm(@formula(isSmall ~ PetalLength + PetalWidth + Species), df, Binomial());
-end
+    rr7 = glm(@formula(isSmall ~ SepalLength + PetalLength + PetalWidth), df, Binomial());
+end # hide
 ```
 ```julia
 using RegressionTables, DataFrames, RDatasets, FixedEffectModels, GLM;
@@ -26,6 +27,7 @@ rr3 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength * PetalWidth + fe(
 rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(Species)));
 rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(Species)));
 rr6 = glm(@formula(isSmall ~ PetalLength + PetalWidth + Species), df, Binomial());
+rr7 = glm(@formula(isSmall ~ SepalLength + PetalLength + PetalWidth), df, Binomial());
 ```
 
 ## Default
@@ -675,128 +677,138 @@ Within-R2                                   0.642        0.391         0.598
 ## Do not print \$X block
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; print_fe_section = false)
+regtable(rr1,rr2,rr3,rr7; print_fe_section = false)
 
 # output
 
  
-----------------------------------------------------------------------
-                                     SepalLength            SepalWidth
-                           ------------------------------   ----------
-                                (1)        (2)        (3)          (4)
-----------------------------------------------------------------------
-(Intercept)                6.526***
-                            (0.479)
+---------------------------------------------------------------------
+                                     SepalLength             isSmall
+                           ------------------------------   ---------
+                                (1)        (2)        (3)         (4)
+---------------------------------------------------------------------
+(Intercept)                6.526***                         10.189***
+                            (0.479)                           (2.607)
 SepalWidth                   -0.223   0.432***   0.516***
                             (0.155)    (0.081)    (0.104)
-PetalLength                           0.776***   0.723***      -0.188*
-                                       (0.064)    (0.129)      (0.083)
-PetalWidth                                         -0.625     0.626***
-                                                  (0.354)      (0.123)
+PetalLength                           0.776***   0.723***    3.580***
+                                       (0.064)    (0.129)     (0.708)
+PetalWidth                                         -0.625    -3.637**
+                                                  (0.354)     (1.127)
 PetalLength & PetalWidth                            0.066
                                                   (0.067)
-SepalLength                                                   0.378***
-                                                               (0.066)
-----------------------------------------------------------------------
-N                               150        150        150          150
-R2                            0.014      0.863      0.868        0.635
-Within-R2                                0.642      0.598        0.391
-----------------------------------------------------------------------
+SepalLength                                                 -3.519***
+                                                              (0.697)
+---------------------------------------------------------------------
+Estimator                       OLS        OLS        OLS    Binomial
+---------------------------------------------------------------------
+N                               150        150        150         150
+R2                            0.014      0.863      0.868
+Within-R2                                0.642      0.598
+Pseudo R2                     0.006      0.811      0.826       0.297
+---------------------------------------------------------------------
 ```
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; print_depvar = false)
+regtable(rr1,rr2,rr3,rr7; print_depvar = false)
 
 # output
 
  
---------------------------------------------------------------------
-                                (1)        (2)        (3)        (4)
---------------------------------------------------------------------
-(Intercept)                6.526***
-                            (0.479)
+---------------------------------------------------------------------
+                                (1)        (2)        (3)         (4)
+---------------------------------------------------------------------
+(Intercept)                6.526***                         10.189***
+                            (0.479)                           (2.607)
 SepalWidth                   -0.223   0.432***   0.516***
                             (0.155)    (0.081)    (0.104)
-PetalLength                           0.776***   0.723***    -0.188*
-                                       (0.064)    (0.129)    (0.083)
-PetalWidth                                         -0.625   0.626***
-                                                  (0.354)    (0.123)
+PetalLength                           0.776***   0.723***    3.580***
+                                       (0.064)    (0.129)     (0.708)
+PetalWidth                                         -0.625    -3.637**
+                                                  (0.354)     (1.127)
 PetalLength & PetalWidth                            0.066
                                                   (0.067)
-SepalLength                                                 0.378***
-                                                             (0.066)
---------------------------------------------------------------------
-Species Fixed Effects                      Yes        Yes        Yes
+SepalLength                                                 -3.519***
+                                                              (0.697)
+---------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes
 isSmall Fixed Effects                                 Yes
---------------------------------------------------------------------
-N                               150        150        150        150
-R2                            0.014      0.863      0.868      0.635
-Within-R2                                0.642      0.598      0.391
---------------------------------------------------------------------
+---------------------------------------------------------------------
+Estimator                       OLS        OLS        OLS    Binomial
+---------------------------------------------------------------------
+N                               150        150        150         150
+R2                            0.014      0.863      0.868
+Within-R2                                0.642      0.598
+Pseudo R2                     0.006      0.811      0.826       0.297
+---------------------------------------------------------------------
 ```
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; print_estimator_section = false)
+regtable(rr1,rr2,rr3,rr7; print_estimator_section = false)
 
 # output
 
  
-----------------------------------------------------------------------
-                                     SepalLength            SepalWidth
-                           ------------------------------   ----------
-                                (1)        (2)        (3)          (4)
-----------------------------------------------------------------------
-(Intercept)                6.526***
-                            (0.479)
+---------------------------------------------------------------------
+                                     SepalLength             isSmall
+                           ------------------------------   ---------
+                                (1)        (2)        (3)         (4)
+---------------------------------------------------------------------
+(Intercept)                6.526***                         10.189***
+                            (0.479)                           (2.607)
 SepalWidth                   -0.223   0.432***   0.516***
                             (0.155)    (0.081)    (0.104)
-PetalLength                           0.776***   0.723***      -0.188*
-                                       (0.064)    (0.129)      (0.083)
-PetalWidth                                         -0.625     0.626***
-                                                  (0.354)      (0.123)
+PetalLength                           0.776***   0.723***    3.580***
+                                       (0.064)    (0.129)     (0.708)
+PetalWidth                                         -0.625    -3.637**
+                                                  (0.354)     (1.127)
 PetalLength & PetalWidth                            0.066
                                                   (0.067)
-SepalLength                                                   0.378***
-                                                               (0.066)
-----------------------------------------------------------------------
-Species Fixed Effects                      Yes        Yes          Yes
+SepalLength                                                 -3.519***
+                                                              (0.697)
+---------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes
 isSmall Fixed Effects                                 Yes
-----------------------------------------------------------------------
-N                               150        150        150          150
-R2                            0.014      0.863      0.868        0.635
-Within-R2                                0.642      0.598        0.391
-----------------------------------------------------------------------
+---------------------------------------------------------------------
+N                               150        150        150         150
+R2                            0.014      0.863      0.868
+Within-R2                                0.642      0.598
+Pseudo R2                     0.006      0.811      0.826       0.297
+---------------------------------------------------------------------
 ```
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; number_regressions = false)
+regtable(rr1,rr2,rr3,rr7; number_regressions = false)
 
 # output
 
  
-----------------------------------------------------------------------
-                                     SepalLength            SepalWidth
-----------------------------------------------------------------------
-(Intercept)                6.526***
-                            (0.479)
+---------------------------------------------------------------------
+                                     SepalLength             isSmall
+---------------------------------------------------------------------
+(Intercept)                6.526***                         10.189***
+                            (0.479)                           (2.607)
 SepalWidth                   -0.223   0.432***   0.516***
                             (0.155)    (0.081)    (0.104)
-PetalLength                           0.776***   0.723***      -0.188*
-                                       (0.064)    (0.129)      (0.083)
-PetalWidth                                         -0.625     0.626***
-                                                  (0.354)      (0.123)
+PetalLength                           0.776***   0.723***    3.580***
+                                       (0.064)    (0.129)     (0.708)
+PetalWidth                                         -0.625    -3.637**
+                                                  (0.354)     (1.127)
 PetalLength & PetalWidth                            0.066
                                                   (0.067)
-SepalLength                                                   0.378***
-                                                               (0.066)
-----------------------------------------------------------------------
-Species Fixed Effects                      Yes        Yes          Yes
+SepalLength                                                 -3.519***
+                                                              (0.697)
+---------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes
 isSmall Fixed Effects                                 Yes
-----------------------------------------------------------------------
-N                               150        150        150          150
-R2                            0.014      0.863      0.868        0.635
-Within-R2                                0.642      0.598        0.391
-----------------------------------------------------------------------
+---------------------------------------------------------------------
+Estimator                       OLS        OLS        OLS    Binomial
+---------------------------------------------------------------------
+N                               150        150        150         150
+R2                            0.014      0.863      0.868
+Within-R2                                0.642      0.598
+Pseudo R2                     0.006      0.811      0.826       0.297
+---------------------------------------------------------------------
 ```
 
 ## Re-order Fixed Effects
@@ -1119,4 +1131,82 @@ Difference in coefficients      & \multicolumn{2}{c}{1.503} &          \multicol
 \cmidrule(lr){2-3} \cmidrule(lr){4-5}
 \bottomrule
 \end{tabular}
+```
+
+## Do Not Print Fixed Effect Suffix
+
+```jldoctest
+regtable(rr1, rr2, rr3, rr7; print_fe_suffix=false)
+
+# output
+
+ 
+---------------------------------------------------------------------
+                                     SepalLength             isSmall
+                           ------------------------------   ---------
+                                (1)        (2)        (3)         (4)
+---------------------------------------------------------------------
+(Intercept)                6.526***                         10.189***
+                            (0.479)                           (2.607)
+SepalWidth                   -0.223   0.432***   0.516***
+                            (0.155)    (0.081)    (0.104)
+PetalLength                           0.776***   0.723***    3.580***
+                                       (0.064)    (0.129)     (0.708)
+PetalWidth                                         -0.625    -3.637**
+                                                  (0.354)     (1.127)
+PetalLength & PetalWidth                            0.066
+                                                  (0.067)
+SepalLength                                                 -3.519***
+                                                              (0.697)
+---------------------------------------------------------------------
+Species                                    Yes        Yes
+isSmall                                               Yes
+---------------------------------------------------------------------
+Estimator                       OLS        OLS        OLS    Binomial
+---------------------------------------------------------------------
+N                               150        150        150         150
+R2                            0.014      0.863      0.868
+Within-R2                                0.642      0.598
+Pseudo R2                     0.006      0.811      0.826       0.297
+---------------------------------------------------------------------
+```
+
+## Standardize Coefficients
+
+Standardizing coefficients adjusts each coefficient by its standard deviation and the standard deviation of the $Y$ variable, making the coefficients equivalent to a 1 standard deviation in $X$ leads to a (result) standard deviation change in $Y$. This is only possible for regressions that store enough information to calculate these standard deviations, currently [GLM.jl](https://github.com/JuliaStats/GLM.jl) and [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl). The intercept, lacking a standard deviation, is simply the number of standard deviations of $Y$.
+
+```jldoctest
+lm1 = lm(@formula(SepalLength ~ SepalWidth), df);
+lm2 = lm(@formula(SepalLength ~ SepalWidth + PetalLength + Species), df);
+regtable(lm1, lm2, rr6, rr7; standardize_coef=true)
+
+# output
+
+ 
+------------------------------------------------------------------
+                           SepalLength              isSmall
+                      --------------------   ---------------------
+                           (1)         (2)         (3)         (4)
+------------------------------------------------------------------
+(Intercept)           7.881***    2.887***      -4.119   21.894***
+                       (0.578)     (0.317)     (2.669)     (5.601)
+SepalWidth              -0.118    0.228***
+                       (0.082)     (0.043)
+PetalLength                       1.654***      -2.934   13.578***
+                                   (0.137)     (2.102)     (2.686)
+Species: versicolor              -0.546***   10.611***
+                                   (0.123)     (1.989)
+Species: virginica               -0.796***   13.445***
+                                   (0.163)     (2.679)
+PetalWidth                                    -6.193**    -5.957**
+                                               (2.057)     (1.846)
+SepalLength                                              -6.260***
+                                                           (1.240)
+------------------------------------------------------------------
+Estimator                  OLS         OLS    Binomial    Binomial
+------------------------------------------------------------------
+N                          150         150         150         150
+R2                       0.014       0.863
+Pseudo R2                0.006       0.811       0.347       0.297
+------------------------------------------------------------------
 ```

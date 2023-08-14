@@ -310,35 +310,38 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 
 ### Arguments
 * `rr::FixedEffectModel...` are the `FixedEffectModel`s from `FixedEffectModels.jl` that should be printed. Only required argument.
-* `regressors` is a `Vector` of regressor names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
-* `fixedeffects` is a `Vector` of FE names (`String`s) that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown. Note that the string needs to match the display label exactly, otherwise it will not be shown.
+* `keep` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
+* `drop` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should not be shown. Defaults to an empty vector, in which case no regressors will be dropped.
+* `order` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should be shown in that order. Defaults to an empty vector, in which case the order of regressors will be unchanged. Other regressors are still shown (assuming `drop` is empty)
+* `fixedeffects` is a `Vector` of FE names (`String`s), integers, ranges or regex that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of results columns (default `:r` right-aligned). Currently works only with ASCII and LaTeX output.
+* `header_align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of the header row (default `:c` centered). Currently works only with ASCII and LaTeX output.
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
-* `estimformat` is a `String` that describes the format of the estimate. Defaults to "%0.3f".
-* `estim_decoration` is a `Function` that takes the formatted string and the p-value, and applies decorations (such as the beloved stars). Defaults to (* p<0.05, ** p<0.01, *** p<0.001).
-* `statisticformat` is a `String` that describes the format of the number below the estimate (se/t). Defaults to "%0.3f".
-* `below_statistic` is a `Symbol` that describes a statistic that should be shown below each point estimate. Recognized values are `:blank`, `:se`, `:tstat`, and `:none`. `:none` suppresses the line. Defaults to `:se`.
-* `below_decoration` is a `Function` that takes the formatted statistic string, and applies a decorations. Defaults to round parentheses.
-* `regression_statistics` is a `Vector` of `Symbol`s that describe statistics to be shown at the bottom of the table. Recognized symbols are `:nobs`, `:r2`, `:adjr2`, `:r2_within`, `:f`, `:p`, `:f_kp`, `:p_kp`, and `:dof`. Defaults to `[:nobs, :r2]`.
-* `custom_statistics` is a `NamedTuple` that takes user specified statistics to be shown just above `regression_statistics`. By default each statistic will be labelled by its key. Defaults to `missing`.
+* `estimformat` is a `String` that describes the format of the estimate.
+* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_round_digits(rndr::AbstractRenderType, x) = 3`).
+* `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
+* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_round_digits(rndr::AbstractRenderType, x) = 3`).
+* `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `STDError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `STDError`.
+* `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in types are Recognized symbols are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
+* `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
-* `number_regressions_decoration` is a `Function` that governs the decorations to the regression numbers. Defaults to `s -> "(\$s)"`.
-* `groups` is a `Vector` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions.
+* `groups` is a `Vector`, `Vector{<:AbstractVector}` or `Matrix` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions.
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
-* `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/NL) is used. Defaults to `true`.
+* `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/Binomial/Poisson...) is used. Defaults to `true` if more than one value is displayed.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
-* `out_buffer` is an `IOBuffer` that the output gets sent to (unless an output file is specified, in which case the output is only sent to the file).
-* `renderSettings::RenderSettings` is a `RenderSettings` composite type that governs how the table should be rendered. Standard supported types are ASCII (via `asciiOutput(outfile::String)`) and LaTeX (via `latexOutput(outfile::String)`). If no argument to these two functions are given, the output is sent to STDOUT. Defaults to ASCII with STDOUT.
-* `transform_labels` is a `Function`, a `Dict` or one of the `Symbol`s `:ampersand`, `:underscore`, `:underscore2space`, `:latex`. See `README.md` for examples.
+* `rndr::AbstractRenderType` is a `AbstractRenderType` type that governs how the table should be rendered. Standard supported types are ASCII (via `AsciiTable()`) and LaTeX (via `LatexTable()`). Defaults to `AsciiTable()`.
+* `file` is a `String` that governs whether the table should be saved to a file. Defaults to `nothing`.
+* `transform_labels` is a `Dict` or one of the `Symbol`s `:ampersand`, `:underscore`, `:underscore2space`, `:latex`
 
 ### Details
 A typical use is to pass a number of `FixedEffectModel`s to the function, along with a `RenderSettings` object.
-```
+```julia
 regtable(regressionResult1, regressionResult2; renderSettings = asciiOutput())
 ```
-Pass a string to the functions that create a `RenderSettings` to divert output to a file. For example, using LaTeX output,
-```
-regtable(regressionResult1, regressionResult2; renderSettings = latexOutput("myoutfile.tex"))
+
+Pass a string to the `file` argument to create or overwrite a file. For example, using LaTeX output,
+```julia
+regtable(regressionResult1, regressionResult2; rndr = LatexTable(), file="myoutfile.tex")
 ```
 See the full argument list for details.
 """
