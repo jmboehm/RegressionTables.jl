@@ -742,8 +742,18 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, 
 end
 
 value_pos(nms, x::String) = value_pos(nms, findfirst(string.(nms) .== x))
-value_pos(nms, x::Int) = x:x
-value_pos(nms, x::UnitRange) = x
+function value_pos(nms, x::Int)
+    if !(x in eachindex(nms))
+        throw(ArgumentError("$x is not a valid index for the coefficient names, please specify a valid index or name"))
+    end
+    x:x
+end
+function value_pos(nms, x::UnitRange)
+    if !(all(i in eachindex(nms) for i in x))
+        throw(ArgumentError("$x has some values outside the valid index for the coefficient names, please specify a valid index or name"))
+    end
+    x
+end
 value_pos(nms, x::BitVector) = [i for (i, b) in enumerate(x) if b]
 value_pos(nms, x::Regex) = value_pos(nms, occursin.(x, string.(nms)))
 value_pos(nms, x::Nothing) = Int[]
