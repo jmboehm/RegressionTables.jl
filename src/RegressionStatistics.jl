@@ -362,10 +362,10 @@ struct TStat <: AbstractUnderStatistic
 end
 TStat(se, coef, dof=0) = TStat(coef / se)
 
-struct STDError <: AbstractUnderStatistic
+struct StdError <: AbstractUnderStatistic
     val::Float64
 end
-STDError(se, coef, dof=0) = STDError(se)
+StdError(se, coef, dof=0) = StdError(se)
 
 struct ConfInt <: AbstractUnderStatistic
     val::Tuple{Float64, Float64}

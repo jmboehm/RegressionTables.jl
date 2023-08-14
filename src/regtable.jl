@@ -24,12 +24,12 @@ default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) =
 """
     default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic)
 
-Default for under statistics ([`TStat`](@ref), [`STDError`](@ref)), defaults to the general setting of 3 digits
+Default for under statistics ([`TStat`](@ref), [`StdError`](@ref)), defaults to the general setting of 3 digits
 
 ## Examples
 
 ```jldoctest; setup = :(using RegressionTables)
-julia> x = STDError(1.234567);
+julia> x = StdError(1.234567);
 
 julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4;
 
@@ -214,10 +214,10 @@ default_labels(rndr::AbstractRenderType) = Dict{String, String}()
 """
     default_below_statistic(rndr::AbstractRenderType)
 
-Defaults to `STDError`, which means the standard error is printed below the coefficient.
+Defaults to `StdError`, which means the standard error is printed below the coefficient.
 See [`AbstractBelowStatistic`](@ref) for more information.
 """
-default_below_statistic(rndr::AbstractRenderType) = STDError
+default_below_statistic(rndr::AbstractRenderType) = StdError
 
 """
     default_stat_below(rndr::AbstractRenderType)
@@ -321,7 +321,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_round_digits(rndr::AbstractRenderType, x) = 3`).
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
 * `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_round_digits(rndr::AbstractRenderType, x) = 3`).
-* `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `STDError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `STDError`.
+* `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `StdError`.
 * `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in types are Recognized symbols are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
 * `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.

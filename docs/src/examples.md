@@ -75,10 +75,10 @@ Pseudo R2                     0.006      0.811      0.826      0.862     0.072  
 
 ## Below Statistics
 
-### STDError (default)
+### StdError (default)
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; below_statistic = STDError)
+regtable(rr1,rr2,rr3,rr4; below_statistic = StdError)
 
 # output
 
