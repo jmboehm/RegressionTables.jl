@@ -76,7 +76,7 @@ You can change this by setting:
 where `interaction_equal` is another function that is settable and varies based on [`AbstractRenderType`](@ref).
 - For `AbstractAscii`, it defaults to `" & "`
 - For `AbstractLaTeX`, it defaults to `" \$\\times\$ "`
-- For `AbstractHTML`, it defaults to `" &times; "`
+- For `AbstractHtml`, it defaults to `" &times; "`
 
 See [Customization of Defaults](@ref) for more details.
 """
@@ -85,17 +85,17 @@ struct InteractedCoefName <: AbstractCoefName
     InteractedCoefName(names::Vector) = new(names)
 end
 
-Base.values(x::InteractedCoefName) = x.names
+value(x::InteractedCoefName) = x.names
 Base.string(x::InteractedCoefName) = join(string.(x.names), " & ")
-Base.hash(x::InteractedCoefName, h::UInt) = hash(sort(string.(values(x))), h)
-Base.:(==)(x::InteractedCoefName, y::InteractedCoefName) = sort(string.(values(x))) == sort(string.(values(y)))
+Base.hash(x::InteractedCoefName, h::UInt) = hash(sort(string.(value(x))), h)
+Base.:(==)(x::InteractedCoefName, y::InteractedCoefName) = sort(string.(value(x))) == sort(string.(value(y)))
 function Base.get(x::Dict{String, String}, val::InteractedCoefName, def::InteractedCoefName)
     # if the interaction exactly matches what would be in StatsModels, just return that
     # otherwise, go through each term in the interactionterm and see if the dict contains those pieces
     if haskey(x, string(val))
         return CoefName(x[string(val)])
     else
-        InteractedCoefName(get.(Ref(x), values(val), values(def)))
+        InteractedCoefName(get.(Ref(x), value(val), value(def)))
     end
 end
 get_coefname(x::InteractionTerm) = 
@@ -103,7 +103,7 @@ get_coefname(x::InteractionTerm) =
         (args...) -> InteractedCoefName(collect(args)),
         (StatsModels.vectorize(get_coefname.(x.terms)))...
     )
-Base.replace(x::InteractedCoefName, r::Pair) = InteractedCoefName(replace.(values(x), Ref(r)))
+Base.replace(x::InteractedCoefName, r::Pair) = InteractedCoefName(replace.(value(x), Ref(r)))
 
 """
     struct CategoricalCoefName <: AbstractCoefName
@@ -174,6 +174,15 @@ function Base.replace(x::InterceptCoefName, r::Pair)
     end
 end
 
+"""
+    struct FixedEffectCoefName <: AbstractCoefName
+        name::AbstractCoefName
+    end
+
+Used to store the name of a coefficient for a `FixedEffectTerm`.
+The `name` is the name of the fixed effect. This allows a suffix to be
+applied later.
+"""
 struct FixedEffectCoefName <: AbstractCoefName
     name::AbstractCoefName
     FixedEffectCoefName(x::AbstractCoefName) = new(x)
@@ -186,24 +195,12 @@ Base.get(x::Dict{String, String}, val::FixedEffectCoefName, def::FixedEffectCoef
 
 Base.replace(x::FixedEffectCoefName, r::Pair) = FixedEffectCoefName(replace(x.name, r))
 
-
-
-
-function Base.intersect(x::Vector{String}, y::Vector{<:AbstractCoefName})
-    # intersect the string names of x with the values of y
-    # return the values of y
-    #=
-    This is used to get the correct order of the coefficients
-    =#
-    all_names = string.(y)
-    [y[findfirst(a .== all_names)] for a in x]
-end
-function Base.setdiff(x::Vector{<:AbstractCoefName}, y::Vector{String})
-    # setdiff the string names of x with y
-    # return the values of x
-    #=
-    This is used to get the correct order of the coefficients
-    =#
-    [a for a in x if string(x) ∉ y]
+struct RandomEffectCoefName <: AbstractCoefName
+    name::AbstractCoefName
+    RandomEffectCoefName(x::AbstractCoefName) = new(x)
 end
 
+value(x::RandomEffectCoefName) = x.name
+Base.string(x::RandomEffectCoefName) = string(x.name)
+Base.get(x::Dict{String, String}, val::RandomEffectCoefName, def::RandomEffectCoefName) =
+    RandomEffectCoefName(get(x, val.name, def.name))

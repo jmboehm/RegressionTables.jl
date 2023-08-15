@@ -1,6 +1,10 @@
 
 # Customization of Defaults
 
+```@index
+Pages=["customization.md"]
+```
+
 Within most publications, the tables look similar. This package tries to provide easy access to almost any setting so you can "set and forget" while producing tables that you need. For example, suppose you are using Latex and want to use the `tabular*` environment instead of the default `tabular`. Thanks to the Julia type system, this is possible, simply run
 ```julia
 RegressionTables.tablestart(::RegressionTables.AbstractLatex, align) = "\\begin{tabular*}{\\linewidth}{$(align[1])@{\\extracolsep{\\fill}}$(align[2:end])}"
@@ -61,4 +65,17 @@ RegressionTables.default_print_control_indicator
 RegressionTables.default_standardize_coef
 RegressionTables.default_print_estimator
 RegressionTables.default_regression_statistics
+```
+
+## Other Defaults
+
+Other display functions are settable (see [How Types are Displayed](@ref)), here are the remaining major defaults that are settable.
+
+```@docs
+RegressionTables.default_breaks
+RegressionTables.default_symbol
+RegressionTables.interaction_combine
+RegressionTables.categorical_equal
+RegressionTables.default_ols_label
+RegressionTables.default_iv_label
 ```

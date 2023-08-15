@@ -1,4 +1,17 @@
+"""
+    default_breaks(rndr::AbstractRenderType)
+
+The default cutoffs for the number of "*" (or other value set by
+[`default_symbol`](@ref)). The default is `[0.001, 0.01, 0.05]`,
+corresponding to a p-value of 0.1%, 1%, and 5%.
+"""
 default_breaks(rndr::AbstractRenderType) = [0.001, 0.01, 0.05]
+
+"""
+    default_symbol(rndr::AbstractRenderType)
+
+The default symbol to use for the p-value. The default is `'*'`.
+"""
 default_symbol(rndr::AbstractRenderType) = '*'
 
 """

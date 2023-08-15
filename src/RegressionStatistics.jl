@@ -48,7 +48,7 @@ abstract type AbstractR2 <: AbstractRegressionStatistic end
 `Nobs` is the number of observations in the regression. Labels default to:
 - "N" for `AbstractAscii`
 - "\$N\$" for `AbstractLatex`
-- "<i>N</i>" for `AbstractHTML`
+- "<i>N</i>" for `AbstractHtml`
 """
 struct Nobs <: AbstractRegressionStatistic
     val::Union{Int, Nothing}
@@ -64,7 +64,7 @@ label(rndr::AbstractRenderType, x::Type{Nobs}) = "N"
 `R2` is the ``R^2`` of the regression. Labels default to:
 - "R2" for `AbstractAscii`
 - "\$R^2\$" for `AbstractLatex`
-- "<i>R</i><sup>2</sup>" for `AbstractHTML`
+- "<i>R</i><sup>2</sup>" for `AbstractHtml`
 
 !!! note
     The label for `R2` is used in other related statistics. So changing the label
@@ -85,7 +85,7 @@ label(rndr::AbstractRenderType, x::Type{R2}) = "R2"
 Labels default to:
 - "Pseudo R2" for `AbstractAscii`
 - "Pseudo \$R^2\$" for `AbstractLatex`
-- "Pseudo <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Pseudo <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct R2McFadden <: AbstractR2
     val::Union{Float64, Nothing}
@@ -106,7 +106,7 @@ const PseudoR2 = R2McFadden
 `R2CoxSnell` is the Cox-Snell ``R^2`` of the regression. Labels default to:
 - "Cox-Snell R2" for `AbstractAscii`
 - "Cox-Snell \$R^2\$" for `AbstractLatex`
-- "Cox-Snell <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Cox-Snell <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct R2CoxSnell <: AbstractR2
     val::Union{Float64, Nothing}
@@ -122,7 +122,7 @@ label(rndr::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(rndr
 `R2Nagelkerke` is the Nagelkerke ``R^2`` of the regression. Labels default to:
 - "Nagelkerke R2" for `AbstractAscii`
 - "Nagelkerke \$R^2\$" for `AbstractLatex`
-- "Nagelkerke <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Nagelkerke <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct R2Nagelkerke <: AbstractR2
     val::Union{Float64, Nothing}
@@ -138,7 +138,7 @@ label(rndr::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(r
 `R2Deviance` is the Deviance ``R^2`` of the regression. Labels default to:
 - "Deviance R2" for `AbstractAscii`
 - "Deviance \$R^2\$" for `AbstractLatex`
-- "Deviance <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Deviance <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct R2Deviance <: AbstractR2
     val::Union{Float64, Nothing}
@@ -154,7 +154,7 @@ label(rndr::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(rndr,
 `AdjR2` is the Adjusted ``R^2`` of the regression. Labels default to:
 - "Adjusted R2" for `AbstractAscii`
 - "Adjusted \$R^2\$" for `AbstractLatex`
-- "Adjusted <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Adjusted <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct AdjR2 <: AbstractR2
     val::Union{Float64, Nothing}
@@ -171,7 +171,7 @@ label(rndr::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
 to as the Pseudo Adjusted ``R^2``). Labels default to:
 - "Pseudo Adjusted R2" for `AbstractAscii`
 - "Pseudo Adjusted \$R^2\$" for `AbstractLatex`
-- "Pseudo Adjusted <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Pseudo Adjusted <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct AdjR2McFadden <: AbstractR2
     val::Union{Float64, Nothing}
@@ -192,7 +192,7 @@ const AdjPseudoR2 = AdjR2McFadden
 `AdjR2Deviance` is the Deviance Adjusted ``R^2`` of the regression. Labels default to:
 - "Deviance Adjusted R2" for `AbstractAscii`
 - "Deviance Adjusted \$R^2\$" for `AbstractLatex`
-- "Deviance Adjusted <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Deviance Adjusted <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct AdjR2Deviance <: AbstractR2
     val::Union{Float64, Nothing}
@@ -280,7 +280,7 @@ does not provide a function for this, it is up to each package
 extension to provide the relevant information. Labels default to:
 - "F" for `AbstractAscii`
 - "\$F\$" for `AbstractLatex`
-- "<i>F</i>" for `AbstractHTML`
+- "<i>F</i>" for `AbstractHtml`
 !!! note
     the `FStat` label is used in other labels, so changing it will change those labels as well.
 """
@@ -296,7 +296,7 @@ does not provide a function for this, it is up to each package
 extension to provide the relevant information. Labels default to:
 - "F p value" for `AbstractAscii`
 - "\$F\$ \$p\$ value" for `AbstractLatex`
-- "<i>F</i> <i>p</i> value" for `AbstractHTML`
+- "<i>F</i> <i>p</i> value" for `AbstractHtml`
 """
 struct FStatPValue <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
@@ -310,7 +310,7 @@ package does not provide a function for this, it is up to each package
 extension to provide the relevant information. Labels default to:
 - "First-stage F statistic" for `AbstractAscii`
 - "First-stage \$F\$ statistic" for `AbstractLatex`
-- "First-stage <i>F</i> statistic" for `AbstractHTML`
+- "First-stage <i>F</i> statistic" for `AbstractHtml`
 """
 struct FStatIV <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
@@ -324,7 +324,7 @@ package does not provide a function for this, it is up to each package
 extension to provide the relevant information. Labels default to:
 - "First-stage p value" for `AbstractAscii`
 - "First-stage \$p\$ value" for `AbstractLatex`
-- "First-stage <i>p</i> value" for `AbstractHTML`
+- "First-stage <i>p</i> value" for `AbstractHtml`
 """
 struct FStatIVPValue <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
@@ -338,7 +338,7 @@ package does not provide a function for this, it is up to each package
 extension to provide the relevant information. Labels default to:
 - "Within R2" for `AbstractAscii`
 - "Within \$R^2\$" for `AbstractLatex`
-- "Within <i>R</i><sup>2</sup>" for `AbstractHTML`
+- "Within <i>R</i><sup>2</sup>" for `AbstractHtml`
 """
 struct R2Within <: AbstractR2
     val::Union{Float64, Nothing}
@@ -355,18 +355,58 @@ Base.show(io::IO, s::AbstractRegressionStatistic) = show(io, value(s))
 Base.print(io::IO, s::AbstractRegressionStatistic) = print(io, value(s))
 
 
+"""
+    abstract type AbstractUnderStatistic end
+
+The abstract type for statistics that are below or next to the coefficients
+(e.g., standard errors, t-statistics, confidence intervals, etc.). The default
+available values are:
+- [`StdError`](@ref)
+- [`TStat`](@ref)
+- [`ConfInt`](@ref)
+
+New values can be added by subtyping `AbstractUnderStatistic` and defining
+the struct and a constructor. The constructer should accept
+the standard error, the coefficient, and the degrees of freedom.
+"""
 abstract type AbstractUnderStatistic end
 
+"""
+    struct TStat <: AbstractUnderStatistic
+        val::Float64
+    end
+    TStat(se, coef, dof=0)
+
+The t-statistic of a coefficient.
+"""
 struct TStat <: AbstractUnderStatistic
     val::Float64
 end
 TStat(se, coef, dof=0) = TStat(coef / se)
 
+"""
+    struct StdError <: AbstractUnderStatistic
+        val::Float64
+    end
+    StdError(se, coef, dof=0)
+
+The standard error of a coefficient.
+"""
 struct StdError <: AbstractUnderStatistic
     val::Float64
 end
 StdError(se, coef, dof=0) = StdError(se)
 
+"""
+    struct ConfInt <: AbstractUnderStatistic
+        val::Tuple{Float64, Float64}
+    end
+    ConfInt(se, coef, dof; level=default_confint_level())
+
+The confidence interval of a coefficient. The default confidence
+level is 95% (can be changed by setting 
+`RegressionTable.default_confint_level() = 0.90` or similar).
+"""
 struct ConfInt <: AbstractUnderStatistic
     val::Tuple{Float64, Float64}
 end
@@ -379,6 +419,15 @@ end
 
 value(x::AbstractUnderStatistic) = x.val
 
+
+"""
+    struct CoefValue
+        val::Float64
+        pvalue::Float64
+    end
+
+The value of a coefficient and its p-value.
+"""
 struct CoefValue
     val::Float64
     pvalue::Float64
@@ -388,6 +437,26 @@ value_pvalue(x::CoefValue) = x.pvalue
 value_pvalue(x::Missing) = missing
 value_pvalue(x::Nothing) = nothing
 
+"""
+    struct RegressionType{T}
+        val::T
+        is_iv::Bool
+    end
+
+The type of the regression. `val` should be a distribution from the
+[Distributions.jl](https://github.com/JuliaStats/Distributions.jl) package. `is_iv` indicates whether the regression
+is an instrumental variable regression.
+The default label for the regression type is "Estimator". The labels
+for individual regression types (e.g., "OLS", "Poisson") can be set by
+running:
+```julia
+(::Type{T})(x::RegressionTables.RegressionType; args...) where {T<: AbstractRenderType} = \$name
+```
+Or for individual distributions by running:
+```julia
+(::Type{T})(x::\$Distribution; args...) where {T<: AbstractRenderType} = \$Name
+```
+"""
 struct RegressionType{T}
     val::T
     is_iv::Bool
@@ -398,12 +467,36 @@ RegressionType(x::Type{D}, is_iv::Bool=false) where {D <: UnivariateDistribution
 value(x::RegressionType) = x.val
 label(rndr::AbstractRenderType, x::Type{<:RegressionType}) = "Estimator"
 
+"""
+    struct HasControls
+        val::Bool
+    end
+
+Indicates whether the regression has coefficients left out of the table.
+`HasControls` is used as a label, which defaults to "Controls". This can
+be changed by setting
+```julia
+RegressionTables.label(rndr::AbstractRenderType, x::Type{RegressionTables.HasControls}) = \$name
+```
+"""
 struct HasControls
     val::Bool
 end
 value(x::HasControls) = x.val
 label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"
 
+"""
+    struct RegressionNumbers
+        val::Int
+    end
+
+Used to define which column number the regression is in.
+Primarily, this is used to control how these values are displayed.
+The default displays these as `(\$i)`, which can be set by running
+```julia
+(::Type{T})(x::RegressionTables.RegressionNumbers; args...) where {T<: AbstractRenderType} = "(\$(RegressionTables.value(x)))"
+```
+"""
 struct RegressionNumbers
     val::Int
 end
@@ -411,3 +504,4 @@ value(x::RegressionNumbers) = x.val
 label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
 
 value(x) = missing
+value(x::String) = x

@@ -5,7 +5,21 @@ The abstract type for most plain text rendering. Printing is defined using the `
 new tables (with different defaults) can be created by subtyping `AbstractLatex` with minimal effort.
 """
 abstract type AbstractLatex <: AbstractRenderType end
+
+"""
+    struct LatexTable <: AbstractLatex end
+
+The main concrete type for [`AbstractLatex`](@ref). This type is
+used to create Latex tables.
+"""
 struct LatexTable <: AbstractLatex end
+
+"""
+    struct LatexTableStar <: AbstractLatex end
+
+An alternative concrete type for [`AbstractLatex`](@ref). This type is
+used to create Latex tables that span the entire text width.
+"""
 struct LatexTableStar <: AbstractLatex end
 
 function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex

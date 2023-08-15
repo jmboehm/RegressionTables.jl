@@ -5,6 +5,13 @@ The abstract type for most plain text rendering. Printing is defined using the `
 new tables (with different defaults) can be created by subtyping `AbstractAscii` with minimal effort.
 """
 abstract type AbstractAscii <: AbstractRenderType end
+
+"""
+    struct AsciiTable <: AbstractAscii end
+
+The main concrete type for [`AbstractAscii`](@ref). This is the default type
+used for plain text rendering.
+"""
 struct AsciiTable <: AbstractAscii end
 
 function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}

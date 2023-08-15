@@ -9,9 +9,28 @@ wrapper(rndr::AbstractRenderType, s) = s
 Used to separate pieces of [`InteractedCoefName`](@ref) and defaults to " & ". 
 """
 interaction_combine(rndr::AbstractRenderType) = " & "
+
+"""
+    categorical_equal(rndr::AbstractRenderType)
+
+Used to separate the name and level of [`CategoricalCoefName`](@ref) and defaults to ": ".
+"""
 categorical_equal(rndr::AbstractRenderType) = ":"
 
+"""
+    default_ols_label(rndr::AbstractRenderType)
+
+Used to label regressions with a Normal distribution and defaults to "OLS".
+Also see [`default_iv_label`](@ref) and [`RegressionType`](@ref)
+"""
 default_ols_label(rndr::AbstractRenderType) = "OLS"
+
+"""
+    default_iv_label(rndr::AbstractRenderType)
+
+Used to label regressions with an instrumental variable and defaults to "IV".
+Also see [`default_ols_label`](@ref) and [`RegressionType`](@ref)
+"""
 default_iv_label(rndr::AbstractRenderType) = "IV"
 
 
@@ -26,7 +45,7 @@ Will render x as a string
     (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType}
 
 By default, will render the first element of the pair according to the render type. In cases of [`AbstractLatex`](@ref)
-or [`AbstractHTML`](@ref), uses the second element to determine number of columns to span.
+or [`AbstractHtml`](@ref), uses the second element to determine number of columns to span.
 """
 (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
 
@@ -154,7 +173,7 @@ By default, will render the coefficient and add `" Fixed Effects"` as a suffix, 
 
 By default, will render the coefficient and add the `interaction_combine` function as a separator, also see [Regression Statistics](@ref)
 """
-(::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType} = join(T.(values(x); args...), interaction_combine(T()))
+(::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType} = join(T.(value(x); args...), interaction_combine(T()))
 
 """
     (::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType}

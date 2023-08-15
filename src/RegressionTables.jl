@@ -43,7 +43,7 @@ module RegressionTables
     ##
     ##############################################################################
 
-    export regtable, LatexTable, LatexTableStar, AsciiTable, HTMLTable, AbstractRenderType
+    export regtable, LatexTable, LatexTableStar, AsciiTable, HtmlTable, AbstractRenderType
     export Nobs, R2, R2McFadden, R2CoxSnell, R2Nagelkerke,
     R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC,
     FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within, PseudoR2, AdjPseudoR2

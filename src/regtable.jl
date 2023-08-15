@@ -55,7 +55,7 @@ julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
 
 julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2;
 
-julia> HTMLTable(x)
+julia> HtmlTable(x)
 "1.23"
 
 julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 3; # reset to default
@@ -215,7 +215,7 @@ default_labels(rndr::AbstractRenderType) = Dict{String, String}()
     default_below_statistic(rndr::AbstractRenderType)
 
 Defaults to `StdError`, which means the standard error is printed below the coefficient.
-See [`AbstractBelowStatistic`](@ref) for more information.
+See [`AbstractUnderStatistic`](@ref) for more information.
 """
 default_below_statistic(rndr::AbstractRenderType) = StdError
 
@@ -302,7 +302,7 @@ default_regression_statistics(rndr::AbstractRenderType, rrs::Tuple) = unique(uni
 
 asciiOutput(file::String) = (AsciiTable(), file)
 latexOutput(file::String) = (LatexTable(), file)
-htmlOutput(file::String) = (HTMLTable(), file)
+htmlOutput(file::String) = (HtmlTable(), file)
 
 #region
 """
@@ -393,7 +393,12 @@ function regtable(
         end
     end
     if renderSettings !== nothing
-        @warn("renderSettings is deprecated. Specify render type with rndr=[AsciiTable, LatexTable, HTMLTable] and file with file=...")
+        x = if file === nothing
+            "renderSettings is deprecated. Specify render type with rndr=$rndr"
+        else
+            "renderSettings is deprecated. Specify render type with rndr=$rndr and file with file=$file"
+        end
+        @warn(x)
     end
     if isa(below_statistic, Symbol)
         if below_statistic == :se
@@ -477,7 +482,7 @@ function regtable(
 
     nms = union(coefnames.(tables)...) |> unique
     if length(keep) > 0
-        nms = unique(vcat(build_nm_list.(Ref(nms), keep)...))
+        nms = build_nm_list(nms, keep)
     end
     if length(drop) > 0
         drop_names!(nms, drop)
@@ -637,8 +642,26 @@ function regtable(
     f
 end
 
+"""
+    combine_fe(tables, fixedeffects; print_fe_suffix=true)
+
+Takes a set of [`SimpleRegressionResult`](@ref) and combines the fixed effects
+into a single matrix. The first matrix column is a list of unique fixed
+effects and the remaining columns are a boolean matrix indicating which
+fixed effects are present in each regression.
+
+## Arguments
+- `tables` is a `Vector` of [`SimpleRegressionResult`](@ref) to combine
+- `fixedeffects` is a `Vector` of fixed effects to include in the table. 
+   Defaults to `Vector{String}()`, which means all fixed effects are included.
+   Can also be regex, integers or ranges to select which fixed effects
+- `print_fe_suffix` is a `Bool` that governs whether the fixed effects should
+   be printed with a suffix. Defaults to `true`, which means the fixed effects
+   will be printed as `\$X Fixed Effects`. If `false`, the fixed effects will
+   just be the fixed effect (`\$X`).
+"""
 function combine_fe(tables, fixedeffects; print_fe_suffix=true)
-    fe = String[]
+    fe = []
     for table in tables
         if !isnothing(table.fixedeffects)
             fe = union(fe, table.fixedeffects)
@@ -648,7 +671,7 @@ function combine_fe(tables, fixedeffects; print_fe_suffix=true)
         return nothing
     end
     if length(fixedeffects) > 0
-        fe = unique(vcat(build_nm_list.(Ref(fe), fixedeffects)...))
+        fe = build_nm_list(fe, fixedeffects)
     end
     mat = zeros(Bool, length(fe), length(tables))
     for (i, table) in enumerate(tables)
@@ -664,6 +687,13 @@ function combine_fe(tables, fixedeffects; print_fe_suffix=true)
     hcat(fe, mat)
 end
 
+"""
+    combine_statistics(tables)
+
+Takes a set of [`SimpleRegressionResult`](@ref) and combines the statistics
+into a single matrix. The first matrix column is a list of unique statistics
+(either in `String` format or the type of [`AbstractRegressionStatistic`](@ref)). The rest of the columns are the values of the statistics, or `missing` if the statistic is not present in that regression.
+"""
 function combine_statistics(tables)
     types_strings = []
     for t in tables
@@ -741,22 +771,133 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, 
     )
 end
 
+"""
+    value_pos(nms, x::String)
+
+Returns the position of the string `x` in the vector of strings or [`AbstractCoefName`](@ref) `nms`.
+
+## Example
+
+```jldoctest
+julia> import RegressionTables: CoefName, InterceptCoefName, InteractedCoefName, CategoricalCoefName, value_pos
+
+julia> nms = ["coef1", CoefName("coef2"), InterceptCoefName(), InteractedCoefName(["coef3", "coef4"]), InteractedCoefName([CoefName("coef1"), CoefName("coef3")]), CategoricalCoefName("coef5", "10"), CategoricalCoefName("coef5", "20")];
+
+julia> value_pos(nms, "coef1")
+1:1
+
+julia> value_pos(nms, "coef2")
+2:2
+
+julia> value_pos(nms, "coef3")
+Int64[]
+
+julia> value_pos(nms, "coef3 & coef4")
+4:4
+
+julia> value_pos(nms, "(Intercept)")
+3:3
+
+julia> value_pos(nms, "coef1 & coef3")
+5:5
+
+julia> value_pos(nms, "coef5: 10")
+6:6
+```
+"""
 value_pos(nms, x::String) = value_pos(nms, findfirst(string.(nms) .== x))
+
+"""
+    value_pos(nms, x::Int)
+
+Checks that `x` is a valid index for the vector of strings or [`AbstractCoefName`](@ref) `nms` and returns a range of `x:x`
+"""
 function value_pos(nms, x::Int)
-    if !(x in eachindex(nms))
-        throw(ArgumentError("$x is not a valid index for the coefficient names, please specify a valid index or name"))
-    end
+    @assert x in eachindex(nms) "x must be a valid index for the coefficient names, which are $(eachindex(nms))"
     x:x
 end
+
+"""
+    value_pos(nms, x::UnitRange)
+
+Checks that `x` is a valid index for the vector of strings or 
+[`AbstractCoefName`](@ref) `nms` and returns `x`
+"""
 function value_pos(nms, x::UnitRange)
-    if !(all(i in eachindex(nms) for i in x))
-        throw(ArgumentError("$x has some values outside the valid index for the coefficient names, please specify a valid index or name"))
-    end
+    @assert all(i in eachindex(nms) for i in x) "x must be a valid index for the coefficient names, which are $(eachindex(nms))"
     x
 end
-value_pos(nms, x::BitVector) = [i for (i, b) in enumerate(x) if b]
+
+"""
+    value_pos(nms, x::BitVector)
+
+Returns a vector of indices where `x` is `true`, called by
+the regex version of `value_pos`.
+"""
+value_pos(nms, x::BitVector) = findall(x)
+
+"""
+    value_pos(nms, x::Regex)
+
+Looks within each element of the vector `nms` (which is either a string
+or an [`AbstractCoefName`](@ref)) and returns a vector of indices where
+the regex `x` is found.
+
+## Example
+
+```jldoctest
+julia> import RegressionTables: CoefName, InterceptCoefName, InteractedCoefName, CategoricalCoefName, value_pos
+
+julia> nms = ["coef1", CoefName("coef2"), InterceptCoefName(), InteractedCoefName(["coef3", "coef4"]), InteractedCoefName([CoefName("coef1"), CoefName("coef3")]), CategoricalCoefName("coef5", "10"), CategoricalCoefName("coef5", "20")];
+
+julia> value_pos(nms, r"coef1") == [1, 5]
+true
+
+julia> value_pos(nms, r"coef[1-3]") == [1, 2, 4, 5]
+true
+
+julia> value_pos(nms, r"coef[1-3] & coef4") == [4]
+true
+
+julia> value_pos(nms, r" & ") == [4, 5]
+true
+
+julia> value_pos(nms, r"coef5") == [6, 7]
+true
+
+julia> value_pos(nms, r"coef5: 10") == [6]
+true
+```
+"""
 value_pos(nms, x::Regex) = value_pos(nms, occursin.(x, string.(nms)))
+
+"""
+    value_pos(nms, x::Nothing)
+
+Returns an empty vector, called by the regex and string version of `value_pos`.
+"""
 value_pos(nms, x::Nothing) = Int[]
+
+"""
+    value_pos(nms, x::Symbol)
+
+Expects a symbol of the form `:last` or `:end` and returns the last
+value of `nms`, both are included for consistency with the `Tuple`
+
+## Example
+
+```jldoctest
+julia> import RegressionTables: CoefName, InterceptCoefName, InteractedCoefName, CategoricalCoefName, value_pos
+
+julia> nms = ["coef1", CoefName("coef2"), InterceptCoefName(), InteractedCoefName(["coef3", "coef4"]), InteractedCoefName([CoefName("coef1"), CoefName("coef3")]), CategoricalCoefName("coef5", "10"), CategoricalCoefName("coef5", "20")];
+
+julia> value_pos(nms, :last)
+7:7
+
+julia> value_pos(nms, :end)
+7:7
+```
+"""
 function value_pos(nms, x::Symbol)
     if x == :last
         value_pos(nms, length(nms))
@@ -766,6 +907,27 @@ function value_pos(nms, x::Symbol)
         throw(ArgumentError("Symbol $x not recognized"))
     end
 end
+
+"""
+    value_pos(nms, x::Tuple{Symbol, Int})
+
+Expects a tuple of the form `(:last, n)` or `(:end, n)`. `(:last, n)` returns
+the last `n` values (`1:5` with `(:last, 2)` is `4:5`), while `(:end, n)` returns the last index minus `n` (`1:5` with `(:end, 2)` is `3`).
+
+## Example
+
+```jldoctest
+julia> import RegressionTables: CoefName, InterceptCoefName, InteractedCoefName, CategoricalCoefName, value_pos
+
+julia> nms = ["coef1", CoefName("coef2"), InterceptCoefName(), InteractedCoefName(["coef3", "coef4"]), InteractedCoefName([CoefName("coef1"), CoefName("coef3")]), CategoricalCoefName("coef5", "10"), CategoricalCoefName("coef5", "20")];
+
+julia> value_pos(nms, (:last, 2))
+6:7
+
+julia> value_pos(nms, (:end, 2))
+5:5
+```
+"""
 function value_pos(nms, x::Tuple{Symbol, Int})
     if x[1] == :last
         value_pos(nms, length(nms) - x[2] + 1 : length(nms))
@@ -776,6 +938,12 @@ function value_pos(nms, x::Tuple{Symbol, Int})
     end
 end
 
+"""
+    reorder_nms_list(nms, order)
+
+Reorders the vector of strings or [`AbstractCoefName`](@ref) `nms` according
+to the `order` provided. All elements of `nms` are kept.
+"""
 function reorder_nms_list(nms, order)
     out = Int[]
     for o in order
@@ -794,8 +962,32 @@ function reorder_nms_list(nms, order)
     nms[out]
 end
 
-build_nm_list(nms, x) = nms[value_pos(nms, x)]
+"""
+    build_nm_list(nms, keep)
 
+Takes the list of strings or [`AbstractCoefName`](@ref) `nms` and returns
+a subset of `nms` that contains only the elements in `keep`. Will also
+reorder the elements that are kept based on the order of `keep`.
+"""
+function build_nm_list(nms, keep)
+    out = Int[]
+    for k in keep
+        x = value_pos(nms, k)
+        for i in x
+            if i ∉ out
+                push!(out, i)
+            end
+        end
+    end
+    nms[out]
+end
+
+"""
+    drop_names!(nms, to_drop)
+
+Drops the elements of `nms` that are in `to_drop`. Does not reorder
+any other elements.
+"""
 function drop_names!(nms, to_drop)
     out = Int[]
     for o in to_drop
@@ -809,9 +1001,15 @@ function drop_names!(nms, to_drop)
     deleteat!(nms, out)
 end
 
+"""
+    missing_vars(table::SimpleRegressionResult, coefs::Vector)
 
-function missing_vars(table::SimpleRegressionResult, coefs::Vector{String})
+Checks whether any of the coefficients in `table` are not in `coefs`,
+returns `true` if so, `false` otherwise.
+"""
+function missing_vars(table::SimpleRegressionResult, coefs::Vector)
     table_coefs = string.(coefnames(table))
+    coefs = string.(coefs)
     for x in table_coefs
         if x ∉ coefs
             return true
@@ -820,6 +1018,18 @@ function missing_vars(table::SimpleRegressionResult, coefs::Vector{String})
     false
 end
 
+"""
+    add_blank(groups::Matrix, n)
+    add_blank(groups::Vector{Vector}, n)
+
+Recursively checks whether the number of columns in `groups`
+(or the length of the vector `groups`) is less than `n`, if so,
+add a blank column (or element) to the left of the matrix (first element
+of the vector).
+
+This is used to make sure a provided piece of data is at least `n`
+columns, fitting into the table.
+"""
 function add_blank(groups::Matrix, n)
     if size(groups, 2) < n
         groups = hcat(fill("", size(groups, 1)), groups)

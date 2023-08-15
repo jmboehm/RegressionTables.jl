@@ -1,6 +1,10 @@
 
 # API of Underlying Functions
 
+```@contents
+Pages=["api.md"]
+```
+
 ## DataRow
 
 ```@docs
@@ -23,18 +27,22 @@ RegressionTables.AbstractRenderType
 
 ```@docs
 RegressionTables.AbstractAscii
+RegressionTables.AsciiTable
 ```
 
 ### Latex
 
 ```@docs
 RegressionTables.AbstractLatex
+RegressionTables.LatexTable
+RegressionTables.LatexTableStar
 ```
 
 ### HTML
 
 ```@docs
-RegressionTables.AbstractHTML
+RegressionTables.AbstractHtml
+RegressionTables.HtmlTable
 ```
 
 ## Coefficient Naming
@@ -54,6 +62,14 @@ Filter = t -> typeof(t) === DataType && t <: RegressionTables.AbstractCoefName &
 ```@docs
 RegressionTables.calc_widths
 RegressionTables.update_widths!
+RegressionTables.value_pos
+RegressionTables.combine_fe
+RegressionTables.combine_statistics
+RegressionTables.build_nm_list
+RegressionTables.reorder_nms_list
+RegressionTables.drop_names!
+RegressionTables.add_blank
+RegressionTables.missing_vars
 ```
 
 ## How Types are Displayed
@@ -64,4 +80,11 @@ This section describes how different types are displayed. Throughout this packag
 
 ```@docs
 Core.Type
+RegressionTables.estim_decorator
+```
+
+## Simple Regression Result
+
+```@docs
+RegressionTables.SimpleRegressionResult
 ```

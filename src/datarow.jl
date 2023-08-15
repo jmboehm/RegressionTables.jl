@@ -3,7 +3,7 @@
     abstract type AbstractRenderType end
 
 The generic top level type for render types. Most defaults are set here unless there is a reason it needs to be set at
-a lower level. Subtypes are still abstract types and include [`AbstractAscii`](@ref), [`AbstractLatex`](@ref), and [`AbstractHTML`](@ref).
+a lower level. Subtypes are still abstract types and include [`AbstractAscii`](@ref), [`AbstractLatex`](@ref), and [`AbstractHtml`](@ref).
 """
 abstract type AbstractRenderType end
 
@@ -43,7 +43,7 @@ Base.broadcastable(o::AbstractRenderType) = Ref(o)
 DataRow forms the fundamental element of a RegressionTable. For a user, these can be passed as 
 additional elements to `group` or `extralines` in [`regtable`](@ref).
 A DataRow is typed with an [`AbstractRenderType`](@ref),
-which controls how the DataRow is displayed. The default is [AsciiTable](@ref). The DataRow contains four other elements:
+which controls how the DataRow is displayed. The default is [`AsciiTable`](@ref). The DataRow contains four other elements:
 - `data::Vector`: The data to be displayed in the row. Can be individual elements (e.g., [1, 2, 3]) or pairs with a range
    (e.g., [1 => 1:2, 2 => 3:4]), or a combination of the two.
 - `align::String`: A string of ('l', 'r', 'c'), one for each element of `data`, indicating that elements alignment.

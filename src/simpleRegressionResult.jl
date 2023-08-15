@@ -1,4 +1,36 @@
 
+"""
+    struct SimpleRegressionResult
+        responsename::Union{String, <:AbstractCoefName}
+        coefnames::Vector# either string or AbstractCoefName
+        coefvalues::Vector{Float64}
+        coefstderrors::Vector{Float64}
+        coefpvalues::Vector{Float64}
+        statistics::Vector
+        regressiontype::RegressionType
+        fixedeffects::Union{Nothing, Vector}
+        dof_residual::Int
+    end
+
+This is a summary type that takes other regression results
+and stores them in a single unified type. If the regression
+follows [StatsAPI.jl](https://github.com/JuliaStats/StatsAPI.jl),
+then the default settings should work. In particular, the
+following functions should be defined for the regression:
+- `coef` to return the coefficient values
+- `stderror` to return the standard errors
+- `dof_residual` to return the residual degrees of freedom
+- `formula` to return the formula schema
+- `islinear` to return whether the regression is linear
+   (this can be avoided if the regression defines
+   `RegressionTables.RegressionType` in an extension)
+
+The regression should also define functions related to regression
+statistics (see [`AbstractRegressionStatistic`](@ref)). If the
+regression has fixed effects, then it should also define an
+[`fe_terms`](@ref) function that parses the necessary formula and
+returns [`FixedEffectCoefName`](@ref) objects.
+"""
 struct SimpleRegressionResult
     responsename::Union{String, <:AbstractCoefName}
     coefnames::Vector# either string or AbstractCoefName

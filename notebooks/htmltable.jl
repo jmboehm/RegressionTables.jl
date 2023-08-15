@@ -36,7 +36,7 @@ md"""
 """
 
 # ╔═╡ 928c4ee3-5f08-4cd3-9e17-69b18d9d5922
-regtable(rr1,rr2,rr3,rr4; rndr = HTMLTable())
+regtable(rr1,rr2,rr3,rr4; rndr = HtmlTable())
 
 # ╔═╡ Cell order:
 # ╠═015cae43-5c06-402a-a139-5e4b31a42e55

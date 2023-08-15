@@ -1,4 +1,4 @@
-```@meta main_data
+```@meta
 DocTestSetup = quote # hide
     using RegressionTables, DataFrames, FixedEffectModels, RDatasets, CategoricalArrays
 
