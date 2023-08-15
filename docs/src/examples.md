@@ -1210,3 +1210,64 @@ R2                       0.014       0.863
 Pseudo R2                0.006       0.811       0.347       0.297
 ------------------------------------------------------------------
 ```
+
+## MixedModels Support
+
+This package does support [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl), but instead of displaying fixed effects it will display the variation from the random effects.
+
+```jldoctest
+using MixedModels
+form1 = @formula(rt_trunc ~ 1 + spkr + prec + load +
+                          (1 + load | item) +
+                          (1 + spkr + prec + load | subj))
+contr = Dict(:spkr => EffectsCoding(),
+             :prec => EffectsCoding(),
+             :load => EffectsCoding(),
+             :item => Grouping(),
+             :subj => Grouping())
+kbm1 = fit(MixedModel, form1, MixedModels.dataset(:kb07); contrasts=contr, progress=false)
+form2 = @formula(rt_trunc ~ 1 + spkr + prec + load +
+                          (1 + spkr + prec + load | subj))
+kbm2 = fit(MixedModel, form2, MixedModels.dataset(:kb07); contrasts=contr, progress=false)
+form3 = @formula(rt_trunc ~ 1 + spkr + prec + load +
+                          (1 + load | item) +
+                          (1 + spkr + prec * load | subj))
+kbm3 = fit(MixedModel, form3, MixedModels.dataset(:kb07); contrasts=contr, progress=false)
+regtable(kbm1, kbm2, kbm3; labels=Dict(
+     "subj" => "Subject",
+     "item" => "Item",
+     "load: yes" => "Load",
+     "prec: maintain" => "Prec",
+     "spkr: old" => "Old Speaker"
+     )
+)
+
+# output
+
+ 
+---------------------------------------------------------------
+                                        rt_trunc
+                        ---------------------------------------
+                                (1)           (2)           (3)
+---------------------------------------------------------------
+(Intercept)             2182.161***   2181.920***   2183.425***
+                           (78.193)      (45.665)      (77.399)
+Old Speaker               68.031***      68.195**     68.715***
+                           (19.106)      (21.254)      (18.602)
+Prec                    -333.638***   -333.475***   -333.387***
+                           (18.623)      (22.785)      (18.333)
+Load                      78.282***     78.523***     79.641***
+                           (19.057)      (21.719)      (19.116)
+---------------------------------------------------------------
+Item | (Intercept)          358.402                     354.490
+Item | Load                  15.725                      19.726
+Subject | (Intercept)       318.842       311.305       319.695
+Subject | Old Speaker        67.114        73.680        67.566
+Subject | Prec               59.029        95.949        58.425
+Subject | Load               62.973        80.922        83.850
+Subject | Prec & Load                                   102.091
+---------------------------------------------------------------
+N                             1,789         1,789         1,789
+Log Likelihood          -14,403.064   -14,555.420   -14,394.150
+---------------------------------------------------------------
+```

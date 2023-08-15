@@ -2,7 +2,6 @@ using Revise
 using RegressionTables, RDatasets, GLM, FixedEffectModels
 using Documenter
 
-
 DocMeta.setdocmeta!(
     RegressionTables,
     :DocTestSetup,
@@ -22,5 +21,7 @@ Documenter.makedocs(
         "Keep Drop and Order Arguments" => "keep_drop_order.md",
         "API" => "api.md",
         "Customization and Defaults" => "customization.md",
+        "Function and Type Reference" => "function_reference.md"
     ]
 )
+

@@ -17,6 +17,8 @@ Used to separate the name and level of [`CategoricalCoefName`](@ref) and default
 """
 categorical_equal(rndr::AbstractRenderType) = ":"
 
+random_effect_separator(rndr::AbstractRenderType) = " | "
+
 """
     default_ols_label(rndr::AbstractRenderType)
 
@@ -246,6 +248,9 @@ By default, will be "Negative Binomial"
 By default, will call [`default_ols_label`](@ref)
 """
 (::Type{T})(x::Normal; args...) where {T<: AbstractRenderType} = T(default_ols_label(T()); args...)
+
+(::Type{T})(x::RandomEffectCoefName; args...) where {T<: AbstractRenderType} = 
+    T(x.rhs; args...) * random_effect_separator(T()) * T(x.lhs; args...)
 
 function make_padding(s, colWidth, align)
     if align == 'l'

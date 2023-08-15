@@ -664,7 +664,11 @@ function combine_fe(tables, fixedeffects; print_fe_suffix=true)
     fe = []
     for table in tables
         if !isnothing(table.fixedeffects)
-            fe = union(fe, table.fixedeffects)
+            for f in table.fixedeffects
+                if !(string(f) in string.(fe))
+                    push!(fe, f)
+                end
+            end
         end
     end
     if length(fe) == 0
@@ -673,18 +677,39 @@ function combine_fe(tables, fixedeffects; print_fe_suffix=true)
     if length(fixedeffects) > 0
         fe = build_nm_list(fe, fixedeffects)
     end
-    mat = zeros(Bool, length(fe), length(tables))
-    for (i, table) in enumerate(tables)
-        if table.fixedeffects !== nothing
-            for (j, f) in enumerate(fe)
-                mat[j, i] = f in table.fixedeffects
-            end
-        end
+    mat = Matrix{Union{Missing, Any}}(missing, length(fe), 0)
+    for table in tables
+        mat = hcat(mat, make_fe_vec(fe, table.fixedeffects))
     end
     if !print_fe_suffix
         fe = value.(fe)
     end
     hcat(fe, mat)
+end
+
+function make_fe_vec(fe_list, random_effects::Vector{RandomEffectCoefName})
+    out = Vector{Union{Missing, Float64}}(missing, length(fe_list))
+    fe_list = string.(fe_list)
+    for r in random_effects
+        i = findfirst(string(r) .== fe_list)
+        if i === nothing
+            continue
+        end
+        out[i] = r.std
+    end
+    out
+end
+make_fe_vec(fe_list, fe_nothing::Nothing) = fill(missing, length(fe_list))
+function make_fe_vec(fe_list, fe::T) where {T} # should just be FixedEffectCoefName
+    out = Vector{Union{Missing, Bool}}(missing, length(fe_list))
+    for (i, v) in enumerate(fe_list)
+        if v in fe
+            out[i] = true
+        elseif typeof(v) == T
+            out[i] = false
+        end
+    end
+    out
 end
 
 """

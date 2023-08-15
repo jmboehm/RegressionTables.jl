@@ -196,11 +196,18 @@ Base.get(x::Dict{String, String}, val::FixedEffectCoefName, def::FixedEffectCoef
 Base.replace(x::FixedEffectCoefName, r::Pair) = FixedEffectCoefName(replace(x.name, r))
 
 struct RandomEffectCoefName <: AbstractCoefName
-    name::AbstractCoefName
-    RandomEffectCoefName(x::AbstractCoefName) = new(x)
+    rhs::CoefName
+    lhs::AbstractCoefName
+    std::Float64
+    RandomEffectCoefName(rhs::CoefName, lhs::AbstractCoefName, v::Float64) = new(rhs, lhs, v)
 end
 
-value(x::RandomEffectCoefName) = x.name
-Base.string(x::RandomEffectCoefName) = string(x.name)
-Base.get(x::Dict{String, String}, val::RandomEffectCoefName, def::RandomEffectCoefName) =
-    RandomEffectCoefName(get(x, val.name, def.name))
+value(x::RandomEffectCoefName) = x
+Base.string(x::RandomEffectCoefName) = string(x.rhs) * " | " * string(x.lhs)
+Base.hash(x::RandomEffectCoefName, h::UInt) = hash(string(x),h)
+Base.(==)(x::RandomEffectCoefName, y::RandomEffectCoefName) = string(x) == string(y)
+function Base.get(x::Dict{String, String}, val::RandomEffectCoefName, def::RandomEffectCoefName)
+    rhs = get(x, val.rhs, def.rhs)
+    lhs = get(x, val.lhs, def.lhs)
+    RandomEffectCoefName(rhs, lhs, val.std)
+end
