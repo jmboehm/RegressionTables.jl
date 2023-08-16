@@ -699,7 +699,7 @@ function make_fe_vec(fe_list, random_effects::Vector{RandomEffectCoefName})
     end
     out
 end
-make_fe_vec(fe_list, fe_nothing::Nothing) = fill(missing, length(fe_list))
+make_fe_vec(fe_list, fe_nothing::Nothing) = fill(false, length(fe_list))
 function make_fe_vec(fe_list, fe::T) where {T} # should just be FixedEffectCoefName
     out = Vector{Union{Missing, Bool}}(missing, length(fe_list))
     for (i, v) in enumerate(fe_list)

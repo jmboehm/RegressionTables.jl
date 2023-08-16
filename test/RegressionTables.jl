@@ -15,10 +15,10 @@ rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(Species)&fe(isWide) + fe(is
 rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
 
 
-RegressionTables.default_print_fe_suffix(x::RegressionTables.AbstractRenderType) = false
-RegressionTables.default_print_control_indicator(x::RegressionTables.AbstractRenderType) = false
-RegressionTables.default_regression_statistics(x::RegressionTables.AbstractRenderType, rrs::Tuple) = [Nobs, R2]
-RegressionTables.default_print_estimator(x::RegressionTables.AbstractRenderType, rrs) = true
+RegressionTables.default_print_fe_suffix(x::AbstractRenderType) = false
+RegressionTables.default_print_control_indicator(x::AbstractRenderType) = false
+RegressionTables.default_regression_statistics(x::AbstractRenderType, rrs::Tuple) = [Nobs, R2]
+RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = true
 # GLM.jl
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
     Outcome = repeat(["A", "B", "C"], outer = 3),
