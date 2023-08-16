@@ -82,11 +82,13 @@ mutable struct RegressionTable{T<:AbstractRenderType} <: AbstractMatrix{String}
     rndr::T
     breaks::Vector{Int}
     colwidths::Vector{Int}
+    vertical_gaps::Vector{Int}# necessary for future Excel integration
     function RegressionTable(
         data::Vector{DataRow{T}},
         align::String,
         breaks=[length(data)],
         colwidths::Vector{Int}=zeros(Int, length(data[1])),
+        vertical_gaps::Vector{Int}=Int[]
     ) where {T<:AbstractRenderType}
         if all(colwidths .== 0)
             colwidths = calc_widths(data)
@@ -94,7 +96,7 @@ mutable struct RegressionTable{T<:AbstractRenderType} <: AbstractMatrix{String}
         update_widths!.(data, Ref(colwidths))
         @assert all(length.(data) .== length(colwidths)) && length(colwidths) == length(align) "Not all the correct length"
         @assert length(data) .>= maximum(breaks) "Breaks must be less than the number of rows"
-        new{T}(data,align, T(), breaks, colwidths)
+        new{T}(data,align, T(), breaks, colwidths, vertical_gaps)
     end
 end
 

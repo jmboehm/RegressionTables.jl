@@ -31,10 +31,6 @@ Now, when creating a descriptive table (see [`RegressionTable`](@ref) for an exa
 
 The rest of this page goes through the defaults, showing what they are and what you might change each to.
 
-```@contents
-Pages = ["customization.md"]
-```
-
 ## Rounding Digits
 
 ```@docs
@@ -78,10 +74,34 @@ RegressionTables.default_breaks
 RegressionTables.default_symbol
 RegressionTables.interaction_combine
 RegressionTables.categorical_equal
-RegressionTables.label_ols
-RegressionTables.label_iv
+RegressionTables.random_effect_separator
 RegressionTables.estim_decorator
 RegressionTables.below_decoration
 RegressionTables.number_regressions_decoration
 RegressionTables.fe_suffix
+RegressionTables.wrapper
+```
+
+## Labels
+
+Labels are customizable by running the function that defines them. This makes it possible to change the labels once and then not worry about them on subsequent tables. To change a label, run:
+```julia
+RegressionTables.label(rndr::AbstractRenderType, ::Type{Nobs}) = "Obs."
+```
+Labels use the Julia type system, so it is possible to create different labels depending on the table type. This is done by default for cases such as [`Nobs`](@ref) and [`R2`](@ref), where the defaults for Latex and HTML are different. In such cases, it is necessary to set the label for all types that are used:
+```julia
+RegressionTables.label(rndr::AbstractLatex, ::Type{Nobs}) = "Obs."
+RegressionTables.label(rndr::AbstractHtml, ::Type{Nobs}) = "Obs."
+```
+
+Some labels (notably the [`R2`](@ref) group), call another label function. For example:
+```julia
+label(rndr::AbstractRenderType, ::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
+```
+Ths means that the label for [`AdjR2`](@ref) relies on the label for [`R2`](@ref). This also means that changing the label for [`R2`](@ref) will change the labels for all other `R2` types.
+```@docs
+RegressionTables.label
+RegressionTables.label_p
+RegressionTables.label_ols
+RegressionTables.label_iv
 ```

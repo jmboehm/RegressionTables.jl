@@ -23,7 +23,7 @@ Decorates a value with a symbol based on p-value. In many journals, the symbol i
 It is possible to wrap the symbols in an additional element, for example, in Latex it is common to wrap the symbol as a superscript.
 To do so in all tables, run
 ```julia
-RegressionTables.wrapper(::AbstractLatex, deco) = "\$^{\$deco}\$"
+RegressionTables.wrapper(::AbstractLatex, deco) = "\\\$^{\$deco}\\\$"
 ```
 
 It is also possible to change the cutoffs or symbols. To change the cutoffs, run

@@ -58,6 +58,12 @@ Nobs(x::RegressionModel) = try
 catch
     Nobs(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{Nobs}) = "N"
+    label(rndr::AbstractLatex, x::Type{Nobs}) = "\\\$N\\\$"
+    label(rndr::AbstractHtml, x::Type{Nobs}) = "<i>N</i>"
+"""
 label(rndr::AbstractRenderType, x::Type{Nobs}) = "N"
 
 """
@@ -78,6 +84,12 @@ R2(x::RegressionModel) = try
 catch
     R2(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{R2}) = "R2"
+    label(rndr::AbstractLatex, x::Type{R2}) = "\\\$R^2\\\$"
+    label(rndr::AbstractHtml, x::Type{R2}) = "<i>R</i><sup>2</sup>"
+"""
 label(rndr::AbstractRenderType, x::Type{R2}) = "R2"
 
 """
@@ -95,6 +107,10 @@ R2McFadden(x::RegressionModel) = try
 catch
     R2McFadden(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(rndr, R2)
+"""
 label(rndr::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(rndr, R2)
 
 """
@@ -116,6 +132,10 @@ R2CoxSnell(x::RegressionModel) = try
 catch
     R2CoxSnell(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(rndr, R2)
+"""
 label(rndr::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(rndr, R2)
 
 """
@@ -132,6 +152,10 @@ R2Nagelkerke(x::RegressionModel) = try
 catch
     R2Nagelkerke(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(rndr, R2)
+"""
 label(rndr::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(rndr, R2)
 
 """
@@ -148,6 +172,10 @@ R2Deviance(x::RegressionModel) = try
 catch
     R2Deviance(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(rndr, R2)
+"""
 label(rndr::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(rndr, R2)
 
 """
@@ -164,6 +192,10 @@ AdjR2(x::RegressionModel) = try
 catch
     AdjR2(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
+"""
 label(rndr::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
 
 """
@@ -181,6 +213,10 @@ AdjR2McFadden(x::RegressionModel) = try
 catch
     AdjR2McFadden(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(rndr, AdjR2)
+"""
 label(rndr::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(rndr, AdjR2)
 
 """
@@ -202,6 +238,10 @@ AdjR2Deviance(x::RegressionModel) = try
 catch
     AdjR2Deviance(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{AdjR2Deviance}) = "Deviance " * label(rndr, AdjR2)
+"""
 label(rndr::AbstractRenderType, x::Type{AdjR2Deviance}) = "Deviance " * label(rndr, AdjR2)
 
 """
@@ -216,6 +256,10 @@ DOF(x::RegressionModel) = try
 catch
     DOF(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{DOF}) = "Degrees of Freedom"
+"""
 label(rndr::AbstractRenderType, x::Type{DOF}) = "Degrees of Freedom"
 
 """
@@ -230,6 +274,10 @@ LogLikelihood(x::RegressionModel) = try
 catch
     LogLikelihood(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{LogLikelihood}) = "Log Likelihood"
+"""
 label(rndr::AbstractRenderType, x::Type{LogLikelihood}) = "Log Likelihood"
 
 """
@@ -244,6 +292,10 @@ AIC(x::RegressionModel) = try
 catch
     AIC(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{AIC}) = "AIC"
+"""
 label(rndr::AbstractRenderType, x::Type{AIC}) = "AIC"
 
 """
@@ -258,6 +310,10 @@ AICC(x::RegressionModel) = try
 catch
     AICC(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{AICC}) = "AICC"
+"""
 label(rndr::AbstractRenderType, x::Type{AICC}) = "AICC"
 
 """
@@ -272,6 +328,10 @@ BIC(x::RegressionModel) = try
 catch
     BIC(nothing)
 end
+
+"""
+    label(rndr::AbstractRenderType, x::Type{BIC}) = "BIC"
+"""
 label(rndr::AbstractRenderType, x::Type{BIC}) = "BIC"
 
 """
@@ -288,6 +348,12 @@ struct FStat <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 FStat(r::RegressionModel) = FStat(nothing)
+
+"""
+    label(rndr::AbstractRenderType, x::Type{FStat}) = "F"
+    label(rndr::AbstractLatex, x::Type{FStat}) = "\\\$F\\\$"
+    label(rndr::AbstractHtml, x::Type{FStat}) = "<i>F</i>"
+"""
 label(rndr::AbstractRenderType, x::Type{FStat}) = "F"
 
 """
@@ -302,6 +368,10 @@ struct FStatPValue <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 FStatPValue(r::RegressionModel) = FStatPValue(nothing)
+
+"""
+    label(rndr::AbstractRenderType, x::Type{FStatPValue}) = label(rndr, FStat) * "-test " * label_p(rndr) * " value"
+"""
 label(rndr::AbstractRenderType, x::Type{FStatPValue}) = label(rndr, FStat) * "-test " * label_p(rndr) *" value"
 
 """
@@ -316,6 +386,10 @@ struct FStatIV <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 FStatIV(r::RegressionModel) = FStatIV(nothing)
+
+"""
+    label(rndr::AbstractRenderType, x::Type{FStatIV}) = "First-stage " * label(rndr, FStat) * " statistic"
+"""
 label(rndr::AbstractRenderType, x::Type{FStatIV}) = "First-stage " * label(rndr, FStat) * " statistic"
 
 """
@@ -330,6 +404,10 @@ struct FStatIVPValue <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 FStatIVPValue(r::RegressionModel) = FStatIVPValue(nothing)
+
+"""
+    label(rndr::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(rndr) * " value"
+"""
 label(rndr::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(rndr) * " value"
 
 """
@@ -344,6 +422,10 @@ struct R2Within <: AbstractR2
     val::Union{Float64, Nothing}
 end
 R2Within(r::RegressionModel) = R2Within(nothing)
+
+"""
+    label(rndr::AbstractRenderType, x::Type{R2Within}) = "Within " * label(rndr, R2)
+"""
 label(rndr::AbstractRenderType, x::Type{R2Within}) = "Within-" * label(rndr, R2)
 
 
@@ -466,6 +548,10 @@ struct RegressionType{T}
 end
 RegressionType(x::Type{D}, is_iv::Bool=false) where {D <: UnivariateDistribution} = RegressionType(Base.typename(D).wrapper(), is_iv)
 value(x::RegressionType) = x.val
+
+"""
+    label(rndr::AbstractRenderType, x::Type{RegressionType}) = "Estimator"
+"""
 label(rndr::AbstractRenderType, x::Type{<:RegressionType}) = "Estimator"
 
 """
@@ -484,6 +570,10 @@ struct HasControls
     val::Bool
 end
 value(x::HasControls) = x.val
+
+"""
+    label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"
+"""
 label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"
 
 """
@@ -502,6 +592,10 @@ struct RegressionNumbers
     val::Int
 end
 value(x::RegressionNumbers) = x.val
+
+"""
+    label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
+"""
 label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
 
 value(x) = missing

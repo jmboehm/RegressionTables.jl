@@ -1,12 +1,36 @@
 
+"""
+    label_p(rndr::AbstractRenderType) = "p"
+    label_p(rndr::AbstractLatex) = "\\\$p\\\$"
+    label_p(rndr::AbstractHtml) = "<i>p</i>"
+"""
 label_p(rndr::AbstractRenderType) = "p"
 
+"""
+    wrapper(rndr::AbstractRenderType, s)
+
+Used to wrap a string, particularly for [`estim_decorator`](@ref) and defaults to `s` (i.e., no wrapper).
+For example, to wrap the stars in Latex, run:
+```julia
+RegressionTables.wrapper(::AbstractLatex, deco) = "\$^{\$deco}\$"
+```
+"""
 wrapper(rndr::AbstractRenderType, s) = s
 
 """
     interaction_combine(rndr::AbstractRenderType)
+    interaction_combine(rndr::AbstractLatex)
+    interaction_combine(rndr::AbstractHtml)
 
-Used to separate pieces of [`InteractedCoefName`](@ref) and defaults to " & ". 
+Used to separate pieces of [`InteractedCoefName`](@ref) and defaults to:
+- " & " in the general case
+- `"\$ \\times \$"` in Latex
+- `" &times; "` in HTML
+
+Change this by rerunning the function with the desired default, for example:
+```julia
+RegressionTables.interaction_combine(rndr::AbstractLatex) = " \\& "
+```
 """
 interaction_combine(rndr::AbstractRenderType) = " & "
 
@@ -17,21 +41,24 @@ Used to separate the name and level of [`CategoricalCoefName`](@ref) and default
 """
 categorical_equal(rndr::AbstractRenderType) = ":"
 
+"""
+    random_effect_separator(rndr::AbstractRenderType)
+
+Used to separate the left and right hand side of [`RandomEffectCoefName`](@ref) and defaults to " | ".
+"""
 random_effect_separator(rndr::AbstractRenderType) = " | "
 
 """
-    label_ols(rndr::AbstractRenderType)
+    label_ols(rndr::AbstractRenderType) = "OLS"
 
-Used to label regressions with a Normal distribution and defaults to "OLS".
-Also see [`label_iv`](@ref) and [`RegressionType`](@ref)
+Also see [`RegressionType`](@ref)
 """
 label_ols(rndr::AbstractRenderType) = "OLS"
 
 """
-    label_iv(rndr::AbstractRenderType)
+    label_iv(rndr::AbstractRenderType) = "IV"
 
-Used to label regressions with an instrumental variable and defaults to "IV".
-Also see [`label_ols`](@ref) and [`RegressionType`](@ref)
+Also see [`RegressionType`](@ref)
 """
 label_iv(rndr::AbstractRenderType) = "IV"
 
@@ -281,6 +308,12 @@ By default, will call [`label_ols`](@ref)
 """
 render(rndr, x::Normal; args...) = render(rndr, label_ols(rndr); args...)
 
+
+"""
+    render(rndr, x::RandomEffectCoefName; args...)
+
+How to render a [`RandomEffectCoefName`](@ref) and defaults to the right hand side, then the separator, then the left hand side.
+"""
 render(rndr, x::RandomEffectCoefName; args...) = 
     render(rndr, x.rhs; args...) * random_effect_separator(rndr) * render(rndr, x.lhs; args...)
 

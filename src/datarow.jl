@@ -130,7 +130,12 @@ function DataRow(
     DataRow(data, align, colwidths, print_underlines, rndr; combine_equals)
 end
 
-# only called when combine_equals=true
+"""
+    add_element!(row::DataRow, val, align_i, colwidth_i, print_underline_i, i)
+
+Adds an element to the row and is only called when `combine_equals=true`. This means that if the last
+element in the row is the same as the provided `val`, then the last element is extended to include the new column.
+"""
 function add_element!(row::DataRow, val, align_i, colwidth_i, print_underline_i, i)
     if val == ""
         push!(row.data, val)
@@ -169,7 +174,13 @@ function add_element!(row::DataRow, val, align_i, colwidth_i, print_underline_i,
     row
 end
 
-# only called when combine_equals=true
+"""
+    add_element!(row::DataRow, val::Pair, align_i, colwidth_i, print_underline_i, i)
+
+Adds an element to the row and is only called when `combine_equals=true`. Since `val` is a pair,
+is is simply added to the row as is, this allows for the creation of two multicolumn cells that
+have the same information but are separate.
+"""
 function add_element!(row::DataRow, val::Pair, align_i, colwidth_i, print_underline_i, i)
     # if it is a pair, add as is even if previous element has same initial value
     push!(row.data, val)

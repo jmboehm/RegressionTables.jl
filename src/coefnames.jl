@@ -212,6 +212,17 @@ Base.get(x::Dict{String, String}, val::FixedEffectCoefName, def::FixedEffectCoef
 
 Base.replace(x::FixedEffectCoefName, r::Pair) = FixedEffectCoefName(replace(x.name, r))
 
+"""
+    struct RandomEffectCoefName <: AbstractCoefName
+        rhs::CoefName
+        lhs::AbstractCoefName
+        std::Float64
+    end
+
+Used to store the name and the standard deviation of a coefficient for a `RandomEffectTerm` from
+[MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl). The standard deviation is stored
+since that is often the useful information on the relationship between rhs and lhs.
+"""
 struct RandomEffectCoefName <: AbstractCoefName
     rhs::CoefName
     lhs::AbstractCoefName

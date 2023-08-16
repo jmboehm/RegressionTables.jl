@@ -72,6 +72,7 @@ RegressionTables.drop_names!
 RegressionTables.add_blank
 RegressionTables.missing_vars
 RegressionTables.fe_terms
+RegressionTables.add_element!
 ```
 
 ## How Types are Displayed

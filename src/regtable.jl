@@ -334,9 +334,9 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `transform_labels` is a `Dict` or one of the `Symbol`s `:ampersand`, `:underscore`, `:underscore2space`, `:latex`
 
 ### Details
-A typical use is to pass a number of `FixedEffectModel`s to the function, along with a `RenderSettings` object.
+A typical use is to pass a number of `FixedEffectModel`s to the function, along with how it should be rendered (with `rndr` argument):
 ```julia
-regtable(regressionResult1, regressionResult2; renderSettings = asciiOutput())
+regtable(regressionResult1, regressionResult2; rndr = AsciiTable())
 ```
 
 Pass a string to the `file` argument to create or overwrite a file. For example, using LaTeX output,

@@ -598,7 +598,10 @@ Within-R2                                0.642        0.391         0.598
 Specify multiple group levels by passing a matrix or a vector of vectors:
 
 ```jldoctest
-regtable(rr1,rr2,rr4,rr3; groups = ["grp parent" "grp parent" "grp parent" "other group"; "grp1" "grp1" "grp2" "grp2"])
+regtable(rr1,rr2,rr4,rr3; groups = [
+     "grp parent" "grp parent" "grp parent" "other group";
+     "grp1" "grp1" "grp2" "grp2"
+])
 
 # output
 
@@ -852,7 +855,11 @@ Within-R2                                0.642      0.598        0.391
 Also see [Customization of Defaults](@ref)
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; regression_statistics=[Nobs => "Number of Observations", R2, AdjR2 => "Adj. R2"])
+regtable(rr1,rr2,rr3,rr4; regression_statistics=[
+     Nobs => "Number of Observations",
+     R2,
+     AdjR2 => "Adj. R2"
+])
 
 # output
 
@@ -887,7 +894,27 @@ Adj. R2                       0.007      0.860      0.861        0.622
 ## All Available Statistics
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr5; regression_statistics = [Nobs, R2, PseudoR2, R2CoxSnell, R2Nagelkerke, R2Deviance, AdjR2, AdjPseudoR2, AdjR2Deviance, DOF, LogLikelihood, AIC, AICC, BIC, FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within])
+regtable(rr1,rr2,rr3,rr5; regression_statistics = [
+     Nobs,
+     R2,
+     PseudoR2,
+     R2CoxSnell,
+     R2Nagelkerke,
+     R2Deviance,
+     AdjR2,
+     AdjPseudoR2,
+     AdjR2Deviance,
+     DOF,
+     LogLikelihood,
+     AIC,
+     AICC,
+     BIC,
+     FStat,
+     FStatPValue,
+     FStatIV,
+     FStatIVPValue,
+     R2Within
+])
 
 # output
 
@@ -978,7 +1005,9 @@ Within-$R^2$                    &          &    0.642 &     0.598 &             
 Extralines are added to the end of a regression table
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; extralines=["Specification:", "Option 1", "Option 2", "Option 3", "Option 4"])
+regtable(rr1,rr2,rr3,rr4;
+     extralines=["Specification:", "Option 1", "Option 2", "Option 3", "Option 4"]
+)
 
 # output
 
@@ -1055,7 +1084,7 @@ You can use the [DataRow](@ref) function to allow for more control, such as unde
 
 ```jldoctest
 regtable(rr1,rr2,rr3,rr4; extralines=[
-    DataRow(["Difference in coefficients", 1.503 => 2:3, 3.515 => 4:5]; align = "lcc", print_underlines=[false, true, true]),
+    DataRow(["Difference in coefficients", 1.5032 => 2:3, 3.5152 => 4:5]; align = "lcc", print_underlines=[false, true, true]),
     ["Specification:", "Option 1", "Option 2", "Option 3", "Option 4"],
 ])
 
