@@ -20,51 +20,83 @@ categorical_equal(rndr::AbstractRenderType) = ":"
 random_effect_separator(rndr::AbstractRenderType) = " | "
 
 """
-    default_ols_label(rndr::AbstractRenderType)
+    label_ols(rndr::AbstractRenderType)
 
 Used to label regressions with a Normal distribution and defaults to "OLS".
-Also see [`default_iv_label`](@ref) and [`RegressionType`](@ref)
+Also see [`label_iv`](@ref) and [`RegressionType`](@ref)
 """
-default_ols_label(rndr::AbstractRenderType) = "OLS"
+label_ols(rndr::AbstractRenderType) = "OLS"
 
 """
-    default_iv_label(rndr::AbstractRenderType)
+    label_iv(rndr::AbstractRenderType)
 
 Used to label regressions with an instrumental variable and defaults to "IV".
-Also see [`default_ols_label`](@ref) and [`RegressionType`](@ref)
+Also see [`label_ols`](@ref) and [`RegressionType`](@ref)
 """
-default_iv_label(rndr::AbstractRenderType) = "IV"
-
+label_iv(rndr::AbstractRenderType) = "IV"
 
 """
-    (::Type{T})(x; args...) where {T <: AbstractRenderType}
+    below_decoration(rndr::AbstractRenderType, s)
+
+Used to decorate a string below the main string and defaults to `"(\$s)"`.
+Change this by running:
+```julia
+RegressionTables.below_decoration(rndr::AbstractRenderType, s) = "(\$s)"
+```
+"""
+below_decoration(rndr::AbstractRenderType, s) = "($s)"
+
+"""
+    number_regressions_decoration(rndr::AbstractRenderType, s)
+
+Used to decorate the regression number (e.g., "(1)") and defaults to `"(\$s)"`.
+Change this by running:
+```julia
+RegressionTables.number_regressions_decoration(rndr::AbstractRenderType, s) = "(\$s)"
+```
+"""
+number_regressions_decoration(rndr::AbstractRenderType, s) = "($s)"
+
+"""
+    fe_suffix(rndr::AbstractRenderType)
+
+Used to add a suffix to the fixed effects and defaults to " Fixed Effects".
+Change this by running:
+```julia
+RegressionTables.fe_suffix(rndr::AbstractRenderType) = " Fixed Effects"
+```
+"""
+fe_suffix(rndr::AbstractRenderType) = " Fixed Effects"
+
+"""
+    render(rndr, x; args...)
 
 Will render x as a string
 """
-(::Type{T})(x; args...) where {T <: AbstractRenderType} = "$x"
+render(rndr, x; args...) = "$x"
 
 """
-    (::Type{T})(x::Pair; args...) where {T <: AbstractRenderType}
+    render(rndr, x::Pair; args...)
 
 By default, will render the first element of the pair according to the render type. In cases of [`AbstractLatex`](@ref)
 or [`AbstractHtml`](@ref), uses the second element to determine number of columns to span.
 """
-(::Type{T})(x::Pair; args...) where {T <: AbstractRenderType} = T(first(x); args...)
+render(rndr, x::Pair; args...) = render(rndr, first(x); args...)
 
 """
-    (::Type{T})(x::Int; args...) where {T <: AbstractRenderType}
+    render(rndr, x::Int; args...)
 
 By default, will render the integer with commas
 """
-(::Type{T})(x::Int; args...) where {T <: AbstractRenderType} = format(x, commas=true)
+render(rndr, x::Int; args...) = format(x, commas=true)
 
 """
-    (::Type{T})(x::Float64; digits=default_round_digits(T(), x), commas=true, str_format=nothing, args...) where {T <: AbstractRenderType}
+    render(rndr, x::Float64; digits=default_digits(rndr, x), commas=true, str_format=nothing, args...)
 
 By default, will render the float with commas and the default number of digits. If `str_format` is specified, will use
 that instead of `digits` and `commas`
 """
-function (::Type{T})(x::Float64; digits=default_round_digits(T(), x), commas=true, str_format=nothing, args...) where {T <: AbstractRenderType}
+function render(rndr, x::Float64; digits=default_digits(rndr, x), commas=true, str_format=nothing, args...)
     if str_format !== nothing
         sprintf1(str_format, x)
     else
@@ -73,184 +105,184 @@ function (::Type{T})(x::Float64; digits=default_round_digits(T(), x), commas=tru
 end
 
 """
-    (::Type{T})(x::Nothing; args...) where {T <: AbstractRenderType}
+    render(rndr, x::Nothing; args...)
 
 By default, will render the nothing as an empty string
 """
-(::Type{T})(x::Nothing; args...) where {T <: AbstractRenderType} = ""
+render(rndr, x::Nothing; args...) = ""
 
 """
-    (::Type{T})(x::Missing; args...) where {T <: AbstractRenderType}
+    render(rndr, x::Missing; args...)
 
 By default, will render the missing as an empty string
 """
-(::Type{T})(x::Missing; args...) where {T <: AbstractRenderType} = ""
+render(rndr, x::Missing; args...) = ""
 
 """
-    (::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType}
+    render(rndr, x::AbstractString; args...)
 
 By default, will render the string as is
 """
-(::Type{T})(x::AbstractString; args...) where {T <: AbstractRenderType} = String(x)
+render(rndr, x::AbstractString; args...) = String(x)
 
 """
-    (::Type{T})(x::Bool; args...) where {T <: AbstractRenderType}
+    render(rndr, x::Bool; args...)
 
 By default, will render the boolean as "Yes" or ""
 """
-(::Type{T})(x::Bool; args...) where {T <: AbstractRenderType} = x ? "Yes" : ""
+render(rndr, x::Bool; args...) = x ? "Yes" : ""
 
 """
-    (::Type{T})(x::AbstractRegressionStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType}
+    render(rndr, x::AbstractRegressionStatistic; digits=default_digits(rndr, x), args...)
 
 By default, will render the statistic with commas and the default number of digits
 """
-(::Type{T})(x::AbstractRegressionStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
+render(rndr, x::AbstractRegressionStatistic; digits=default_digits(rndr, x), args...) = render(rndr, value(x); digits, args...)
 
 """
-    (::Type{T})(x::AbstractR2; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType}
+    render(rndr, x::AbstractR2; digits=default_digits(rndr, x), args...)
 
 By default, will render the same as `AbstractRegressionStatistic`
 """
-(::Type{T})(x::AbstractR2; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = T(value(x); digits, args...)
+render(rndr, x::AbstractR2; digits=default_digits(rndr, x), args...) = render(rndr, value(x); digits, args...)
 
 """
-    (::Type{T})(x::AbstractUnderStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType}
+    render(rndr, x::AbstractUnderStatistic; digits=default_digits(rndr, x), args...)
 
 By default, will render with the default number of digits and surrounded by parentheses `(1.234)`
 """
-(::Type{T})(x::AbstractUnderStatistic; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x); digits, commas=false, args...) * ")"
+render(rndr, x::AbstractUnderStatistic; digits=default_digits(rndr, x), args...) = below_decoration(rndr, render(rndr, value(x); digits, commas=false, args...))
 
 """
-    (::Type{T})(x::ConfInt; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType}
+    render(rndr, x::ConfInt; digits=default_digits(rndr, x), args...)
 
 By default, will render with the default number of digits and surrounded by parentheses `(1.234, 5.678)`
 """
-(::Type{T})(x::ConfInt; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = "(" * T(value(x)[1]; digits) * ", " * T(value(x)[2]; digits) * ")"
+render(rndr, x::ConfInt; digits=default_digits(rndr, x), args...) = below_decoration(rndr, render(rndr, value(x)[1]; digits) * ", " * render(rndr, value(x)[2]; digits))
 
 """
-    (::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType}
+    render(rndr, x::CoefValue; digits=default_digits(rndr, x), args...)
 
 By default, will render with the default number of digits and surrounded by parentheses and will call [`estim_decorator`](@ref) for the decoration
 """
-(::Type{T})(x::CoefValue; digits=default_round_digits(T(), x), args...) where {T <: AbstractRenderType} = estim_decorator(T(), T(value(x); digits, commas=false, args...), x.pvalue)
+render(rndr, x::CoefValue; digits=default_digits(rndr, x), args...) = estim_decorator(rndr, render(rndr, value(x); digits, commas=false, args...), x.pvalue)
 
 """
-    (::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic}
+    render(rndr, x::Type{V}; args...) where {V <: AbstractRegressionStatistic}
 
 By default, will call the `label` function related to the type
 """
-(::Type{T})(x::Type{V}; args...) where {T <:AbstractRenderType, V <: AbstractRegressionStatistic} = label(T(), V)
+render(rndr, x::Type{V}; args...) where {V <: AbstractRegressionStatistic} = label(rndr, V)
 
 """
-    (::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType}
+    render(rndr, x::Type{RegressionType}; args...)
 
 By default, will call the `label` function related to the `RegressionType`
 """
-(::Type{T})(x::Type{RegressionType}; args...) where {T <: AbstractRenderType} = label(T(), x)
+render(rndr, x::Type{RegressionType}; args...) = label(rndr, x)
 
 """
-    (::Type{T})(x::Tuple; args...) where {T <: AbstractRenderType}    
+    render(rndr, x::Tuple; args...)    
 
 By default, will render the tuple with spaces between the elements
 """
-(::Type{T})(x::Tuple; args...) where {T <: AbstractRenderType} = join(T.(x; args...), " ")
+render(rndr, x::Tuple; args...) = join(render.(rndr, x; args...), " ")
 
 """
-    (::Type{T})(x::AbstractCoefName; args...) where {T <: AbstractRenderType}
+    render(rndr, x::AbstractCoefName; args...)
 
 By default, will render the name of the coefficient, also see [Regression Statistics](@ref)
 """
-(::Type{T})(x::AbstractCoefName; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+render(rndr, x::AbstractCoefName; args...) = render(rndr, value(x); args...)
 
 """
-    (::Type{T})(x::FixedEffectCoefName; args...) where {T <: AbstractRenderType}
+    render(rndr, x::FixedEffectCoefName; args...)
 
 By default, will render the coefficient and add `" Fixed Effects"` as a suffix, also see [Regression Statistics](@ref)
 """
-(::Type{T})(x::FixedEffectCoefName; args...) where {T <: AbstractRenderType} = T(value(x); args...) * " Fixed Effects"
+render(rndr, x::FixedEffectCoefName; args...) = render(rndr, value(x); args...) * fe_suffix(rndr)
 
 """
-    (::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType}
+    render(rndr, x::InteractedCoefName; args...)
 
 By default, will render the coefficient and add the `interaction_combine` function as a separator, also see [Regression Statistics](@ref)
 """
-(::Type{T})(x::InteractedCoefName; args...) where {T <: AbstractRenderType} = join(T.(value(x); args...), interaction_combine(T()))
+render(rndr, x::InteractedCoefName; args...) = join(render.(rndr, value(x); args...), interaction_combine(rndr))
 
 """
-    (::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType}
+    render(rndr, x::CategoricalCoefName; args...)
 
 By default, will render the coefficient and add the `categorical_equal` function as a separator, also see [Regression Statistics](@ref)
 """
-(::Type{T})(x::CategoricalCoefName; args...) where {T <: AbstractRenderType} = "$(value(x))$(categorical_equal(T())) $(x.level)"
+render(rndr, x::CategoricalCoefName; args...) = "$(value(x))$(categorical_equal(rndr)) $(x.level)"
 
 """
-    (::Type{T})(x::InterceptCoefName; args...) where {T <: AbstractRenderType}
+    render(rndr, x::InterceptCoefName; args...)
 
 By default, will render the coefficient as `(Intercept)`, also see [Regression Statistics](@ref)
 """
-(::Type{T})(x::InterceptCoefName; args...) where {T <: AbstractRenderType} = "(Intercept)"
+render(rndr, x::InterceptCoefName; args...) = "(Intercept)"
 
 """
-    (::Type{T})(x::HasControls; args...) where {T <: AbstractRenderType}
+    render(rndr, x::HasControls; args...)
 
 By default, will render the same as `Bool` ("Yes" and "")
 """
-(::Type{T})(x::HasControls; args...) where {T <: AbstractRenderType} = T(value(x); args...)
+render(rndr, x::HasControls; args...) = render(rndr, value(x); args...)
 
 """
-    (::Type{T})(x::RegressionNumbers; args...) where {T <: AbstractRenderType}
+    render(rndr, x::RegressionNumbers; args...)
 
 By default, will render the number in parentheses (e.g., "(1)", "(2)"...)
 """
-(::Type{T})(x::RegressionNumbers; args...) where {T <: AbstractRenderType} = "(" * T(value(x); args...) * ")"
+render(rndr, x::RegressionNumbers; args...) = number_regressions_decoration(rndr, render(rndr, value(x); args...))
 
 """
-    (::Type{T})(x::Type{V}; args...) where {T <: AbstractRenderType, V <: HasControls}
+    render(rndr, x::Type{V}; args...) where {V <: HasControls}
 
 By default, will call the `label` function related to the type
 """
-(::Type{T})(x::Type{V}; args...) where {T <: AbstractRenderType, V <: HasControls} = label(T(), V)
+render(rndr, x::Type{V}; args...) where {V <: HasControls} = label(rndr, V)
 
 """
-    (::Type{T})(x::RegressionType; args...) where {T<: AbstractRenderType}
+    render(rndr, x::RegressionType; args...)
 
 By default, will check if the `RegressionType` is an instrumental variable regression and call the `label` function related to the type.
-If it is an instrumental variable, will then call [`default_iv_label`](@ref), otherwise it will call the related distribution.
+If it is an instrumental variable, will then call [`label_iv`](@ref), otherwise it will call the related distribution.
 """
-(::Type{T})(x::RegressionType; args...) where {T<: AbstractRenderType} = x.is_iv ? T(default_iv_label(T()); args...) : T(value(x); args...)
+render(rndr, x::RegressionType; args...) = x.is_iv ? label_iv(rndr) : render(rndr, value(x); args...)
 
 """
-    (::Type{T})(x::D; args...) where {T<: AbstractRenderType, D<:UnivariateDistribution}
+    render(rndr, x::D; args...) where {D <: UnivariateDistribution}
 
 Will print the distribution as is (e.g., `Probit` will be "Probit"), unless another function overrides this behavior (e.g., `Normal`,
 `InverseGaussian`, `NegativeBinomial`)
 """
-(::Type{T})(x::D; args...) where {T<: AbstractRenderType, D<:UnivariateDistribution} = T(string(Base.typename(D).wrapper); args...)
+render(rndr, x::D; args...) where {D <: UnivariateDistribution} = string(Base.typename(D).wrapper)
 
 """
-    (::Type{T})(x::InverseGaussian; args...) where {T<: AbstractRenderType}
+    render(rndr, x::InverseGaussian; args...)
 
 By default, will be "Inverse Gaussian"
 """
-(::Type{T})(x::InverseGaussian; args...) where {T<: AbstractRenderType} = T("Inverse Gaussian"; args...)
+render(rndr, x::InverseGaussian; args...) = "Inverse Gaussian"
 
 """
-    (::Type{T})(x::NegativeBinomial; args...) where {T<: AbstractRenderType}
+    render(rndr, x::NegativeBinomial; args...)
 
 By default, will be "Negative Binomial"
 """
-(::Type{T})(x::NegativeBinomial; args...) where {T<: AbstractRenderType} = T("Negative Binomial"; args...)
+render(rndr, x::NegativeBinomial; args...) = "Negative Binomial"
 
 """
-    (::Type{T})(x::Normal; args...) where {T<: AbstractRenderType}
+    render(rndr, x::Normal; args...)
 
-By default, will call [`default_ols_label`](@ref)
+By default, will call [`label_ols`](@ref)
 """
-(::Type{T})(x::Normal; args...) where {T<: AbstractRenderType} = T(default_ols_label(T()); args...)
+render(rndr, x::Normal; args...) = render(rndr, label_ols(rndr); args...)
 
-(::Type{T})(x::RandomEffectCoefName; args...) where {T<: AbstractRenderType} = 
-    T(x.rhs; args...) * random_effect_separator(T()) * T(x.lhs; args...)
+render(rndr, x::RandomEffectCoefName; args...) = 
+    render(rndr, x.rhs; args...) * random_effect_separator(rndr) * render(rndr, x.lhs; args...)
 
 function make_padding(s, colWidth, align)
     if align == 'l'

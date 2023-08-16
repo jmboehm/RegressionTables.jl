@@ -189,7 +189,7 @@ function Base.getindex(row::DataRow{T}, i) where {T}
             v += 1
         end
         if v >= i
-            return T(x)
+            return render(T(), x)
         end
     end
     error("Index $i out of bounds")
@@ -237,15 +237,16 @@ Calculate the widths of each column in the table. For rows with multicolumn cell
 among the columns it spans.
 """
 function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
+    rndr = T()
     out_lengths = fill(0, length(rows[1]))
     for row in rows
         for (i, value) in enumerate(row.data)
-            s = T(value)
+            s = render(rndr, value)
             if length(s) == 0
                 continue
             end
             if isa(value, Pair)
-                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(T())) * (length(last(value))-1)
+                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(rndr)) * (length(last(value))-1)
                 if diff > 0
                     # increase width
                     to_add = Int(round(diff / length(last(value))))
@@ -263,13 +264,14 @@ function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
 end
 
 """
-    update_widths!(row::DataRow{T}, new_lengths=length.(T.(row.data))) where {T}
+    update_widths!(row::DataRow{T}, new_lengths=length.(render.(T(), row.data))) where {T}
 
 Updates the widths of each column in the row. If lengths are provided, then it should equate to the total number
 of columns in the table, not the number of elements in the row.
 """
-function update_widths!(row::DataRow{T}, new_lengths=length.(T.(row.data))) where {T}
+function update_widths!(row::DataRow{T}, new_lengths=length.(render.(T(), row.data))) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
+    rndr = T()
     if length(row.data) == length(new_lengths)
         row.colwidths = new_lengths
         return row
@@ -277,7 +279,7 @@ function update_widths!(row::DataRow{T}, new_lengths=length.(T.(row.data))) wher
     x = 1
     for (i, value) in enumerate(row.data)
         if isa(value, Pair)
-            row.colwidths[i] = sum(new_lengths[last(value)]) + length(colsep(T())) * (length(last(value))-1)
+            row.colwidths[i] = sum(new_lengths[last(value)]) + length(colsep(rndr)) * (length(last(value))-1)
             x += length(last(value))
         else
             row.colwidths[i] = new_lengths[x]

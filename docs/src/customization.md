@@ -5,6 +5,8 @@
 Pages=["customization.md"]
 ```
 
+## Principles
+
 Within most publications, the tables look similar. This package tries to provide easy access to almost any setting so you can "set and forget" while producing tables that you need. For example, suppose you are using Latex and want to use the `tabular*` environment instead of the default `tabular`. Thanks to the Julia type system, this is possible, simply run
 ```julia
 RegressionTables.tablestart(::RegressionTables.AbstractLatex, align) = "\\begin{tabular*}{\\linewidth}{$(align[1])@{\\extracolsep{\\fill}}$(align[2:end])}"
@@ -15,7 +17,7 @@ These two lines change all [`AbstractLatex`](@ref) tables.
 The Julia type system also allows customization for more individualized tables. For example, you might include some descriptive tables in a paper, but it might make sense to use different rounding for descriptive data (such as making sure floats that are stored as integers are displayed as integers or rounding for large numbers). This needs to happen without changing the rounding in most tables. To do so, you can create a new type and set the display option for that type:
 ```julia
 struct LatexDescriptiveTable <: RegressionTables.AbstractLatex end
-function LatexDescriptiveTable(x::Float64; args...)
+function RegressionTables.render(::LatexDescriptiveTable, x::Float64; args...)
     if isinteger(x)
         format(Int(x); commas=true)
     else
@@ -36,7 +38,7 @@ Pages = ["customization.md"]
 ## Rounding Digits
 
 ```@docs
-RegressionTables.default_round_digits
+RegressionTables.default_digits
 ```
 
 ## Default Keyword Arguments
@@ -69,13 +71,17 @@ RegressionTables.default_regression_statistics
 
 ## Other Defaults
 
-Other display functions are settable (see [How Types are Displayed](@ref)), here are the remaining major defaults that are settable.
+While the user can adjust almost any part of this package (see [How Types are Displayed](@ref)), here are the remaining major defaults that are settable.
 
 ```@docs
 RegressionTables.default_breaks
 RegressionTables.default_symbol
 RegressionTables.interaction_combine
 RegressionTables.categorical_equal
-RegressionTables.default_ols_label
-RegressionTables.default_iv_label
+RegressionTables.label_ols
+RegressionTables.label_iv
+RegressionTables.estim_decorator
+RegressionTables.below_decoration
+RegressionTables.number_regressions_decoration
+RegressionTables.fe_suffix
 ```

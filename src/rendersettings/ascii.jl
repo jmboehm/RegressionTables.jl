@@ -15,29 +15,30 @@ used for plain text rendering.
 struct AsciiTable <: AbstractAscii end
 
 function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
-    print(io, linestart(T()))# in case we want to add something before the line
+    rndr = T()
+    print(io, linestart(rndr))# in case we want to add something before the line
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(T(x), row.colwidths[i], row.align[i])
+            make_padding(render(rndr, x), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
-            print(io, colsep(T()))
+            print(io, colsep(rndr))
         end
     end
-    print(io, lineend(T()))
+    print(io, lineend(rndr))
     # do not print new line here, let the caller do it
     if any(row.print_underlines)
         println(io)# if print underlines, then need new line
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? T(first(x)) : T(x)
+            s = isa(x, Pair) ? render(rndr, first(x)) : render(rndr, x)
             if length(s) > 0 && row.print_underlines[i]
-                print(io, underline(T(), row.colwidths[i]))
+                print(io, underline(rndr, row.colwidths[i]))
             else
                 print(io, " " ^ row.colwidths[i])
             end
             if i < length(row.data)
-                print(io, colsep(T()))
+                print(io, colsep(rndr))
             end
         end
         

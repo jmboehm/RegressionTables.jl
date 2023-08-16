@@ -122,6 +122,14 @@ make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, fir
 
 default_regression_statistics(x::AbstractRenderType, rr::RegressionModel) = default_regression_statistics(rr)
 default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
+
+"""
+    fe_terms(rr::RegressionModel; args...)
+
+Returns the fixed effects terms for the regression. This is used (if the appropriate extension is loaded)
+to display the fixed effects in the regression table. For regressions that do not have fixed effects, this
+returns `nothing`.
+"""
 fe_terms(rr::RegressionModel; args...) = nothing
 
 function SimpleRegressionResult(

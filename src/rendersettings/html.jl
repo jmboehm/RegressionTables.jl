@@ -14,20 +14,21 @@ used to create HTML tables.
 """
 struct HtmlTable <: AbstractHtml end
 
-function (::Type{T})(val::Pair; align='c', print_underlines=false, args...) where T<:AbstractHtml
-    s = T(first(val); args...)
+function render(rndr::AbstractHtml, val::Pair; align='c', print_underlines=false, args...)
+    s = render(rndr, first(val); args...)
     if length(s) == 0
         s
     else
-        multicolumn(T(), s, length(last(val)), align, print_underlines)
+        multicolumn(rndr, s, length(last(val)), align, print_underlines)
     end
 end
 
 function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHtml}
+    rndr = T()
     print(io, "<tr>")
     for (i, x) in enumerate(row.data)
         if isa(x, Pair)
-            s = T(x; align=row.align[i], print_underlines=row.print_underlines[i])
+            s = render(rndr, x; align=row.align[i], print_underlines=row.print_underlines[i])
             if length(s) == 0
                 print(io, "<td></td>")
                 continue
@@ -36,7 +37,7 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHtml}
 
             print(io,s)
         else
-            s = make_padding(T(x), row.colwidths[i], row.align[i])
+            s = make_padding(render(rndr, x), row.colwidths[i], row.align[i])
             print(io, "<td>", s, "</td>")
         end
     end

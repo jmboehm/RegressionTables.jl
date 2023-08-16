@@ -22,39 +22,40 @@ used to create Latex tables that span the entire text width.
 """
 struct LatexTableStar <: AbstractLatex end
 
-function (::Type{T})(val::Pair; align="c", args...) where T<:AbstractLatex
-    s = T(first(val); args...)
+function render(rndr::AbstractLatex, val::Pair; align="c", args...)
+    s = render(rndr, first(val); args...)
     # need to print the multicolumn version since it will miss & otherwise
     if length(s) == 0 && length(last(val)) == 1
         s
     else
-        multicolumn(T(), s, length(last(val)), align)
+        multicolumn(rndr, s, length(last(val)), align)
     end
 end
 
 function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
-    print(io, linestart(T()))
+    rndr = T()
+    print(io, linestart(rndr))
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(T(x; align = row.align[i]), row.colwidths[i], row.align[i])
+            make_padding(render(rndr, x; align = row.align[i]), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
-            print(io, colsep(T()))
+            print(io, colsep(rndr))
         end
     end
-    print(io, lineend(T()))
+    print(io, lineend(rndr))
     if any(row.print_underlines)
         println(io)
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? T(first(x)) : T(x)
+            s = isa(x, Pair) ? render(rndr, first(x)) : render(rndr, x)
             if length(s) == 0 || !row.print_underlines[i]
                 continue
             end
             if isa(x, Pair)
-                print(io, underline(T(), first(last(x)), last(last(x))))
+                print(io, underline(rndr, first(last(x)), last(last(x))))
             else
-                print(io, underline(T(), i,i))
+                print(io, underline(rndr, i,i))
             end
         end
     end

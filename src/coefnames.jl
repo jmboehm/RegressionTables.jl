@@ -68,15 +68,26 @@ Used to store the different coefficient names that makes up an InteractionTerm. 
 vector are typically [`CoefName`](@ref), but can also be strings.
 
 In a regression, each element of the vector is typically displayed as "name1 & name2 & ..." (in AsciiTables).
-You can change this by setting:
-```julia
-(::Type{T})(x::RegressionTables.InteractedCoefName; args...) where {T <: RegressionTables.AbstractRenderType} =
-    join(RegressionTables.value.(x), RegressionTables.interaction_equal(T()))
-```
-where `interaction_equal` is another function that is settable and varies based on [`AbstractRenderType`](@ref).
+The separator is set by [`interaction_combine`](@ref) function, and the default varies based on [`AbstractRenderType`](@ref):
 - For `AbstractAscii`, it defaults to `" & "`
 - For `AbstractLaTeX`, it defaults to `" \$\\times\$ "`
 - For `AbstractHtml`, it defaults to `" &times; "`
+
+
+You can change the separator by running:
+```julia
+RegressionTables.interaction_combine(rndr::\$RenderType) = " & "
+```
+where `\$RenderType` is the type of the renderer you want to change. For example, to change the output in `AbstractLaTeX`:
+```julia
+RegressionTables.interaction_combine(::AbstractLaTeX) = " \\& "
+```
+
+You can control how interaction terms are displayed more generally by changing:
+```julia
+RegressionTables.render(rndr, x::RegressionTables.InteractedCoefName; args...) =
+    join(RegressionTables.value.(x), RegressionTables.interaction_combine(rndr))
+```
 
 See [Customization of Defaults](@ref) for more details.
 """
@@ -114,13 +125,19 @@ Base.replace(x::InteractedCoefName, r::Pair) = InteractedCoefName(replace.(value
 Used to store the name of a coefficient for a `CategoricalTerm`. The `level` is the level of the categorical.
 In other words, the `name` is the column name, the `level` is the category within that column.
 
-In a regression, the display of categorical terms is typically displayed as "name: level". You can change
+In a regression, the display of categorical terms is typically displayed as "name: level". You can change how the
+categorical term is "equal" by changing the [`categorical_equal`](@ref) function. The default is ": ", but you can change:
 this by setting:
 ```julia
-(::Type{T})(x::RegressionTables.CategoricalCoefName; args...) where {T <: RegressionTables.AbstractRenderType} =
-    "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(T())) \$(x.level)"
+RegressionTables.categorical_equal(rndr::AbstractRenderType) = " = "
+RegressionTables.categorical_equal(rndr::AbstractLatex) = " \$=\$ "
 ```
-where `categorical_equal` is another function that defaults to ": ", so that is also settable.
+
+You can also change how the categorical term is displayed by changing the [`render`](@ref) function. The default is:
+```julia
+RegressionTables.render(rndr, x::RegressionTables.CategoricalCoefName; args...) =
+    "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(rndr)) \$(x.level)"
+```
 """
 struct CategoricalCoefName <: AbstractCoefName
     name::String
@@ -205,7 +222,7 @@ end
 value(x::RandomEffectCoefName) = x
 Base.string(x::RandomEffectCoefName) = string(x.rhs) * " | " * string(x.lhs)
 Base.hash(x::RandomEffectCoefName, h::UInt) = hash(string(x),h)
-Base.(==)(x::RandomEffectCoefName, y::RandomEffectCoefName) = string(x) == string(y)
+Base.:(==)(x::RandomEffectCoefName, y::RandomEffectCoefName) = string(x) == string(y)
 function Base.get(x::Dict{String, String}, val::RandomEffectCoefName, def::RandomEffectCoefName)
     rhs = get(x, val.rhs, def.rhs)
     lhs = get(x, val.lhs, def.lhs)

@@ -1,6 +1,6 @@
 
 """
-    default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic)
+    default_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic)
 
 Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the general setting of 3 digits
 
@@ -9,20 +9,20 @@ Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the
 ```jldoctest; setup = :(using RegressionTables)
 julia> x = R2(1.234567);
 
-julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4;
+julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4;
 
-julia> AsciiTable(x)
+julia> RegressionTables.render(AsciiTable(), x)
 "1.2346"
 
-julia> LatexTable(x)
+julia> RegressionTables.render(LatexTable(), x)
 "1.2346"
 
-julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 3; # reset to default
+julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 3; # hide
 ```
 """
-default_round_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_round_digits(rndr, value(x))
+default_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_digits(rndr, value(x))
 """
-    default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic)
+    default_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic)
 
 Default for under statistics ([`TStat`](@ref), [`StdError`](@ref)), defaults to the general setting of 3 digits
 
@@ -31,20 +31,20 @@ Default for under statistics ([`TStat`](@ref), [`StdError`](@ref)), defaults to 
 ```jldoctest; setup = :(using RegressionTables)
 julia> x = StdError(1.234567);
 
-julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4;
+julia> RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4;
 
-julia> AsciiTable(x)
+julia> RegressionTables.render(AsciiTable(), x)
 "(1.2346)"
 
-julia> LatexTable(x) # unchanged since the round_digits was only changed for Ascii
+julia> RegressionTables.render(LatexTable(), x) # unchanged since the default_digits was only changed for Ascii
 "(1.235)"
 
-julia> RegressionTables.default_round_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 3; # reset to default
+julia> RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 3; # hide
 ```
 """
-default_round_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_round_digits(rndr, value(x))
+default_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_digits(rndr, value(x))
 """
-    default_round_digits(rndr::AbstractRenderType, x::.CoefValue)
+    default_digits(rndr::AbstractRenderType, x::.CoefValue)
 
 Default for [`CoefValue`](@ref), defaults to the general setting of 3 digits
 
@@ -53,17 +53,17 @@ Default for [`CoefValue`](@ref), defaults to the general setting of 3 digits
 ```jldoctest; setup = :(using RegressionTables)
 julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
 
-julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2;
+julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2;
 
-julia> HtmlTable(x)
+julia> RegressionTables.render(HtmlTable(), x)
 "1.23"
 
-julia> RegressionTables.default_round_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 3; # reset to default
+julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 3; # hide
 ```
 """
-default_round_digits(rndr::AbstractRenderType, x::CoefValue) = default_round_digits(rndr, value(x))
+default_digits(rndr::AbstractRenderType, x::CoefValue) = default_digits(rndr, value(x))
 """
-    default_round_digits(rndr::AbstractRenderType, x)
+    default_digits(rndr::AbstractRenderType, x)
 
 The default for for all other values not otherwise specified, defaults to 3 digits
 
@@ -74,18 +74,18 @@ julia> x = 1.234567;
 
 julia> y = TStat(1.234567);
 
-julia> RegressionTables.default_round_digits(::AbstractRenderType, x) = 4;
+julia> RegressionTables.default_digits(::AbstractRenderType, x) = 4;
 
-julia> LatexTable(x)
+julia> RegressionTables.render(LatexTable(), x)
 "1.2346"
 
-julia> LatexTable(y) # Also changes since the default_round_digits for other types default to this value
+julia> RegressionTables.render(LatexTable(), y) # Also changes since the default_digits for other types default to this value
 "(1.2346)"
 
-julia> RegressionTables.default_round_digits(t::AbstractRenderType, x) = 3; # reset to default
+julia> RegressionTables.default_digits(t::AbstractRenderType, x) = 3; # hide
 ```
 """
-default_round_digits(rndr::AbstractRenderType, x) = 3
+default_digits(rndr::AbstractRenderType, x) = 3
 
 """
     default_section_order(rndr::AbstractRenderType)
@@ -318,9 +318,9 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `header_align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of the header row (default `:c` centered). Currently works only with ASCII and LaTeX output.
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate.
-* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_round_digits(rndr::AbstractRenderType, x) = 3`).
+* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(rndr::AbstractRenderType, x) = 3`).
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
-* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_round_digits(rndr::AbstractRenderType, x) = 3`).
+* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(rndr::AbstractRenderType, x) = 3`).
 * `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `StdError`.
 * `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in types are Recognized symbols are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
 * `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
@@ -511,9 +511,9 @@ function regtable(
     if digits !== nothing || estimformat !== nothing || estim_decoration !== nothing
         if estim_decoration === nothing
             if digits !== nothing
-                coefvalues = T.(coefvalues; digits)
+                coefvalues = render.(rndr, coefvalues; digits)
             elseif estimformat !== nothing
-                coefvalues = T.(coefvalues; str_format=estimformat)
+                coefvalues = render.(rndr, coefvalues; str_format=estimformat)
             end
         else
             @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
@@ -521,11 +521,11 @@ function regtable(
             @warn("or set the default symbol globally by running")
             @warn("RegressionTables.default_symbol(rndr::AbstractRenderType) = '*'")
             if digits !== nothing
-                temp_coef = T.(value.(coefvalues); digits)
+                temp_coef = render.(rndr, value.(coefvalues); digits)
             elseif estimformat !== nothing
-                temp_coef = T.(value.(coefvalues); str_format=estimformat)
+                temp_coef = render.(rndr, value.(coefvalues); str_format=estimformat)
             else
-                temp_coef = T.(value.(coefvalues); commas=false)
+                temp_coef = render.(rndr, value.(coefvalues); commas=false)
             end
             coefvalues = estim_decoration.(temp_coef, coalesce.(value_pvalue.(coefvalues), 1.0))# coalesce to 1.0 since if missing then it should be insignificant
         end
@@ -534,19 +534,19 @@ function regtable(
     if digits !== nothing || statisticformat !== nothing || below_decoration !== nothing
         if below_decoration === nothing
             if digits_stats !== nothing
-                coefbelow = T.(coefbelow; digits=digits_stats)
+                coefbelow = render.(rndr, coefbelow; digits=digits_stats)
             elseif statisticformat !== nothing
-                coefbelow = T.(coefbelow; str_format=statisticformat)
+                coefbelow = render.(rndr, coefbelow; str_format=statisticformat)
             end
         else
-            @warn("below_decoration is deprecated. Set the below decoration globablly by running")
-            @warn("(::Type{T})(x::RegressionTables.AbstractUnderStatistic; digits=RegressionTables.default_round_digits(T(), x), args...) where {T <: RegressionTables.AbstractRenderType} = \"(\" * T(RegressionTables.value(x); digits, args...) * \")\"")
+            @warn("below_decoration is deprecated. Set the below decoration globally by running")
+            @warn("RegressionTables.below_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"")
             if digits_stats !== nothing
-                temp_coef = T.(value.(coefbelow); digits=digits_stats)
+                temp_coef = render.(rndr, value.(coefbelow); digits=digits_stats)
             elseif statisticformat !== nothing
-                temp_coef = T.(value.(coefbelow); str_format=statisticformat)
+                temp_coef = render.(rndr, value.(coefbelow); str_format=statisticformat)
             else
-                temp_coef = T.(value.(coefbelow); commas=false)
+                temp_coef = render.(rndr, value.(coefbelow); commas=false)
             end
             coefbelow = [x == "" ? x : below_decoration(x) for x in temp_coef]
         end
@@ -576,7 +576,7 @@ function regtable(
         elseif v == :number_regressions
             if number_regressions_decoration !== nothing
                 @warn("number_regressions_decoration is deprecated, specify decoration globally by running")
-                @warn("(::Type{T})(x::RegressionTables.RegressionNumbers; args...) where {T <: AbstractRenderType} = \"(\" * T(RegressionTables.value(x); args...) * \")\"")
+                @warn("RegressionTables.number_regression_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"")
                 push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, rndr; combine_equals=false)
             else
                 push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, rndr; combine_equals=false)
@@ -610,9 +610,9 @@ function regtable(
         elseif v == :stats
             stats = combine_statistics(tables)
             if digits_stats !== nothing
-                stats = T.(stats; digits=digits_stats)
+                stats = render.(rndr, stats; digits=digits_stats)
             elseif statisticformat !== nothing
-                stats = T.(stats; str_format=statisticformat)
+                stats = render.(rndr, stats; str_format=statisticformat)
             end
             push_DataRow!(out, stats, align, wdths, false, rndr)
         elseif v == :controls

@@ -36,9 +36,13 @@ function RegressionTables.fe_terms(x::MixedModel; args...)
         rhs_name = RegressionTables.CoefName(String(rhs_sym))
         lhs_sym = Symbol.(coefnames(re.lhs))
         lhs_names = RegressionTables.get_coefname(re.lhs)
-        for (ls, ln) in zip(lhs_sym, lhs_names)
-            val = vals[rhs_sym][ls]
-            push!(out, RegressionTables.RandomEffectCoefName(rhs_name, ln, val))
+        if isa(lhs_sym, AbstractVector)
+            for (ls, ln) in zip(lhs_sym, lhs_names)
+                val = vals[rhs_sym][ls]
+                push!(out, RegressionTables.RandomEffectCoefName(rhs_name, ln, val))
+            end
+        else# just one term
+            push!(out, RegressionTables.RandomEffectCoefName(rhs_name, lhs_names, vals[rhs_sym][lhs_sym]))
         end
     end
     out

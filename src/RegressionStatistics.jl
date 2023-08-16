@@ -37,9 +37,9 @@ abstract type AbstractRegressionStatistic end
 Parent type for all ``R^2`` statistics. This is available to change the formatting of all ``R^2`` statistics.
 For example, if the desired display for ``R^2`` is in the percentage term, run:
 ```julia
-(::Type{T})(x::RegressionTable.AbstractR2; vargs...) where {T<:RegressionTable.AbstractRenderType} = T(x.val * 100; digits=2) * "%"
+RegressionTables.render(rndr, x::RegressionTable.AbstractR2; vargs...) = RegressionTables.render(rndr, x.val * 100; digits=2) * "%"
 # add second definition since Latex needs % escaped
-(::Type{T})(x::RegressionTable.AbstractR2; vargs...) where {T<:RegressionTable.AbstractLatex} = T(x.val * 100; digits=2) * "\\%"
+RegressionTables.render(rndr::RegressionTables.AbstractLatex, x::RegressionTable.AbstractR2; vargs...) = RegressionTables.render(rndr, x.val * 100; digits=2) * "\\%"
 ```
 """
 abstract type AbstractR2 <: AbstractRegressionStatistic end
@@ -450,11 +450,12 @@ The default label for the regression type is "Estimator". The labels
 for individual regression types (e.g., "OLS", "Poisson") can be set by
 running:
 ```julia
-(::Type{T})(x::RegressionTables.RegressionType; args...) where {T<: AbstractRenderType} = \$name
+RegressionTables.label_ols(rndr::AbstractRenderType) = \$name
+RegressionTables.label_iv(rndr::AbstractRenderType) = \$name
 ```
 Or for individual distributions by running:
 ```julia
-(::Type{T})(x::\$Distribution; args...) where {T<: AbstractRenderType} = \$Name
+RegressionTables.render(rndr, x::\$Distribution; args...) = \$Name
 ```
 """
 struct RegressionType{T}
@@ -494,7 +495,7 @@ Used to define which column number the regression is in.
 Primarily, this is used to control how these values are displayed.
 The default displays these as `(\$i)`, which can be set by running
 ```julia
-(::Type{T})(x::RegressionTables.RegressionNumbers; args...) where {T<: AbstractRenderType} = "(\$(RegressionTables.value(x)))"
+RegressionTables.number_regressions_decoration(rndr::AbstractRenderType, s) = "(\$s)"
 ```
 """
 struct RegressionNumbers

@@ -3,6 +3,7 @@
 
 ```@contents
 Pages=["api.md"]
+Depth = 3
 ```
 
 ## DataRow
@@ -70,17 +71,17 @@ RegressionTables.reorder_nms_list
 RegressionTables.drop_names!
 RegressionTables.add_blank
 RegressionTables.missing_vars
+RegressionTables.fe_terms
 ```
 
 ## How Types are Displayed
 
-This section describes how different types are displayed. Throughout this package, `T(x)` where `T` is a concrete type of [`AbstractRenderType`](@ref) is used to convert something to a string. This allows two things.
+This section describes how different types are displayed. Throughout this package, `render(T(), x)` where `T` is a concrete type of [`AbstractRenderType`](@ref) is used to convert something to a string. This allows two things.
 1. Since it is easy to create new `AbstractRenderType`s, it is possible to create customized displays for almost anyway situation
 2. Since most things in this package are types, each can be customized
 
 ```@docs
-Core.Type
-RegressionTables.estim_decorator
+RegressionTables.render
 ```
 
 ## Simple Regression Result

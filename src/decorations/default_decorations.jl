@@ -15,7 +15,7 @@ The default symbol to use for the p-value. The default is `'*'`.
 default_symbol(rndr::AbstractRenderType) = '*'
 
 """
-    estim_decorator(rndr::T, s, pval; breaks=default_breaks(T()), sym=default_symbol(T())) where {T<:AbstractRenderType}
+    estim_decorator(rndr::AbstractRenderType, s, pval; breaks=default_breaks(rndr), sym=default_symbol(rndr))
 
 Decorates a value with a symbol based on p-value. In many journals, the symbol is a * and the p-value has three cutoffs, either
 0.001, 0.01, and 0.05 or 0.01, 0.05, and 0.10.
@@ -35,7 +35,7 @@ And to change the cutoffs run
 RegressionTables.default_symbol(::AbstractLatex) = "x" # or whatever you want
 ```
 """
-function estim_decorator(rndr::T, s, pval; breaks=default_breaks(T()), sym=default_symbol(T())) where {T<:AbstractRenderType}
+function estim_decorator(rndr::AbstractRenderType, s, pval; breaks=default_breaks(rndr), sym=default_symbol(rndr))
     @assert issorted(breaks)
     (pval >= 0 || isnan(pval)) || @error "p value = $pval, but it needs to be non-negative"
 
@@ -47,14 +47,16 @@ function estim_decorator(rndr::T, s, pval; breaks=default_breaks(T()), sym=defau
         deco = wrapper(rndr, deco)
     end
 
-    T(s)*deco
+    render(rndr, s)*deco
 end
 
 function make_estim_decorator(breaks=[0.01, 0.05, 0.1], sym='*'; wrapper=identity)
     @assert issorted(breaks)
     @warn("`make_estim_decorator` is deprecated, set breaks by running `RegressionTables.default_breaks(::AbstractRenderType) = $breaks`,")
-    @warn("set symbol by running `RegressionTables.default_symbol(::AbstractRenderType) = $sym`,")
-    @warn("and set wrapper by running `RegressionTables.wrapper(::AbstractRenderType, deco) = $wrapper(deco)`")
+    @warn("set symbol by running `RegressionTables.default_symbol(::AbstractRenderType) = \"$sym\"`,")
+    if wrapper != identity
+        @warn("and set wrapper by running `RegressionTables.wrapper(::AbstractRenderType, deco) = $(string(wrapper))(deco)`")
+    end
     function estim_decorator(s, pval)
         (pval >= 0 || isnan(pval)) || @error "p value = $pval, but it needs to be non-negative"
 

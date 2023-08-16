@@ -5,7 +5,7 @@ Pages=["examples.md"]
 Setup for the following examples:
 ```@meta
 DocTestSetup = quote # hide
-    using RegressionTables, DataFrames, RDatasets, FixedEffectModels, GLM;
+    using RegressionTables, DataFrames, RDatasets, FixedEffectModels, GLM, MixedModels;
     df = dataset("datasets", "iris");
     df[!,:isSmall] = df[!,:SepalWidth] .< 2.9;
     rr1 = reg(df, @formula(SepalLength ~ SepalWidth));
@@ -1216,7 +1216,6 @@ Pseudo R2                0.006       0.811       0.347       0.297
 This package does support [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl), but instead of displaying fixed effects it will display the variation from the random effects.
 
 ```jldoctest
-using MixedModels
 form1 = @formula(rt_trunc ~ 1 + spkr + prec + load +
                           (1 + load | item) +
                           (1 + spkr + prec + load | subj))
