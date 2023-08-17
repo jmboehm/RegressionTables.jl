@@ -18,9 +18,9 @@ RegressionTables.wrapper(::AbstractLatex, deco) = "\$^{\$deco}\$"
 wrapper(rndr::AbstractRenderType, s) = s
 
 """
-    interaction_combine(rndr::AbstractRenderType)
-    interaction_combine(rndr::AbstractLatex)
-    interaction_combine(rndr::AbstractHtml)
+    interaction_combine(rndr::AbstractRenderType) = " & "
+    interaction_combine(rndr::AbstractLatex) = " \\\$\\times\\\$ "
+    interaction_combine(rndr::AbstractHtml) = " &times; "
 
 Used to separate pieces of [`InteractedCoefName`](@ref) and defaults to:
 - " & " in the general case
