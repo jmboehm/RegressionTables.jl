@@ -83,8 +83,8 @@ then use `\input` in LaTeX to include that file in your code. Be sure to use the
 using GLM
 
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
-    Outcome = categorical(repeat(["A", "B", "C"], outer = 3)),
-    Treatment = categorical(repeat(["a","b", "c"], inner = 3)))
+    Outcome = repeat(["A", "B", "C"], outer = 3),
+    Treatment = repeat(["a","b", "c"], inner = 3))
 rr1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 lm1 = fit(LinearModel, @formula(SepalLength ~ SepalWidth), df)
 gm1 = fit(GeneralizedLinearModel, @formula(Counts ~ 1 + Outcome + Treatment), dobson,

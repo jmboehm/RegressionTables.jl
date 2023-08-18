@@ -216,7 +216,7 @@ Base.replace(x::FixedEffectCoefName, r::Pair) = FixedEffectCoefName(replace(x.na
     struct RandomEffectCoefName <: AbstractCoefName
         rhs::CoefName
         lhs::AbstractCoefName
-        std::Float64
+        val::Float64
     end
 
 Used to store the name and the standard deviation of a coefficient for a `RandomEffectTerm` from
@@ -226,8 +226,8 @@ since that is often the useful information on the relationship between rhs and l
 struct RandomEffectCoefName <: AbstractCoefName
     rhs::CoefName
     lhs::AbstractCoefName
-    std::Float64
-    RandomEffectCoefName(rhs::CoefName, lhs::AbstractCoefName, v::Float64) = new(rhs, lhs, v)
+    val::Real# real so it could also be changed to true/false
+    RandomEffectCoefName(rhs::CoefName, lhs::AbstractCoefName, v::Real) = new(rhs, lhs, v)
 end
 
 value(x::RandomEffectCoefName) = x
@@ -237,5 +237,5 @@ Base.:(==)(x::RandomEffectCoefName, y::RandomEffectCoefName) = string(x) == stri
 function Base.get(x::Dict{String, String}, val::RandomEffectCoefName, def::RandomEffectCoefName)
     rhs = get(x, val.rhs, def.rhs)
     lhs = get(x, val.lhs, def.lhs)
-    RandomEffectCoefName(rhs, lhs, val.std)
+    RandomEffectCoefName(rhs, lhs, val.val)
 end

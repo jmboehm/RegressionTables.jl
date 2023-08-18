@@ -80,6 +80,7 @@ RegressionTables.below_decoration
 RegressionTables.number_regressions_decoration
 RegressionTables.fe_suffix
 RegressionTables.wrapper
+RegressionTables.fe_value
 ```
 
 ## Labels
@@ -104,4 +105,5 @@ RegressionTables.label
 RegressionTables.label_p
 RegressionTables.label_ols
 RegressionTables.label_iv
+RegressionTables.label_distribution
 ```

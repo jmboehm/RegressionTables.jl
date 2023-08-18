@@ -387,9 +387,9 @@ function regtable(
     end
     if regressors !== nothing
         @warn("regressors is deprecated. Use keep instead.")
-        @warn("regressors selects based on the input coefnames, while keep selects based on the labeled names, so results can be different")
+        base_names = union(coefnames.(rrs)...)
         if length(keep) == 0
-            keep = replace_name.(regressors, Ref(labels), Ref(transform_labels)) 
+            keep = value_pos.(Ref(base_names), regressors)
         end
     end
     if renderSettings !== nothing
@@ -688,25 +688,25 @@ function combine_fe(tables, fixedeffects; print_fe_suffix=true)
 end
 
 function make_fe_vec(fe_list, random_effects::Vector{RandomEffectCoefName})
-    out = Vector{Union{Missing, Float64}}(missing, length(fe_list))
+    out = Vector{Union{Missing, RandomEffectValue}}(missing, length(fe_list))
     fe_list = string.(fe_list)
     for r in random_effects
         i = findfirst(string(r) .== fe_list)
         if i === nothing
             continue
         end
-        out[i] = r.std
+        out[i] = RandomEffectValue(r.val)
     end
     out
 end
-make_fe_vec(fe_list, fe_nothing::Nothing) = fill(false, length(fe_list))
+make_fe_vec(fe_list, fe_nothing::Nothing) = fill(FixedEffectValue(false), length(fe_list))
 function make_fe_vec(fe_list, fe::T) where {T} # should just be FixedEffectCoefName
-    out = Vector{Union{Missing, Bool}}(missing, length(fe_list))
+    out = Vector{Union{Missing, FixedEffectValue}}(missing, length(fe_list))
     for (i, v) in enumerate(fe_list)
         if v in fe
-            out[i] = true
+            out[i] = FixedEffectValue(true)
         elseif typeof(v) == T
-            out[i] = false
+            out[i] = FixedEffectValue(false)
         end
     end
     out

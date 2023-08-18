@@ -600,3 +600,31 @@ label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
 
 value(x) = missing
 value(x::String) = x
+
+"""
+    struct FixedEffectValue
+        val::Bool
+    end
+
+A simple store of true/false for whether a fixed effect is used in the regression, used to determine
+how to display the value. The default is `"Yes"` and `""`, which can be changed by setting [`fe_value`](@ref).
+"""
+struct FixedEffectValue
+    val::Bool
+end
+
+value(x::FixedEffectValue) = x.val
+
+"""
+    struct RandomEffectValue
+        val::Real
+    end
+
+A simple sotre of the random effect value, by default equal to the standard deviation of the random effect.
+Typically will then be displayed the same as other `Float64` values.
+"""
+struct RandomEffectValue
+    val::Real# real so it could also be changed to true/false
+end
+
+value(x::RandomEffectValue) = x.val

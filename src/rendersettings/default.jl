@@ -63,6 +63,22 @@ Also see [`RegressionType`](@ref)
 label_iv(rndr::AbstractRenderType) = "IV"
 
 """
+    label_distribution(rndr::AbstractRenderType, d::D) where {D <: UnivariateDistribution} = string(Base.typename(D).wrapper)
+    label_distribution(rndr::AbstractRenderType, d::NegativeBinomial) = "Negative Binomial"
+    label_distribution(rndr::AbstractRenderType, d::InverseGaussian) = "Inverse Gaussian"
+
+How to label non-linear regressions and defaults to the name of the distribution. For example, `Probit` will be "Probit".
+Two exceptions are given for `NegativeBinomial` and `InverseGaussian`, which are "Negative Binomial" and "Inverse Gaussian", respectively.
+This can be changed for a specific distribution by running:
+```julia
+RegressionTables.label_distribution(rndr::AbstractRenderType, d::Poisson) = "Poisson"
+```
+"""
+label_distribution(rndr::AbstractRenderType, d::D) where {D <: UnivariateDistribution} = string(Base.typename(D).wrapper)
+label_distribution(rndr::AbstractRenderType, d::NegativeBinomial) = "Negative Binomial"
+label_distribution(rndr::AbstractRenderType, d::InverseGaussian) = "Inverse Gaussian"
+
+"""
     below_decoration(rndr::AbstractRenderType, s)
 
 Used to decorate a string below the main string and defaults to `"(\$s)"`.
@@ -94,6 +110,17 @@ RegressionTables.fe_suffix(rndr::AbstractRenderType) = " Fixed Effects"
 ```
 """
 fe_suffix(rndr::AbstractRenderType) = " Fixed Effects"
+
+"""
+    fe_value(rndr::AbstractRenderType, v)
+
+Determines how to render a yes/no value for fixed effects, defaults to "Yes" and "".
+Can be changed by running:
+```julia
+RegressionTables.fe_value(rndr::AbstractRenderType, v) = v ? "Yes" : "No"
+```
+"""
+fe_value(rndr::AbstractRenderType, v) = v ? "Yes" : ""
 
 """
     render(rndr, x; args...)
@@ -316,6 +343,20 @@ How to render a [`RandomEffectCoefName`](@ref) and defaults to the right hand si
 """
 render(rndr, x::RandomEffectCoefName; args...) = 
     render(rndr, x.rhs; args...) * random_effect_separator(rndr) * render(rndr, x.lhs; args...)
+
+"""
+    render(rndr, x::FixedEffectValue; args...)
+
+How to render a [`FixedEffectValue`](@ref) and defaults to calling [`fe_value`](@ref)
+"""
+render(rndr, x::FixedEffectValue; args...) = fe_value(rndr, value(x))
+
+"""
+    render(rndr, x::RandomEffectValue; args...)
+
+How to render a [`RandomEffectValue`](@ref) and defaults to calling another render function, dependent on the type of the value
+"""
+render(rndr, x::RandomEffectValue; args...) = render(rndr, value(x); args...)
 
 function make_padding(s, colWidth, align)
     if align == 'l'

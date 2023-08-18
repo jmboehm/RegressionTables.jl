@@ -11,9 +11,9 @@ In its objective it is similar to  (and heavily inspired by) the Stata command [
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Main Changes for v0.6](#main-changes-for-v06)
-    - [Changes to Labeling](#changes-to-labeling)
-    - [`regressors` is deprecated, use `keep` `drop` and `order`](#regressors-is-deprecated-use-keep-drop-and-order)
+    - [New Features](#new-features)
     - [Changes to Defaults](#changes-to-defaults)
+    - [Changes to Labeling](#changes-to-labeling)
     - [`custom_statistics` replaced by `extralines`](#custom_statistics-replaced-by-extralines)
     - [`print_result` and `out_buffer` arguments are gone](#print_result-and-out_buffer-arguments-are-gone)
     - [Other Deprecation Warnings that should not change results](#other-deprecation-warnings-that-should-not-change-results)
@@ -32,34 +32,31 @@ To install the package, type in the Julia command prompt
 
 ## Main Changes for v0.6
 
-Version 0.6 was a major rewrite of the backend with the goal of increasing the flexibility and decreasing the dependencies on other packages (regression packages are now extensions). While most code written with v0.5 should continue to run, there might be a few differences and some deprecation warnings. below is a brief overview of the changes:
+Version 0.6 was a major rewrite of the backend with the goal of increasing the flexibility and decreasing the dependencies on other packages (regression packages are now extensions). While most code written with v0.5 should continue to run, there might be a few differences and some deprecation warnings. Below is a brief overview of the changes:
 
-### Changes to Labeling
+### New Features
 
-Labels for most display elements around the table are no longer handled by the `labels` dictionary but by functions. The goal is to allow a "set and forget" mentality, where changing the label once permanently changes it for all tables. For example, if relabeling the estimator, instead of:
-```julia
-labels=Dict("__LABEL_ESTIMATOR__" = "My Estimator")
-```
-Run
-```julia
-RegressionTables.label(rndr::AbstractRenderType, ::Type{RegressionType}) = "My Estimator"
-```
-See the documentation for more examples. For regression statistics, it is possible to pass a pair (e.g., `[Nobs => "Obs.", R2 => "R Squared"]`) to relabel those.
-
-Labels for coefficient names are the same, but interaction and categorical terms might see some differences. Now, each part of an interaction or categorical term can be labeled independently (so `labels=Dict("coef1" => "Coef 1", "coef2" => "Coef 2")` would relabel `coef1 & coef2` to `Coef 1 & Coef 2`). This might cause changes to tables if the labels dictionary contains an interaction label but not both pieces independently, the display would depend on which order the dictionary is applied (so `labels=Dict("coef1" => "Coef 1", "coef1 & coef2" => "Coef 1 & Coef 2")` might turn the interaction into either `Coef 1 & Coef 2` or `Coef 1 & coef2`).
-
-### `regressors` is deprecated, use `keep` `drop` and `order`
-
-The keyword arguments `keep` `drop` and `order` allow increased flexibility by allowing strings (as before), regex (which search for any partially matching coefficient name), vectors of integers (allowing individual selection) and ranges. An important change for the strings and regex options, these arguments work *after* the labels are applied.
-
-The `regressors` argument is still available, but some changes might occur due to `keep` (the `regressors` equivalent) working after the labels are applied.
-
-See the documentation for examples.
+- There is an `extralines` argument that can accept vectors with pairs, where the pair defines a multicolumn value (`["Label", "two columns" => 2:3, 1.5 => 4:5]`), it can also accept a `DataRow` object that allows for more control.
+- New `keep` `drop` and `order` arguments also provide more flexibility, such as allowing regex to search within names, integers to select specific values and ranges (`1:4`) to select groups, and they can be mixed (`[1:2, :end, r"Width"]`)
+- Several new regression statistics are now available, the full list is: `[Nobs, R2, PseudoR2, R2CoxSnell, R2Nagelkerke, R2Deviance, AdjR2, AdjPseudoR2, AdjR2Deviance, DOF, LogLikelihood, AIC, AICC, BIC, FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within]`
+- Use `LatexTableStar` to create a table that expands the entire text width
+- `labels` now applies to individual parts of an interaction or categorical coefficient name (hopefully reducing the number of labels required)
+- The interaction symbol now depends on the table type, so in Latex, the interactions will have ` \$\\times\$ `
+  - Using a Latex table will also automatically escape parts of coefficient names (if no other labels are provided)
+- A confidence interval is now an option for a below statistic (`ConfInt`)
+- Several defaults are different to try and provide more relevant information
+- Fixed effect values now have a suffix (defaults to `" Fixed Effects"`) so that labeling can be simpler
+- It is now possible to print the coefficient value and "under statistic" on the same line
+- It is possible to define custom regression statistics that are calculated based on the regressions provided
+- It is possible to change the order of the major blocks in a regression table
+- Using RegressionTables for descriptive statistics is now easier. Describe a DataFrame (`df_described=describe(df)`) and provide that to a RegressionTable (`tab = RegressionTable(names(df_described), Matrix(df_described))`), there are also options to render the table as a `LatexTable` or `HtmlTable`. Write this to a file using `write(file_name, tab)`
+- It is possible to overwrite almost any setting. For example, to make T-Statistics the default in all tables, run `RegressionTables.default_below_statistic(rndr::AbstractRenderType)=TStat`
 
 ### Changes to Defaults
 
 There are some changes to the defaults from version 0.5 and two additional settings
-- Interactions in coefficients needed special work if printing to Latex (since the default display included the "&" sybmol). In Latex, this now defaults to ` $\\times$ ` and in HTML ` &times; `. These can be changed by running:
+
+- Interactions in coefficients now vary based on the type of table. In Latex, this now defaults to ` $\\times$ ` and in HTML ` &times; `. These can be changed by running:
   - `RegressionTables.interaction_combine(rndr::AbstractRenderType) = " & "`
   - `RegressionTables.interaction_combine(rndr::RegressionTables.AbstractLatex) = " \$\\times\$ "`
   - `RegressionTables.interaction_combine(rndr::RegressionTables.AbstractHtml) = " &times; "`
@@ -67,13 +64,41 @@ There are some changes to the defaults from version 0.5 and two additional setti
   - `RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = true`
 - `number_regressions` default was `true`, now it is `true` if more than one regression is provided. Set to the old default by running:
   - `RegressionTables.default_number_regressions(x::AbstractRenderType, rrs) = true`
-- `regression_statistics` default was `[Nobs, R2]`, these will vary based on provided regressions. For example, a fixed effect regression will default to `[Nobs, R2, R2Within]` and a probit regression will default to `[Nobs, PseudoR2]` (and if multiple types, these will be combined). Set to the old default by running:
+- `regression_statistics` default was `[Nobs, R2]`, these will vary based on provided regressions. For example, a fixed effect regression will default to `[Nobs, R2, R2Within]` and a Probit regression will default to `[Nobs, PseudoR2]` (and if multiple types, these will be combined). Set to the old default by running:
   - `RegressionTables.default_regression_statistics(x::AbstractRenderType, rrs::Tuple) = [Nobs, R2]`
-- Labels for the type of the regression are more varied for non-linear cases, instead of "NL", it will display "Poisson", "Probit", etc.
+- Labels for the type of the regression are more varied for non-linear cases, instead of "NL", it will display "Poisson", "Probit", etc. These can be changed by running:
+  - `RegressionTables.label_distribution(x::AbstractRenderType, d::Probit) = "NL"`
 - `print_fe_suffix` is a new setting where `" Fixed Effect"` is added after the fixed effect. Turn this off for all tables by running:
   - `RegressionTables.default_print_fe_suffix(x::AbstractRenderType) = false`
 - `print_control_indicator` is a new setting where a line is added if any coefficients are omitted. Turn this off for all tables by running:
   - `RegressionTables.default_print_control_indicator(x::AbstractRenderType) = false`
+
+
+### Changes to Labeling
+
+Labels for most display elements around the table are no longer handled by the `labels` dictionary but by functions. The goal is to allow a "set and forget" mentality, where changing the label once permanently changes it for all tables. For example, if relabeling the estimator, instead of:
+```julia
+labels=Dict(
+  "__LABEL_ESTIMATOR__" => "Estimator",
+  "__LABEL_FE_YES__" => "Yes",
+  "__LABEL_FE_NO__" => "",
+  "__LABEL_ESTIMATOR_OLS" => "OLS",
+  "__LABEL_ESTIMATOR_IV" => "IV",
+  "__LABEL_ESTIMATOR_NL" => "NL"
+)
+```
+Run
+```julia
+RegressionTables.label(rndr::AbstractRenderType, ::Type{RegressionType}) = "Estimator"
+RegressionTables.fe_value(rndr::AbstractRenderType, v) = v ? "Yes" : ""
+RegressionTables.label_ols(rndr::AbstractRenderType) = "OLS"
+RegressionTables.label_iv(rndr::AbstractRenderType) = "OLS"
+RegressionTables.label_distribution(rndr::AbstractRenderType, d::Probit) = "Probit"# non-linear values now
+# display distribution instead of "NL"
+```
+See the documentation for more examples. For regression statistics, it is possible to pass a pair (e.g., `[Nobs => "Obs.", R2 => "R Squared"]`) to relabel those.
+
+Labels for coefficient names are the same, but interaction and categorical terms might see some differences. Now, each part of an interaction or categorical term can be labeled independently (so `labels=Dict("coef1" => "Coef 1", "coef2" => "Coef 2")` would relabel `coef1 & coef2` to `Coef 1 & Coef 2`). This might cause changes to tables if the labels dictionary contains an interaction label but not both pieces independently, the display would depend on which order the dictionary is applied (so `labels=Dict("coef1" => "Coef 1", "coef1 & coef2" => "Coef 1 & Coef 2")` might turn the interaction into either `Coef 1 & Coef 2` or `Coef 1 & coef2`).
 
 ### `custom_statistics` replaced by `extralines`
 
@@ -83,11 +108,12 @@ It is also possible to create new statistics equivalent to the ones built in to 
 
 ### `print_result` and `out_buffer` arguments are gone
 
-`print_result` is no longer necessary since an object is returned by the `regtable` function (which is editable) and displays well in notebooks like Pluto or Jupyter. Similarly for `out_buffer`, it is now possible to write the returned object to a buffer.
+`print_result` is no longer necessary since an object is returned by the `regtable` function (which is editable) and displays well in notebooks like Pluto or Jupyter. Similarly for `out_buffer`, use `tab=regtable(...); print(io, tab)`.
 
 ### Other Deprecation Warnings that should not change results
 
 - `renderSettings` is deprecated, use `rndr` and `file`
+- `regressors` is deprecated, use `keep` `drop` and `order`
 - `below_decoration` is deprecated, set this globally by running:
   - `RegressionTables.below_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"`
 - `number_regressions_decoration` is deprecated, set this globally by running:

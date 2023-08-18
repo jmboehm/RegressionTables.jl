@@ -31,4 +31,6 @@ RegressionTables.CoefValue
 RegressionTables.RegressionType
 RegressionTables.HasControls
 RegressionTables.RegressionNumbers
+RegressionTables.FixedEffectValue
+RegressionTables.RandomEffectValue
 ```

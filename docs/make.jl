@@ -1,4 +1,3 @@
-using Revise
 using RegressionTables, RDatasets, GLM, FixedEffectModels
 using Documenter
 
