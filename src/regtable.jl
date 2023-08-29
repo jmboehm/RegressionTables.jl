@@ -6,18 +6,18 @@ Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the
 
 ## Examples
 
-```jldoctest; setup = :(using RegressionTables)
-julia> x = R2(1.234567);
+```julia
+RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4
+```
 
-julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4;
+```jldoctest; setup = :(RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4)
+julia> x = R2(1.234567);
 
 julia> RegressionTables.render(AsciiTable(), x)
 "1.2346"
 
 julia> RegressionTables.render(LatexTable(), x)
 "1.2346"
-
-julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 3; # hide
 ```
 """
 default_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_digits(rndr, value(x))
@@ -28,10 +28,12 @@ Default for under statistics ([`TStat`](@ref), [`StdError`](@ref)), defaults to 
 
 ## Examples
 
-```jldoctest; setup = :(using RegressionTables)
-julia> x = StdError(1.234567);
+```julia
+RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4
+```
 
-julia> RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4;
+```jldoctest; setup = :(RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4)
+julia> x = StdError(1.234567);
 
 julia> RegressionTables.render(AsciiTable(), x)
 "(1.2346)"
@@ -39,7 +41,7 @@ julia> RegressionTables.render(AsciiTable(), x)
 julia> RegressionTables.render(LatexTable(), x) # unchanged since the default_digits was only changed for Ascii
 "(1.235)"
 
-julia> RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 3; # hide
+julia> 
 ```
 """
 default_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_digits(rndr, value(x))
@@ -50,15 +52,15 @@ Default for [`CoefValue`](@ref), defaults to the general setting of 3 digits
 
 ## Examples
 
-```jldoctest; setup = :(using RegressionTables)
-julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
+```julia
+RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2
+```
 
-julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2;
+```jldoctest; setup = :(RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2)
+julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
 
 julia> RegressionTables.render(HtmlTable(), x)
 "1.23"
-
-julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 3; # hide
 ```
 """
 default_digits(rndr::AbstractRenderType, x::CoefValue) = default_digits(rndr, value(x))
@@ -68,21 +70,21 @@ default_digits(rndr::AbstractRenderType, x::CoefValue) = default_digits(rndr, va
 The default for for all other values not otherwise specified, defaults to 3 digits
 
 ## Examples
-    
-```jldoctest; setup = :(using RegressionTables)
+
+```julia
+RegressionTables.default_digits(::AbstractRenderType, x) = 4
+```
+
+```jldoctest; setup = :(RegressionTables.default_digits(::AbstractRenderType, x) = 4)
 julia> x = 1.234567;
 
 julia> y = TStat(1.234567);
-
-julia> RegressionTables.default_digits(::AbstractRenderType, x) = 4;
 
 julia> RegressionTables.render(LatexTable(), x)
 "1.2346"
 
 julia> RegressionTables.render(LatexTable(), y) # Also changes since the default_digits for other types default to this value
 "(1.2346)"
-
-julia> RegressionTables.default_digits(t::AbstractRenderType, x) = 3; # hide
 ```
 """
 default_digits(rndr::AbstractRenderType, x) = 3
