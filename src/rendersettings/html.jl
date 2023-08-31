@@ -94,10 +94,10 @@ linestart(::AbstractHtml) = "<tr><td>"
 lineend(::AbstractHtml) = " </td></tr>"
 
 
-label(::AbstractHtml, x::Type{Nobs}) = "<i>N</i>"
+label(::AbstractHtml, x::Type{Nobs}) = "<i>" * label(AsciiTable(), x) * "</i>"
 label(::AbstractHtml, x::Type{R2}) = "<i>R<sup>2</sup></i>"
-label(::AbstractHtml, x::Type{FStat}) = "<i>F</i>"
-label_p(::AbstractHtml) = "<i>p</i>"
+label(::AbstractHtml, x::Type{FStat}) = "<i>" * label(AsciiTable(), x) * "</i>"
+label_p(::AbstractHtml) = "<i>" * label_p(AsciiTable()) * "</i>"
 interaction_combine(::AbstractHtml) = " &times; "
 
 # if both MIME is html and the table is an HtmlTable, then show the table as html

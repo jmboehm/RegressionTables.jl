@@ -284,6 +284,7 @@ rm(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test3.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test3.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
 #rm(joinpath(dirname(@__FILE__), "tables", "test5.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test6.tex"))
@@ -293,6 +294,11 @@ rm(joinpath(dirname(@__FILE__), "tables", "test9.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test10.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
+
+RegressionTables.default_print_fe_suffix(x::AbstractRenderType) = true
+RegressionTables.default_print_control_indicator(x::AbstractRenderType) = true
+RegressionTables.default_regression_statistics(x::AbstractRenderType, rrs::Tuple) = unique(union(RegressionTables.default_regression_statistics.(rndr, rrs)...))
+RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = length(unique(RegressionTables.RegressionType.(rrs))) > 1
 
 # to update the reference files, re-create them from the above, then rename
 # mv(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"),joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))

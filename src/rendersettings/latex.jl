@@ -83,9 +83,9 @@ underline(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = hea
 
 
 
-label(::AbstractLatex, x::Type{Nobs}) = "\$N\$"
+label(::AbstractLatex, x::Type{Nobs}) = "\$" * label(AsciiTable(), x) * "\$"
 label(::AbstractLatex, x::Type{R2}) = "\$R^2\$"
-label(::AbstractLatex, x::Type{FStat}) = "\$F\$"
-label_p(::AbstractLatex) = "\$p\$"
+label(::AbstractLatex, x::Type{FStat}) = "\$" * label(AsciiTable(), x) * "\$"
+label_p(::AbstractLatex) = "\$" * label_p(AsciiTable()) * "\$"
 #wrapper(::AbstractLatex, x) = #"\$^{$x}\$"
 interaction_combine(::AbstractLatex) = " \$\\times\$ "

@@ -7,10 +7,8 @@ Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the
 ## Examples
 
 ```julia
-RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4
-```
+julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4;
 
-```jldoctest; setup = :(RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.AbstractRegressionStatistic) = 4)
 julia> x = R2(1.234567);
 
 julia> RegressionTables.render(AsciiTable(), x)
@@ -29,10 +27,8 @@ Default for under statistics ([`TStat`](@ref), [`StdError`](@ref)), defaults to 
 ## Examples
 
 ```julia
-RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4
-```
+julia> RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4;
 
-```jldoctest; setup = :(RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::RegressionTables.AbstractUnderStatistic) = 4)
 julia> x = StdError(1.234567);
 
 julia> RegressionTables.render(AsciiTable(), x)
@@ -41,7 +37,6 @@ julia> RegressionTables.render(AsciiTable(), x)
 julia> RegressionTables.render(LatexTable(), x) # unchanged since the default_digits was only changed for Ascii
 "(1.235)"
 
-julia> 
 ```
 """
 default_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_digits(rndr, value(x))
@@ -53,10 +48,8 @@ Default for [`CoefValue`](@ref), defaults to the general setting of 3 digits
 ## Examples
 
 ```julia
-RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2
-```
+julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2
 
-```jldoctest; setup = :(RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables.CoefValue) = 2)
 julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
 
 julia> RegressionTables.render(HtmlTable(), x)
@@ -72,10 +65,8 @@ The default for for all other values not otherwise specified, defaults to 3 digi
 ## Examples
 
 ```julia
-RegressionTables.default_digits(::AbstractRenderType, x) = 4
-```
+julia> RegressionTables.default_digits(::AbstractRenderType, x) = 4
 
-```jldoctest; setup = :(RegressionTables.default_digits(::AbstractRenderType, x) = 4)
 julia> x = 1.234567;
 
 julia> y = TStat(1.234567);
@@ -197,7 +188,7 @@ Defaults to `Vector{String}()`, which means any fixed effects available are prin
 default_fixedeffects(rndr::AbstractRenderType, rrs) = Vector{String}()
 
 """
-    default_labels(rndr::AbstractRenderType)
+    default_labels(rndr::AbstractRenderType, rrs)
 
 Defaults to `Dict{String, String}()`, which means no coefficients are changed.
 If you have a master dictionary of variables to change, it can help to set
@@ -207,11 +198,11 @@ If you have a master dictionary of variables to change, it can help to set
 ## Examples
 
 ```julia
-RegressionTables.default_labels(rndr::AbstractRenderType) = Dict("first" => "New First", "second" => "X > Y")
-RegressionTables.default_labels(rndr::RegressionTables.AbstractLatex) = Dict("first" => "New First", "second" => "X \$>\$ Y")
+RegressionTables.default_labels(rndr::AbstractRenderType, rrs) = Dict("first" => "New First", "second" => "X > Y")
+RegressionTables.default_labels(rndr::RegressionTables.AbstractLatex, rrs) = Dict("first" => "New First", "second" => "X \$>\$ Y")
 ```
 """
-default_labels(rndr::AbstractRenderType) = Dict{String, String}()
+default_labels(rndr::AbstractRenderType, rrs) = Dict{String, String}()
 
 """
     default_below_statistic(rndr::AbstractRenderType)
@@ -274,14 +265,14 @@ If it is not possible, the coefficients will not change.
 default_standardize_coef(rndr::AbstractRenderType, rrs) = false
 
 """
-    default_transform_labels(rndr::AbstractRenderType) = Dict{String, String}()
-    default_transform_labels(rndr::AbstractLatex) = :latex
+    default_transform_labels(rndr::AbstractRenderType, rrs) = Dict{String, String}()
+    default_transform_labels(rndr::AbstractLatex, rrs) = :latex
 
 `transform_labels` apply a `replace` function to the coefficients, dependent variables and fixed effects.
 The default for `AbstractLatex` is used to escape special characters in Latex.
 """
-default_transform_labels(rndr::AbstractRenderType) = Dict{String, String}()
-default_transform_labels(rndr::AbstractLatex) = :latex
+default_transform_labels(rndr::AbstractRenderType, rrs) = Dict{String, String}()
+default_transform_labels(rndr::AbstractLatex, rrs) = :latex
 
 """
     default_print_estimator(rndr::AbstractRenderType, rrs)
@@ -355,7 +346,7 @@ function regtable(
     drop::Vector = default_drop(rndr, rrs), # allows :last and :end as symbol
     order::Vector = default_order(rndr, rrs), # allows :last and :end as symbol
     fixedeffects::Vector = default_fixedeffects(rndr, rrs),
-    labels::Dict{String,String} = default_labels(rndr),
+    labels::Dict{String,String} = default_labels(rndr, rrs),
     align::Symbol = default_align(rndr),
     header_align::Symbol = default_header_align(rndr),
     below_statistic = default_below_statistic(rndr),# can also be nothing
@@ -367,7 +358,7 @@ function regtable(
     print_estimator_section = default_print_estimator(rndr, rrs),
     print_fe_section = default_print_fe(rndr, rrs), # defaults to true but only matters if fixed effects are present
     file = default_file(rndr, renderSettings, rrs),
-    transform_labels::Union{Dict,Symbol} = default_transform_labels(rndr),
+    transform_labels::Union{Dict,Symbol} = default_transform_labels(rndr, rrs),
     extralines = default_extralines(rndr, rrs),
     section_order = default_section_order(rndr),
     print_fe_suffix = default_print_fe_suffix(rndr),

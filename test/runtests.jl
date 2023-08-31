@@ -5,6 +5,7 @@ using Test
 
 ##
 tests = [
+        "default_changes.jl",
         "RegressionTables.jl",
         "decorations.jl",
         "label_transforms.jl",
