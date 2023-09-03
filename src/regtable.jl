@@ -157,16 +157,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     # ordering of regressors:
     if length(regressors) == 0
         # construct default ordering: from ordering in regressions (like in Stata)
-        regressorList = Vector{String}()
-        for r in rr # FixedEffectModel
-            names = coefnames(r)
-            for regressorIndex = 1:length(names)
-                if !(any(regressorList .== names[regressorIndex]))
-                    # add to list
-                    push!(regressorList, names[regressorIndex])
-                end
-            end
-        end
+        regressorList = union(coefnames.(rr)...)
     else
         # take the list of regressors from the argument
         regressorList = regressors
@@ -237,101 +228,7 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     # Fixed effects block
     print_fe_block = print_fe_section && any(isFERegressionResult.(rr))
     if print_fe_block
-
-        # construct list of fixed effects for display
-        feList = Vector{AbstractTerm}()
-        for r in rr if isFERegressionResult(r)
-
-            for term in eachterm(r.formula.rhs)
-                if has_fe(term) && !(any(name.(feList) .== name(term)))
-                    push!(feList, term)
-                end
-            end
-
-            # if isa(r.feformula, Symbol)
-            #     if !(any(feList .== string(r.feformula)))
-            #         # add to list
-            #         push!(feList, string(r.feformula))
-            #     end
-            # elseif r.feformula.args[1] == :+
-            #     x = r.feformula.args
-            #     for i in 2:length(x)
-            #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-            #             if !(any(feList .== string(x[i])))
-            #                 # add to list
-            #                 push!(feList, string(x[i]))
-            #             end
-            #         end
-            #     end
-            # elseif r.feformula.args[1] == :*
-            #     # push the whole interaction
-            #     if !(any(feList .== string(r.feformula)))
-            #         push!(feList, string(r.feformula))
-            #     end
-            # end
-
-        end end
-        # in case the user supplies a list of FE's, cut down the list
-        if !isempty(fixedeffects)
-            # compare the user-supplied list to `feList`, and keep only those that match
-            for i = length(feList):-1:1
-                if !any(name(feList[i]) .== fixedeffects)
-                    deleteat!(feList, [i])
-                end
-            end
-        end
-
-
-        # construct a list of fixed effects (Term's) for each RegressionResult
-        febyrr = Vector{Vector{AbstractTerm}}()
-        for r in rr
-            fe = Vector{AbstractTerm}()
-            if isFERegressionResult(r)
-                for term in eachterm(r.formula.rhs)
-                    if has_fe(term)
-                        push!(fe, term)
-                    end
-                end
-                # if isa(r.feformula, Symbol)
-                #     # add to list
-                #     push!(fe, string(r.feformula))
-                # elseif r.feformula.args[1] == :+
-                #     x = r.feformula.args
-                #     for i in 2:length(x)
-                #         if isa(x[i], Symbol) | isa(x[i], Expr) # if expression, push the whole expression
-                #             # add to list
-                #             push!(fe, string(x[i]))
-                #         end
-                #     end
-                # elseif r.feformula.args[1] == :*
-                #     push!(fe, string(r.feformula))
-                # end
-            end
-            push!(febyrr, fe)
-        end
-
-        # construct FE block
-        feBlock = Array{String}(undef,0,numberOfResults+1)
-        for fe in feList
-            feLine = fill("", 1, numberOfResults+1)
-            for resultIndex = 1:numberOfResults
-                index = findall(name(fe) .== name.(febyrr[resultIndex]))
-                if !isempty(index)
-                    feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
-                else
-                    feLine[1,resultIndex+1] = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
-                end
-            end
-            # check if the regressor was not found
-            if feLine == fill("", 1, numberOfResults+1)
-               @warn("Fixed effect $fe not found in any regression results.")
-            else
-                # add label on the left:
-                feLine[1,1] = haskey(labels,name(fe)) ? labels[name(fe)] : _transform_labels(name(fe))
-                # add to estimateBlock
-                feBlock = [feBlock; feLine]
-            end
-        end
+        feBlock = fe_block(rr, fixedeffects, labels, renderSettings, _transform_labels)    
     end
 
     if print_estimator_section
@@ -481,3 +378,46 @@ function regtable(rr::Union{FixedEffectModel,TableRegressionModel,RegressionMode
     end
 end
 
+# Fixed effects block
+
+function fe_block(rr, fixedeffects, labels, renderSettings, _transform_labels)
+    yes = haskey(labels, "__LABEL_FE_YES__") ? labels["__LABEL_FE_YES__"] : renderSettings.label_fe_yes
+    no  = haskey(labels, "__LABEL_FE_NO__") ? labels["__LABEL_FE_NO__"] : renderSettings.label_fe_no
+
+    # 1. Set up list of fixed effects
+    feList = AbstractTerm[]
+
+    for r in rr if isFERegressionResult(r)
+        for term in eachterm(r.formula.rhs)
+              if has_fe(term) && !(any(name.(feList) .== name(term)))
+                push!(feList, term)
+            end
+        end
+    end end
+
+    # in case the user supplies a list of FE's, cut down the list
+    if !isempty(fixedeffects)
+        # compare the user-supplied list to `feList`, and keep only those that match
+        filter!(x -> name(x) ∈ fixedeffects, feList)
+    end
+
+    # 2. Assemble the fixed effects block
+    Block = fill("", 0, length(rr))
+    Labels = String[]
+
+    for fe in feList
+        Line = fill("", 1, length(rr))
+        label = haskey(labels, name(fe)) ? labels[name(fe)] : _transform_labels(name(fe))
+        push!(Labels, label)
+        for (i, r) in enumerate(rr)
+            if isFERegressionResult(r) && fe ∈ eachterm(r.formula.rhs)
+                Line[i] = yes
+            else
+                Line[i] = no
+            end
+        end
+        Block = [Block; Line]
+    end
+
+    [Labels Block]
+end
