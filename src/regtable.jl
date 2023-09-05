@@ -11,10 +11,10 @@ julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables
 
 julia> x = R2(1.234567);
 
-julia> RegressionTables.render(AsciiTable(), x)
+julia> repr(AsciiTable(), x)
 "1.2346"
 
-julia> RegressionTables.render(LatexTable(), x)
+julia> repr(LatexTable(), x)
 "1.2346"
 ```
 """
@@ -31,10 +31,10 @@ julia> RegressionTables.default_digits(::RegressionTables.AbstractAscii, x::Regr
 
 julia> x = StdError(1.234567);
 
-julia> RegressionTables.render(AsciiTable(), x)
+julia> repr(AsciiTable(), x)
 "(1.2346)"
 
-julia> RegressionTables.render(LatexTable(), x) # unchanged since the default_digits was only changed for Ascii
+julia> repr(LatexTable(), x) # unchanged since the default_digits was only changed for Ascii
 "(1.235)"
 
 ```
@@ -52,7 +52,7 @@ julia> RegressionTables.default_digits(::AbstractRenderType, x::RegressionTables
 
 julia> x = RegressionTables.CoefValue(1.234567, 1); # 1 is for the p value
 
-julia> RegressionTables.render(HtmlTable(), x)
+julia> repr(HtmlTable(), x)
 "1.23"
 ```
 """
@@ -71,10 +71,10 @@ julia> x = 1.234567;
 
 julia> y = TStat(1.234567);
 
-julia> RegressionTables.render(LatexTable(), x)
+julia> repr(LatexTable(), x)
 "1.2346"
 
-julia> RegressionTables.render(LatexTable(), y) # Also changes since the default_digits for other types default to this value
+julia> repr(LatexTable(), y) # Also changes since the default_digits for other types default to this value
 "(1.2346)"
 ```
 """
@@ -504,9 +504,9 @@ function regtable(
     if digits !== nothing || estimformat !== nothing || estim_decoration !== nothing
         if estim_decoration === nothing
             if digits !== nothing
-                coefvalues = render.(rndr, coefvalues; digits)
+                coefvalues = repr.(rndr, coefvalues; digits)
             elseif estimformat !== nothing
-                coefvalues = render.(rndr, coefvalues; str_format=estimformat)
+                coefvalues = repr.(rndr, coefvalues; str_format=estimformat)
             end
         else
             @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
@@ -514,11 +514,11 @@ function regtable(
             @warn("or set the default symbol globally by running")
             @warn("RegressionTables.default_symbol(rndr::AbstractRenderType) = '*'")
             if digits !== nothing
-                temp_coef = render.(rndr, value.(coefvalues); digits)
+                temp_coef = repr.(rndr, value.(coefvalues); digits)
             elseif estimformat !== nothing
-                temp_coef = render.(rndr, value.(coefvalues); str_format=estimformat)
+                temp_coef = repr.(rndr, value.(coefvalues); str_format=estimformat)
             else
-                temp_coef = render.(rndr, value.(coefvalues); commas=false)
+                temp_coef = repr.(rndr, value.(coefvalues); commas=false)
             end
             coefvalues = estim_decoration.(temp_coef, coalesce.(value_pvalue.(coefvalues), 1.0))# coalesce to 1.0 since if missing then it should be insignificant
         end
@@ -527,19 +527,19 @@ function regtable(
     if digits !== nothing || statisticformat !== nothing || below_decoration !== nothing
         if below_decoration === nothing
             if digits_stats !== nothing
-                coefbelow = render.(rndr, coefbelow; digits=digits_stats)
+                coefbelow = repr.(rndr, coefbelow; digits=digits_stats)
             elseif statisticformat !== nothing
-                coefbelow = render.(rndr, coefbelow; str_format=statisticformat)
+                coefbelow = repr.(rndr, coefbelow; str_format=statisticformat)
             end
         else
             @warn("below_decoration is deprecated. Set the below decoration globally by running")
             @warn("RegressionTables.below_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"")
             if digits_stats !== nothing
-                temp_coef = render.(rndr, value.(coefbelow); digits=digits_stats)
+                temp_coef = repr.(rndr, value.(coefbelow); digits=digits_stats)
             elseif statisticformat !== nothing
-                temp_coef = render.(rndr, value.(coefbelow); str_format=statisticformat)
+                temp_coef = repr.(rndr, value.(coefbelow); str_format=statisticformat)
             else
-                temp_coef = render.(rndr, value.(coefbelow); commas=false)
+                temp_coef = repr.(rndr, value.(coefbelow); commas=false)
             end
             coefbelow = [x == "" ? x : below_decoration(x) for x in temp_coef]
         end
@@ -603,9 +603,9 @@ function regtable(
         elseif v == :stats
             stats = combine_statistics(tables)
             if digits_stats !== nothing
-                stats = render.(rndr, stats; digits=digits_stats)
+                stats = repr.(rndr, stats; digits=digits_stats)
             elseif statisticformat !== nothing
-                stats = render.(rndr, stats; str_format=statisticformat)
+                stats = repr.(rndr, stats; str_format=statisticformat)
             end
             push_DataRow!(out, stats, align, wdths, false, rndr)
         elseif v == :controls

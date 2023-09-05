@@ -14,8 +14,8 @@ used to create HTML tables.
 """
 struct HtmlTable <: AbstractHtml end
 
-function render(rndr::AbstractHtml, val::Pair; align='c', print_underlines=false, args...)
-    s = render(rndr, first(val); args...)
+function Base.repr(rndr::AbstractHtml, val::Pair; align='c', print_underlines=false, args...)
+    s = repr(rndr, first(val); args...)
     if length(s) == 0
         s
     else
@@ -28,7 +28,7 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHtml}
     print(io, "<tr>")
     for (i, x) in enumerate(row.data)
         if isa(x, Pair)
-            s = render(rndr, x; align=row.align[i], print_underlines=row.print_underlines[i])
+            s = repr(rndr, x; align=row.align[i], print_underlines=row.print_underlines[i])
             if length(s) == 0
                 print(io, "<td></td>")
                 continue
@@ -37,7 +37,7 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHtml}
 
             print(io,s)
         else
-            s = make_padding(render(rndr, x), row.colwidths[i], row.align[i])
+            s = make_padding(repr(rndr, x), row.colwidths[i], row.align[i])
             print(io, "<td>", s, "</td>")
         end
     end

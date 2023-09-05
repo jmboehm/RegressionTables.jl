@@ -47,7 +47,7 @@ function estim_decorator(rndr::AbstractRenderType, s, pval; breaks=default_break
         deco = wrapper(rndr, deco)
     end
 
-    render(rndr, s)*deco
+    repr(rndr, s)*deco
 end
 
 function make_estim_decorator(breaks=[0.01, 0.05, 0.1], sym='*'; wrapper=identity)

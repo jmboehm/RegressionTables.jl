@@ -85,7 +85,7 @@ RegressionTables.interaction_combine(::AbstractLaTeX) = " \\& "
 
 You can control how interaction terms are displayed more generally by changing:
 ```julia
-RegressionTables.render(rndr, x::RegressionTables.InteractedCoefName; args...) =
+Base.repr(rndr::AbstractRenderType, x::RegressionTables.InteractedCoefName; args...) =
     join(RegressionTables.value.(x), RegressionTables.interaction_combine(rndr))
 ```
 
@@ -135,7 +135,7 @@ RegressionTables.categorical_equal(rndr::AbstractLatex) = " \$=\$ "
 
 You can also change how the categorical term is displayed by changing the [`render`](@ref) function. The default is:
 ```julia
-RegressionTables.render(rndr, x::RegressionTables.CategoricalCoefName; args...) =
+Base.repr(rndr::AbstractRenderType, x::RegressionTables.CategoricalCoefName; args...) =
     "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(rndr)) \$(x.level)"
 ```
 """

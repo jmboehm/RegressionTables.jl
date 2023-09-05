@@ -17,7 +17,7 @@ These two lines change all [`AbstractLatex`](@ref) tables.
 The Julia type system also allows customization for more individualized tables. For example, you might include some descriptive tables in a paper, but it might make sense to use different rounding for descriptive data (such as making sure floats that are stored as integers are displayed as integers or rounding for large numbers). This needs to happen without changing the rounding in most tables. To do so, you can create a new type and set the display option for that type:
 ```julia
 struct LatexDescriptiveTable <: RegressionTables.AbstractLatex end
-function RegressionTables.render(::LatexDescriptiveTable, x::Float64; args...)
+function Base.repr(::LatexDescriptiveTable, x::Float64; args...)
     if isinteger(x)
         format(Int(x); commas=true)
     else

@@ -200,7 +200,7 @@ function Base.getindex(row::DataRow{T}, i) where {T}
             v += 1
         end
         if v >= i
-            return render(T(), x)
+            return repr(T(), x)
         end
     end
     error("Index $i out of bounds")
@@ -252,7 +252,7 @@ function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
     out_lengths = fill(0, length(rows[1]))
     for row in rows
         for (i, value) in enumerate(row.data)
-            s = render(rndr, value)
+            s = repr(rndr, value)
             if length(s) == 0
                 continue
             end
@@ -275,12 +275,12 @@ function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
 end
 
 """
-    update_widths!(row::DataRow{T}, new_lengths=length.(render.(T(), row.data))) where {T}
+    update_widths!(row::DataRow{T}, new_lengths=length.(repr.(T(), row.data))) where {T}
 
 Updates the widths of each column in the row. If lengths are provided, then it should equate to the total number
 of columns in the table, not the number of elements in the row.
 """
-function update_widths!(row::DataRow{T}, new_lengths=length.(render.(T(), row.data))) where {T}
+function update_widths!(row::DataRow{T}, new_lengths=length.(repr.(T(), row.data))) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
     rndr = T()
     if length(row.data) == length(new_lengths)

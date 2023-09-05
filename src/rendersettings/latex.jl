@@ -22,8 +22,8 @@ used to create Latex tables that span the entire text width.
 """
 struct LatexTableStar <: AbstractLatex end
 
-function render(rndr::AbstractLatex, val::Pair; align="c", args...)
-    s = render(rndr, first(val); args...)
+function Base.repr(rndr::AbstractLatex, val::Pair; align="c", args...)
+    s = repr(rndr, first(val); args...)
     # need to print the multicolumn version since it will miss & otherwise
     if length(s) == 0 && length(last(val)) == 1
         s
@@ -38,7 +38,7 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(render(rndr, x; align = row.align[i]), row.colwidths[i], row.align[i])
+            make_padding(repr(rndr, x; align = row.align[i]), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
             print(io, colsep(rndr))
@@ -48,7 +48,7 @@ function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
     if any(row.print_underlines)
         println(io)
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? render(rndr, first(x)) : render(rndr, x)
+            s = isa(x, Pair) ? repr(rndr, first(x)) : repr(rndr, x)
             if length(s) == 0 || !row.print_underlines[i]
                 continue
             end

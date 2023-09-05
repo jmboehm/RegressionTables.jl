@@ -37,9 +37,9 @@ abstract type AbstractRegressionStatistic end
 Parent type for all ``R^2`` statistics. This is available to change the formatting of all ``R^2`` statistics.
 For example, if the desired display for ``R^2`` is in the percentage term, run:
 ```julia
-RegressionTables.render(rndr, x::RegressionTable.AbstractR2; vargs...) = RegressionTables.render(rndr, x.val * 100; digits=2) * "%"
+Base.repr(rndr::AbstractRenderType, x::RegressionTable.AbstractR2; vargs...) = repr(rndr, x.val * 100; digits=2) * "%"
 # add second definition since Latex needs % escaped
-RegressionTables.render(rndr::RegressionTables.AbstractLatex, x::RegressionTable.AbstractR2; vargs...) = RegressionTables.render(rndr, x.val * 100; digits=2) * "\\%"
+Base.repr(rndr::AbstractRenderType::RegressionTables.AbstractLatex, x::RegressionTable.AbstractR2; vargs...) = repr(rndr, x.val * 100; digits=2) * "\\%"
 ```
 """
 abstract type AbstractR2 <: AbstractRegressionStatistic end
@@ -537,7 +537,7 @@ RegressionTables.label_iv(rndr::AbstractRenderType) = \$name
 ```
 Or for individual distributions by running:
 ```julia
-RegressionTables.render(rndr, x::\$Distribution; args...) = \$Name
+Base.repr(rndr::AbstractRenderType, x::\$Distribution; args...) = \$Name
 ```
 """
 struct RegressionType{T}

@@ -20,7 +20,7 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(render(rndr, x), row.colwidths[i], row.align[i])
+            make_padding(repr(rndr, x), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
             print(io, colsep(rndr))
@@ -31,7 +31,7 @@ function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
     if any(row.print_underlines)
         println(io)# if print underlines, then need new line
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? render(rndr, first(x)) : render(rndr, x)
+            s = isa(x, Pair) ? repr(rndr, first(x)) : repr(rndr, x)
             if length(s) > 0 && row.print_underlines[i]
                 print(io, underline(rndr, row.colwidths[i]))
             else
