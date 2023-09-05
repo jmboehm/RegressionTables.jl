@@ -1,9 +1,18 @@
 using RDatasets
 using RegressionTables
-using FixedEffectModels, GLM, MixedModels, GLFixedEffectModels, Documenter
+using FixedEffectModels, GLM, MixedModels, GLFixedEffectModels, Documenter, Aqua
 using Test
 
 ##
+
+#=
+ambiguities is tested separately since it defaults to recursive=true
+but there are packages that have ambiguities that will cause the test
+to fail
+=#
+Aqua.test_ambiguities(RegressionTables; recursive=false)
+Aqua.test_all(RegressionTables; ambiguities=false)
+
 tests = [
         "default_changes.jl",
         "RegressionTables.jl",

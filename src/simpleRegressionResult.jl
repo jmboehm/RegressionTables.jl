@@ -52,6 +52,9 @@ StatsAPI.dof_residual(x::SimpleRegressionResult) = x.dof_residual
 SimpleRegressionResult(rr::RegressionModel, f::FormulaTerm, args...; vargs...) =
     SimpleRegressionResult(rr::RegressionModel, f.lhs, f.rhs, args...; vargs...)
 
+SimpleRegressionResult(rr::RegressionModel, lhs::FormulaTerm, rhs::AbstractTerm, args...; vargs...) =
+    SimpleRegressionResult(rr::RegressionModel, get_coefname(lhs), get_coefname(rhs), args...; vargs...)
+
 SimpleRegressionResult(rr::RegressionModel, lhs::AbstractTerm, rhs::AbstractTerm, args...; vargs...) =
     SimpleRegressionResult(rr::RegressionModel, get_coefname(lhs), get_coefname(rhs), args...; vargs...)
 

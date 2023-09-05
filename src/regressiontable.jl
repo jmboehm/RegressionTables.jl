@@ -105,14 +105,14 @@ Base.size(tab::RegressionTable, i::Int) = size(tab)[i]
 Base.getindex(tab::RegressionTable, i::Int, j::Int) = data(tab)[i][j]
 Base.setindex!(tab::RegressionTable, val, i::Int, j::Int) = data(tab)[i][j] = val
 Base.getindex(tab::RegressionTable, i::Int) = data(tab)[i]
-function Base.setindex!(tab::RegressionTable{T}, val::DataRow, i::Int) where {T}
+function Base.setindex!(tab::RegressionTable{T}, val::DataRow, i::Int) where {T<:AbstractRenderType}
     data(tab)[i] = T(val)
     update_widths!(tab)
     tab
 end
 
 Base.setindex!(tab::RegressionTable, val::AbstractVector, i::Int) = setindex!(tab, DataRow(val), i)
-function Base.insert!(tab::RegressionTable{T}, i::Int, row:: DataRow) where {T}
+function Base.insert!(tab::RegressionTable{T}, i::Int, row:: DataRow) where {T<:AbstractRenderType}
     @assert length(row) == length(data(tab)[2]) "Row is not the correct length"
     x = T(row)
     insert!(data(tab), i, x)
