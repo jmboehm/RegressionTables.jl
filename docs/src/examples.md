@@ -967,7 +967,7 @@ Within-R2                                0.642      0.598       -0.535
 ## LaTeX Output
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; rndr = LatexTable())
+regtable(rr1,rr2,rr3,rr4; render = LatexTable())
 
 # output
 
@@ -1124,7 +1124,7 @@ Specification:               Option 1   Option 2   Option 3     Option 4
 Works similarly with HTML or Latex:
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; rndr=LatexTable(), extralines=[
+regtable(rr1,rr2,rr3,rr4; render=LatexTable(), extralines=[
     ["Specification:", "Option 1", "Option 2", "Option 3", "Option 4"],
     DataRow(["Difference in coefficients", 1.503 => 2:3, 3.515 => 4:5]; align = "lcc", print_underlines=[false, true, true])
 ]) # use DataRow to customize alignment

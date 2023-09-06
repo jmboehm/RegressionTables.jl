@@ -25,7 +25,7 @@ YMean(x::RegressionModel) = try
 catch
     YMean(nothing)
 end
-RegressionTable.label(rndr::AbstractRenderType, x::Type{YMean}) = "Mean of Y"
+RegressionTable.label(render::AbstractRenderType, x::Type{YMean}) = "Mean of Y"
 ```
 """
 abstract type AbstractRegressionStatistic end
@@ -37,9 +37,9 @@ abstract type AbstractRegressionStatistic end
 Parent type for all ``R^2`` statistics. This is available to change the formatting of all ``R^2`` statistics.
 For example, if the desired display for ``R^2`` is in the percentage term, run:
 ```julia
-Base.repr(rndr::AbstractRenderType, x::RegressionTable.AbstractR2; vargs...) = repr(rndr, x.val * 100; digits=2) * "%"
+Base.repr(render::AbstractRenderType, x::RegressionTable.AbstractR2; vargs...) = repr(render, x.val * 100; digits=2) * "%"
 # add second definition since Latex needs % escaped
-Base.repr(rndr::AbstractRenderType::RegressionTables.AbstractLatex, x::RegressionTable.AbstractR2; vargs...) = repr(rndr, x.val * 100; digits=2) * "\\%"
+Base.repr(render::AbstractRenderType::RegressionTables.AbstractLatex, x::RegressionTable.AbstractR2; vargs...) = repr(render, x.val * 100; digits=2) * "\\%"
 ```
 """
 abstract type AbstractR2 <: AbstractRegressionStatistic end
@@ -60,11 +60,11 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{Nobs}) = "N"
-    label(rndr::AbstractLatex, x::Type{Nobs}) = "\\\$N\\\$"
-    label(rndr::AbstractHtml, x::Type{Nobs}) = "<i>N</i>"
+    label(render::AbstractRenderType, x::Type{Nobs}) = "N"
+    label(render::AbstractLatex, x::Type{Nobs}) = "\\\$N\\\$"
+    label(render::AbstractHtml, x::Type{Nobs}) = "<i>N</i>"
 """
-label(rndr::AbstractRenderType, x::Type{Nobs}) = "N"
+label(render::AbstractRenderType, x::Type{Nobs}) = "N"
 
 """
 `R2` is the ``R^2`` of the regression. Labels default to:
@@ -86,11 +86,11 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{R2}) = "R2"
-    label(rndr::AbstractLatex, x::Type{R2}) = "\\\$R^2\\\$"
-    label(rndr::AbstractHtml, x::Type{R2}) = "<i>R</i><sup>2</sup>"
+    label(render::AbstractRenderType, x::Type{R2}) = "R2"
+    label(render::AbstractLatex, x::Type{R2}) = "\\\$R^2\\\$"
+    label(render::AbstractHtml, x::Type{R2}) = "<i>R</i><sup>2</sup>"
 """
-label(rndr::AbstractRenderType, x::Type{R2}) = "R2"
+label(render::AbstractRenderType, x::Type{R2}) = "R2"
 
 """
 `R2McFadden` is the McFadden ``R^2`` of the regression (often referred to as the Pseudo-``R^2``).
@@ -109,9 +109,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(rndr, R2)
+    label(render::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(render, R2)
 """
-label(rndr::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(rndr, R2)
+label(render::AbstractRenderType, x::Type{R2McFadden}) = "Pseudo " * label(render, R2)
 
 """
 See [`R2McFadden`](@ref) for details.
@@ -134,9 +134,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(rndr, R2)
+    label(render::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(render, R2)
 """
-label(rndr::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(rndr, R2)
+label(render::AbstractRenderType, x::Type{R2CoxSnell}) = "Cox-Snell " * label(render, R2)
 
 """
 `R2Nagelkerke` is the Nagelkerke ``R^2`` of the regression. Labels default to:
@@ -154,9 +154,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(rndr, R2)
+    label(render::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(render, R2)
 """
-label(rndr::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(rndr, R2)
+label(render::AbstractRenderType, x::Type{R2Nagelkerke}) = "Nagelkerke " * label(render, R2)
 
 """
 `R2Deviance` is the Deviance ``R^2`` of the regression. Labels default to:
@@ -174,9 +174,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(rndr, R2)
+    label(render::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(render, R2)
 """
-label(rndr::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(rndr, R2)
+label(render::AbstractRenderType, x::Type{R2Deviance}) = "Deviance " * label(render, R2)
 
 """
 `AdjR2` is the Adjusted ``R^2`` of the regression. Labels default to:
@@ -194,9 +194,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
+    label(render::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(render, R2)
 """
-label(rndr::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
+label(render::AbstractRenderType, x::Type{AdjR2}) = "Adjusted " * label(render, R2)
 
 """
 `AdjR2McFadden` is the McFadden Adjusted ``R^2`` of the regression (often referred
@@ -215,9 +215,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(rndr, AdjR2)
+    label(render::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(render, AdjR2)
 """
-label(rndr::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(rndr, AdjR2)
+label(render::AbstractRenderType, x::Type{AdjR2McFadden}) = "Pseudo " * label(render, AdjR2)
 
 """
 See [`AdjR2McFadden`](@ref) for details.
@@ -240,9 +240,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{AdjR2Deviance}) = "Deviance " * label(rndr, AdjR2)
+    label(render::AbstractRenderType, x::Type{AdjR2Deviance}) = "Deviance " * label(render, AdjR2)
 """
-label(rndr::AbstractRenderType, x::Type{AdjR2Deviance}) = "Deviance " * label(rndr, AdjR2)
+label(render::AbstractRenderType, x::Type{AdjR2Deviance}) = "Deviance " * label(render, AdjR2)
 
 """
 `DOF` is the remaining degrees of freedom in the regression. Labels default to 
@@ -258,9 +258,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{DOF}) = "Degrees of Freedom"
+    label(render::AbstractRenderType, x::Type{DOF}) = "Degrees of Freedom"
 """
-label(rndr::AbstractRenderType, x::Type{DOF}) = "Degrees of Freedom"
+label(render::AbstractRenderType, x::Type{DOF}) = "Degrees of Freedom"
 
 """
 `LogLikelihood` is the log likelihood of the regression. Labels default to
@@ -276,9 +276,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{LogLikelihood}) = "Log Likelihood"
+    label(render::AbstractRenderType, x::Type{LogLikelihood}) = "Log Likelihood"
 """
-label(rndr::AbstractRenderType, x::Type{LogLikelihood}) = "Log Likelihood"
+label(render::AbstractRenderType, x::Type{LogLikelihood}) = "Log Likelihood"
 
 """
 `AIC` is the Akaike Information Criterion of the regression. Labels default to
@@ -294,9 +294,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{AIC}) = "AIC"
+    label(render::AbstractRenderType, x::Type{AIC}) = "AIC"
 """
-label(rndr::AbstractRenderType, x::Type{AIC}) = "AIC"
+label(render::AbstractRenderType, x::Type{AIC}) = "AIC"
 
 """
 `AICC` is the Corrected Akaike Information Criterion of the regression. Labels default to
@@ -312,9 +312,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{AICC}) = "AICC"
+    label(render::AbstractRenderType, x::Type{AICC}) = "AICC"
 """
-label(rndr::AbstractRenderType, x::Type{AICC}) = "AICC"
+label(render::AbstractRenderType, x::Type{AICC}) = "AICC"
 
 """
 `BIC` is the Bayesian Information Criterion of the regression. Labels default to
@@ -330,9 +330,9 @@ catch
 end
 
 """
-    label(rndr::AbstractRenderType, x::Type{BIC}) = "BIC"
+    label(render::AbstractRenderType, x::Type{BIC}) = "BIC"
 """
-label(rndr::AbstractRenderType, x::Type{BIC}) = "BIC"
+label(render::AbstractRenderType, x::Type{BIC}) = "BIC"
 
 """
 `FStat` is the F-statistic of the regression. Since the StatsAPI.jl package
@@ -350,11 +350,11 @@ end
 FStat(r::RegressionModel) = FStat(nothing)
 
 """
-    label(rndr::AbstractRenderType, x::Type{FStat}) = "F"
-    label(rndr::AbstractLatex, x::Type{FStat}) = "\\\$F\\\$"
-    label(rndr::AbstractHtml, x::Type{FStat}) = "<i>F</i>"
+    label(render::AbstractRenderType, x::Type{FStat}) = "F"
+    label(render::AbstractLatex, x::Type{FStat}) = "\\\$F\\\$"
+    label(render::AbstractHtml, x::Type{FStat}) = "<i>F</i>"
 """
-label(rndr::AbstractRenderType, x::Type{FStat}) = "F"
+label(render::AbstractRenderType, x::Type{FStat}) = "F"
 
 """
 `FStatPValue` is the p-value of the F-statistic of the regression. Since the StatsAPI.jl package
@@ -370,9 +370,9 @@ end
 FStatPValue(r::RegressionModel) = FStatPValue(nothing)
 
 """
-    label(rndr::AbstractRenderType, x::Type{FStatPValue}) = label(rndr, FStat) * "-test " * label_p(rndr) * " value"
+    label(render::AbstractRenderType, x::Type{FStatPValue}) = label(render, FStat) * "-test " * label_p(render) * " value"
 """
-label(rndr::AbstractRenderType, x::Type{FStatPValue}) = label(rndr, FStat) * "-test " * label_p(rndr) *" value"
+label(render::AbstractRenderType, x::Type{FStatPValue}) = label(render, FStat) * "-test " * label_p(render) *" value"
 
 """
 `FStatIV` is the first-stage F-statistic of an IV regression. Since the StatsAPI.jl
@@ -388,9 +388,9 @@ end
 FStatIV(r::RegressionModel) = FStatIV(nothing)
 
 """
-    label(rndr::AbstractRenderType, x::Type{FStatIV}) = "First-stage " * label(rndr, FStat) * " statistic"
+    label(render::AbstractRenderType, x::Type{FStatIV}) = "First-stage " * label(render, FStat) * " statistic"
 """
-label(rndr::AbstractRenderType, x::Type{FStatIV}) = "First-stage " * label(rndr, FStat) * " statistic"
+label(render::AbstractRenderType, x::Type{FStatIV}) = "First-stage " * label(render, FStat) * " statistic"
 
 """
 `FStatIVPValue` is the p-value of the first-stage F-statistic of an IV regression. Since the StatsAPI.jl
@@ -406,9 +406,9 @@ end
 FStatIVPValue(r::RegressionModel) = FStatIVPValue(nothing)
 
 """
-    label(rndr::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(rndr) * " value"
+    label(render::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(render) * " value"
 """
-label(rndr::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(rndr) * " value"
+label(render::AbstractRenderType, x::Type{FStatIVPValue}) = "First-stage " * label_p(render) * " value"
 
 """
 `R2Within` is the within R-squared of a fixed effects regression. Since the StatsAPI.jl
@@ -424,9 +424,9 @@ end
 R2Within(r::RegressionModel) = R2Within(nothing)
 
 """
-    label(rndr::AbstractRenderType, x::Type{R2Within}) = "Within " * label(rndr, R2)
+    label(render::AbstractRenderType, x::Type{R2Within}) = "Within " * label(render, R2)
 """
-label(rndr::AbstractRenderType, x::Type{R2Within}) = "Within-" * label(rndr, R2)
+label(render::AbstractRenderType, x::Type{R2Within}) = "Within-" * label(render, R2)
 
 
 
@@ -532,12 +532,12 @@ The default label for the regression type is "Estimator". The labels
 for individual regression types (e.g., "OLS", "Poisson") can be set by
 running:
 ```julia
-RegressionTables.label_ols(rndr::AbstractRenderType) = \$name
-RegressionTables.label_iv(rndr::AbstractRenderType) = \$name
+RegressionTables.label_ols(render::AbstractRenderType) = \$name
+RegressionTables.label_iv(render::AbstractRenderType) = \$name
 ```
 Or for individual distributions by running:
 ```julia
-Base.repr(rndr::AbstractRenderType, x::\$Distribution; args...) = \$Name
+Base.repr(render::AbstractRenderType, x::\$Distribution; args...) = \$Name
 ```
 """
 struct RegressionType{T}
@@ -550,9 +550,9 @@ RegressionType(x::Type{D}, is_iv::Bool=false) where {D <: UnivariateDistribution
 value(x::RegressionType) = x.val
 
 """
-    label(rndr::AbstractRenderType, x::Type{RegressionType}) = "Estimator"
+    label(render::AbstractRenderType, x::Type{RegressionType}) = "Estimator"
 """
-label(rndr::AbstractRenderType, x::Type{<:RegressionType}) = "Estimator"
+label(render::AbstractRenderType, x::Type{<:RegressionType}) = "Estimator"
 
 """
     struct HasControls
@@ -563,7 +563,7 @@ Indicates whether the regression has coefficients left out of the table.
 `HasControls` is used as a label, which defaults to "Controls". This can
 be changed by setting
 ```julia
-RegressionTables.label(rndr::AbstractRenderType, x::Type{RegressionTables.HasControls}) = \$name
+RegressionTables.label(render::AbstractRenderType, x::Type{RegressionTables.HasControls}) = \$name
 ```
 """
 struct HasControls
@@ -572,9 +572,9 @@ end
 value(x::HasControls) = x.val
 
 """
-    label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"
+    label(render::AbstractRenderType, x::Type{HasControls}) = "Controls"
 """
-label(rndr::AbstractRenderType, x::Type{HasControls}) = "Controls"
+label(render::AbstractRenderType, x::Type{HasControls}) = "Controls"
 
 """
     struct RegressionNumbers
@@ -585,7 +585,7 @@ Used to define which column number the regression is in.
 Primarily, this is used to control how these values are displayed.
 The default displays these as `(\$i)`, which can be set by running
 ```julia
-RegressionTables.number_regressions_decoration(rndr::AbstractRenderType, s) = "(\$s)"
+RegressionTables.number_regressions_decoration(render::AbstractRenderType, s) = "(\$s)"
 ```
 """
 struct RegressionNumbers
@@ -594,9 +594,9 @@ end
 value(x::RegressionNumbers) = x.val
 
 """
-    label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
+    label(render::AbstractRenderType, x::Type{RegressionNumbers}) = ""
 """
-label(rndr::AbstractRenderType, x::Type{RegressionNumbers}) = ""
+label(render::AbstractRenderType, x::Type{RegressionNumbers}) = ""
 
 value(x) = missing
 value(x::String) = x

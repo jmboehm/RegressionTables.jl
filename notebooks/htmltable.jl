@@ -28,7 +28,7 @@ md"""
 """
 
 # ╔═╡ e9e8d958-a10b-4321-b9ac-09725f657e1a
-regtable(rr1,rr2,rr3,rr4; rndr = AsciiTable())
+regtable(rr1,rr2,rr3,rr4; render = AsciiTable())
 
 # ╔═╡ 84608bf7-0a01-4fd3-89c2-bd5b87079bfa
 md"""
@@ -36,7 +36,7 @@ md"""
 """
 
 # ╔═╡ 928c4ee3-5f08-4cd3-9e17-69b18d9d5922
-regtable(rr1,rr2,rr3,rr4; rndr = HtmlTable())
+regtable(rr1,rr2,rr3,rr4; render = HtmlTable())
 
 # ╔═╡ Cell order:
 # ╠═015cae43-5c06-402a-a139-5e4b31a42e55

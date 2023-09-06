@@ -27,7 +27,7 @@ function Base.repr(::LatexDescriptiveTable, x::Float64; args...)
 end
 ```
 
-Now, when creating a descriptive table (see [`RegressionTable`](@ref) for an example), pass `rndr=LatexDescriptiveTable()` to use your formatting function.
+Now, when creating a descriptive table (see [`RegressionTable`](@ref) for an example), pass `render=LatexDescriptiveTable()` to use your formatting function.
 
 The rest of this page goes through the defaults, showing what they are and what you might change each to.
 
@@ -56,7 +56,7 @@ RegressionTables.default_labels
 RegressionTables.default_transform_labels
 RegressionTables.default_below_statistic
 RegressionTables.default_stat_below
-RegressionTables.default_rndr
+RegressionTables.default_render
 RegressionTables.default_file
 RegressionTables.default_print_fe_suffix
 RegressionTables.default_print_control_indicator
@@ -87,17 +87,17 @@ RegressionTables.fe_value
 
 Labels are customizable by running the function that defines them. This makes it possible to change the labels once and then not worry about them on subsequent tables. To change a label, run:
 ```julia
-RegressionTables.label(rndr::AbstractRenderType, ::Type{Nobs}) = "Obs."
+RegressionTables.label(render::AbstractRenderType, ::Type{Nobs}) = "Obs."
 ```
 Labels use the Julia type system, so it is possible to create different labels depending on the table type. This is done by default for cases such as [`Nobs`](@ref) and [`R2`](@ref), where the defaults for Latex and HTML are different. In such cases, it is necessary to set the label for all types that are used:
 ```julia
-RegressionTables.label(rndr::AbstractLatex, ::Type{Nobs}) = "Obs."
-RegressionTables.label(rndr::AbstractHtml, ::Type{Nobs}) = "Obs."
+RegressionTables.label(render::AbstractLatex, ::Type{Nobs}) = "Obs."
+RegressionTables.label(render::AbstractHtml, ::Type{Nobs}) = "Obs."
 ```
 
 Some labels (notably the [`R2`](@ref) group), call another label function. For example:
 ```julia
-label(rndr::AbstractRenderType, ::Type{AdjR2}) = "Adjusted " * label(rndr, R2)
+label(render::AbstractRenderType, ::Type{AdjR2}) = "Adjusted " * label(render, R2)
 ```
 Ths means that the label for [`AdjR2`](@ref) relies on the label for [`R2`](@ref). This also means that changing the label for [`R2`](@ref) will change the labels for all other `R2` types.
 ```@docs

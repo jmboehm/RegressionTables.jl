@@ -15,30 +15,30 @@ used for plain text rendering.
 struct AsciiTable <: AbstractAscii end
 
 function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractAscii}
-    rndr = T()
-    print(io, linestart(rndr))# in case we want to add something before the line
+    render = T()
+    print(io, linestart(render))# in case we want to add something before the line
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(repr(rndr, x), row.colwidths[i], row.align[i])
+            make_padding(repr(render, x), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
-            print(io, colsep(rndr))
+            print(io, colsep(render))
         end
     end
-    print(io, lineend(rndr))
+    print(io, lineend(render))
     # do not print new line here, let the caller do it
     if any(row.print_underlines)
         println(io)# if print underlines, then need new line
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? repr(rndr, first(x)) : repr(rndr, x)
+            s = isa(x, Pair) ? repr(render, first(x)) : repr(render, x)
             if length(s) > 0 && row.print_underlines[i]
-                print(io, underline(rndr, row.colwidths[i]))
+                print(io, underline(render, row.colwidths[i]))
             else
                 print(io, " " ^ row.colwidths[i])
             end
             if i < length(row.data)
-                print(io, colsep(rndr))
+                print(io, colsep(render))
             end
         end
         
@@ -55,7 +55,7 @@ midrule(::AbstractAscii, l) = "-" ^ l
 bottomrule(::AbstractAscii, l) = "-" ^ l
 
 
-underline(tab::RegressionTable{<:AbstractAscii}) = underline(tab.rndr, total_length(tab))
-toprule(tab::RegressionTable{<:AbstractAscii}) = toprule(tab.rndr, total_length(tab))
-midrule(tab::RegressionTable{<:AbstractAscii}) = midrule(tab.rndr, total_length(tab))
-bottomrule(tab::RegressionTable{<:AbstractAscii}) = bottomrule(tab.rndr, total_length(tab))
+underline(tab::RegressionTable{<:AbstractAscii}) = underline(tab.render, total_length(tab))
+toprule(tab::RegressionTable{<:AbstractAscii}) = toprule(tab.render, total_length(tab))
+midrule(tab::RegressionTable{<:AbstractAscii}) = midrule(tab.render, total_length(tab))
+bottomrule(tab::RegressionTable{<:AbstractAscii}) = bottomrule(tab.render, total_length(tab))

@@ -50,16 +50,16 @@ Version 0.6 was a major rewrite of the backend with the goal of increasing the f
 - It is possible to define custom regression statistics that are calculated based on the regressions provided
 - It is possible to change the order of the major blocks in a regression table
 - Using RegressionTables for descriptive statistics is now easier. Describe a DataFrame (`df_described=describe(df)`) and provide that to a RegressionTable (`tab = RegressionTable(names(df_described), Matrix(df_described))`), there are also options to render the table as a `LatexTable` or `HtmlTable`. Write this to a file using `write(file_name, tab)`
-- It is possible to overwrite almost any setting. For example, to make T-Statistics the default in all tables, run `RegressionTables.default_below_statistic(rndr::AbstractRenderType)=TStat`
+- It is possible to overwrite almost any setting. For example, to make T-Statistics the default in all tables, run `RegressionTables.default_below_statistic(render::AbstractRenderType)=TStat`
 
 ### Changes to Defaults
 
 There are some changes to the defaults from version 0.5 and two additional settings
 
 - Interactions in coefficients now vary based on the type of table. In Latex, this now defaults to ` $\\times$ ` and in HTML ` &times; `. These can be changed by running:
-  - `RegressionTables.interaction_combine(rndr::AbstractRenderType) = " & "`
-  - `RegressionTables.interaction_combine(rndr::RegressionTables.AbstractLatex) = " \$\\times\$ "`
-  - `RegressionTables.interaction_combine(rndr::RegressionTables.AbstractHtml) = " &times; "`
+  - `RegressionTables.interaction_combine(render::AbstractRenderType) = " & "`
+  - `RegressionTables.interaction_combine(render::RegressionTables.AbstractLatex) = " \$\\times\$ "`
+  - `RegressionTables.interaction_combine(render::RegressionTables.AbstractHtml) = " &times; "`
 - `print_estimator` default was `true`, now it is `true` if more than one type of regression is provided (i.e., "IV" and "OLS" will display the estimator, all "OLS" will not). Set to the old default by running:
   - `RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = true`
 - `number_regressions` default was `true`, now it is `true` if more than one regression is provided. Set to the old default by running:
@@ -89,11 +89,11 @@ labels=Dict(
 ```
 Run
 ```julia
-RegressionTables.label(rndr::AbstractRenderType, ::Type{RegressionType}) = "Estimator"
-RegressionTables.fe_value(rndr::AbstractRenderType, v) = v ? "Yes" : ""
-RegressionTables.label_ols(rndr::AbstractRenderType) = "OLS"
-RegressionTables.label_iv(rndr::AbstractRenderType) = "OLS"
-RegressionTables.label_distribution(rndr::AbstractRenderType, d::Probit) = "Probit"# non-linear values now
+RegressionTables.label(render::AbstractRenderType, ::Type{RegressionType}) = "Estimator"
+RegressionTables.fe_value(render::AbstractRenderType, v) = v ? "Yes" : ""
+RegressionTables.label_ols(render::AbstractRenderType) = "OLS"
+RegressionTables.label_iv(render::AbstractRenderType) = "OLS"
+RegressionTables.label_distribution(render::AbstractRenderType, d::Probit) = "Probit"# non-linear values now
 # display distribution instead of "NL"
 ```
 See the documentation for more examples. For regression statistics, it is possible to pass a pair (e.g., `[Nobs => "Obs.", R2 => "R Squared"]`) to relabel those.
@@ -112,15 +112,15 @@ It is also possible to create new statistics equivalent to the ones built in to 
 
 ### Other Deprecation Warnings that should not change results
 
-- `renderSettings` is deprecated, use `rndr` and `file`
+- `renderSettings` is deprecated, use `render` and `file`
 - `regressors` is deprecated, use `keep` `drop` and `order`
 - `below_decoration` is deprecated, set this globally by running:
-  - `RegressionTables.below_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"`
+  - `RegressionTables.below_decoration(render::AbstractRenderType, s) = \"(\$s)\"`
 - `number_regressions_decoration` is deprecated, set this globally by running:
-  - `RegressionTables.number_regression_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"`
+  - `RegressionTables.number_regression_decoration(render::AbstractRenderType, s) = \"(\$s)\"`
 - `estim_decoration` is deprecated, depending on what needs to change from defaults, run:
-  - `RegressionTables.default_breaks(rndr::AbstractRenderType) = [0.001, 0.01, 0.05]`
-  - `RegressionTables.default_symbol(rndr::AbstractRenderType) = '*'`
+  - `RegressionTables.default_breaks(render::AbstractRenderType) = [0.001, 0.01, 0.05]`
+  - `RegressionTables.default_symbol(render::AbstractRenderType) = '*'`
 - `make_estim_decorator` is deprecated, see above for changes in breaks or the symbol. To add a wrapper to the decoration, run
   - `RegressionTables.wrapper(::AbstractRenderType, deco) = \$wrapper(deco)`
     - This can be set for only Latex or HTML by replacing `AbstractRenderType` with `AbstractLatex` or `AbstractHtml`
@@ -140,7 +140,7 @@ rr5 = glm(@formula(SepalWidth < 2.9 ~ PetalLength + PetalWidth + Species), df, B
 
 regtable(
     rr1,rr2,rr3,rr4,rr5;
-    rndr = AsciiTable(),
+    render = AsciiTable(),
     labels = Dict(
         "versicolor" => "Versicolor",
         "virginica" => "Virginica",
@@ -197,7 +197,7 @@ Coef Diff                            0.372                      1.235
 ```
 LaTeX output can be generated by using
 ```julia
-regtable(rr1,rr2,rr3,rr4; rndr = LatexTable())
+regtable(rr1,rr2,rr3,rr4; render = LatexTable())
 ```
 which yields
 ```
@@ -230,7 +230,7 @@ Similarly, HTML tables can be created with `HtmlTable()`.
 
 Send the output to a text file by passing the destination file as a keyword argument:
 ```julia
-regtable(rr1,rr2,rr3,rr4; rndr = LatexTable(), file="myoutputfile.tex")
+regtable(rr1,rr2,rr3,rr4; render = LatexTable(), file="myoutputfile.tex")
 ```
 then use `\input` in LaTeX to include that file in your code. Be sure to use the `booktabs` package:
 ```latex
@@ -302,9 +302,9 @@ Printing of `StatsBase.RegressionModel`s (e.g., MixedModels.jl and GLFixedEffect
 * `header_align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of the header row (default `:c` centered). Currently works only with ASCII and LaTeX output.
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate.
-* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(rndr::AbstractRenderType, x) = 3`).
+* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
-* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(rndr::AbstractRenderType, x) = 3`).
+* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
 * `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `StdError`.
 * `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in types are Recognized symbols are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
 * `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
@@ -313,17 +313,17 @@ Printing of `StatsBase.RegressionModel`s (e.g., MixedModels.jl and GLFixedEffect
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/Binomial/Poisson...) is used. Defaults to `true` if more than one value is displayed.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
-* `rndr::AbstractRenderType` is a `AbstractRenderType` type that governs how the table should be rendered. Standard supported types are ASCII (via `AsciiTable()`) and LaTeX (via `LatexTable()`). Defaults to `AsciiTable()`.
+* `render::AbstractRenderType` is a `AbstractRenderType` type that governs how the table should be rendered. Standard supported types are ASCII (via `AsciiTable()`) and LaTeX (via `LatexTable()`). Defaults to `AsciiTable()`.
 * `file` is a `String` that governs whether the table should be saved to a file. Defaults to `nothing`.
 * `transform_labels` is a `Dict` or one of the `Symbol`s `:ampersand`, `:underscore`, `:underscore2space`, `:latex`
 
 ### Details
-A typical use is to pass a number of `FixedEffectModel`s to the function, along with how it should be rendered (with `rndr` argument):
+A typical use is to pass a number of `FixedEffectModel`s to the function, along with how it should be rendered (with `render` argument):
 ```julia
-regtable(regressionResult1, regressionResult2; rndr = AsciiTable())
+regtable(regressionResult1, regressionResult2; render = AsciiTable())
 ```
 
 Pass a string to the `file` argument to create or overwrite a file. For example, using LaTeX output,
 ```julia
-regtable(regressionResult1, regressionResult2; rndr = LatexTable(), file="myoutfile.tex")
+regtable(regressionResult1, regressionResult2; render = LatexTable(), file="myoutfile.tex")
 ```

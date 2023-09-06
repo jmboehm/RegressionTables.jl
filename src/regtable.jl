@@ -1,6 +1,6 @@
 
 """
-    default_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic)
+    default_digits(render::AbstractRenderType, x::AbstractRegressionStatistic)
 
 Default for regression statistics ([`R2`](@ref), [`AIC`](@ref)), defaults to the general setting of 3 digits
 
@@ -18,9 +18,9 @@ julia> repr(LatexTable(), x)
 "1.2346"
 ```
 """
-default_digits(rndr::AbstractRenderType, x::AbstractRegressionStatistic) = default_digits(rndr, value(x))
+default_digits(render::AbstractRenderType, x::AbstractRegressionStatistic) = default_digits(render, value(x))
 """
-    default_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic)
+    default_digits(render::AbstractRenderType, x::AbstractUnderStatistic)
 
 Default for under statistics ([`TStat`](@ref), [`StdError`](@ref)), defaults to the general setting of 3 digits
 
@@ -39,9 +39,9 @@ julia> repr(LatexTable(), x) # unchanged since the default_digits was only chang
 
 ```
 """
-default_digits(rndr::AbstractRenderType, x::AbstractUnderStatistic) = default_digits(rndr, value(x))
+default_digits(render::AbstractRenderType, x::AbstractUnderStatistic) = default_digits(render, value(x))
 """
-    default_digits(rndr::AbstractRenderType, x::.CoefValue)
+    default_digits(render::AbstractRenderType, x::.CoefValue)
 
 Default for [`CoefValue`](@ref), defaults to the general setting of 3 digits
 
@@ -56,9 +56,9 @@ julia> repr(HtmlTable(), x)
 "1.23"
 ```
 """
-default_digits(rndr::AbstractRenderType, x::CoefValue) = default_digits(rndr, value(x))
+default_digits(render::AbstractRenderType, x::CoefValue) = default_digits(render, value(x))
 """
-    default_digits(rndr::AbstractRenderType, x)
+    default_digits(render::AbstractRenderType, x)
 
 The default for for all other values not otherwise specified, defaults to 3 digits
 
@@ -78,94 +78,94 @@ julia> repr(LatexTable(), y) # Also changes since the default_digits for other t
 "(1.2346)"
 ```
 """
-default_digits(rndr::AbstractRenderType, x) = 3
+default_digits(render::AbstractRenderType, x) = 3
 
 """
-    default_section_order(rndr::AbstractRenderType)
+    default_section_order(render::AbstractRenderType)
 
 Default section order for the table, defaults to
 `[:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]`
 
 `:break` is a special keyword that adds a line break between sections (e.g. between `\\midrule` in Latex)
 """
-default_section_order(rndr::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]
+default_section_order(render::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]
 
 """
-    default_align(rndr::AbstractRenderType)
+    default_align(render::AbstractRenderType)
 
 Defaults to `:r` for all render types, possible options are :r, :l, :c
 This affects each part of the table after the header and the leftmost column
 always has the `:l` alignment
 """
-default_align(rndr::AbstractRenderType) = :r
+default_align(render::AbstractRenderType) = :r
 
 """
-    default_header_align(rndr::AbstractRenderType)
+    default_header_align(render::AbstractRenderType)
 
 Defaults to `:c` for all render types, possible options are :r, :l, :c
 This affects the header (all sections up before :coef, see [`default_section_order`](@ref))
 of each part of the table
 """
-default_header_align(rndr::AbstractRenderType) = :c
+default_header_align(render::AbstractRenderType) = :c
 
 """
-    default_depvar(rndr::AbstractRenderType)
+    default_depvar(render::AbstractRenderType)
 
 Defaults to `true` for all render types, if `false` the dependent variable ("Y") is not printed
 """
-default_depvar(rndr::AbstractRenderType) = true
+default_depvar(render::AbstractRenderType) = true
 
 """
-    default_number_regressions(rndr::AbstractRenderType, rrs)
+    default_number_regressions(render::AbstractRenderType, rrs)
 
 Defaults to `true` if there is more than one regression, if `false` the regression number is not printed
 """
-default_number_regressions(rndr::AbstractRenderType, rrs) = length(rrs) > 1
+default_number_regressions(render::AbstractRenderType, rrs) = length(rrs) > 1
 
 """
-    default_print_fe(rndr::AbstractRenderType, rrs)
+    default_print_fe(render::AbstractRenderType, rrs)
 
 Defaults to `true`, but the section will not be printed if there are not fixed effects.
 If `false` the fixed effects are not printed
 """
-default_print_fe(rndr::AbstractRenderType, rrs) = true
+default_print_fe(render::AbstractRenderType, rrs) = true
 
 """
-    default_groups(rndr::AbstractRenderType, rrs)
+    default_groups(render::AbstractRenderType, rrs)
 
 Defaults to `nothing`, groups are printed above the dependent variable
 Setting a default should also use `rrs` (the regression results) since
 that determines the number of columns in the table.
 """
-default_groups(rndr::AbstractRenderType, rrs) = nothing
+default_groups(render::AbstractRenderType, rrs) = nothing
 
 """
-    default_extralines(rndr::AbstractRenderType, rrs)
+    default_extralines(render::AbstractRenderType, rrs)
 
 Defaults to `nothing`, extra lines are printed at the end of the table.
 Setting a default should also use `rrs` (the regression results) since
 that determines the number of columns in the table.
 """
-default_extralines(rndr::AbstractRenderType, rrs) = nothing
+default_extralines(render::AbstractRenderType, rrs) = nothing
 
 """
-    default_keep(rndr::AbstractRenderType, rrs)
+    default_keep(render::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means all variables are printed.
 Also see [Keep Drop and Order Arguments](@ref) for more information.
 """
-default_keep(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_keep(render::AbstractRenderType, rrs) = Vector{String}()
 
 """
-    default_drop(rndr::AbstractRenderType, rrs)
+    default_drop(render::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means no variables are dropped.
 Also see [Keep Drop and Order Arguments](@ref) for more information.
 """
-default_drop(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_drop(render::AbstractRenderType, rrs) = Vector{String}()
 
 """
-    default_order(rndr::AbstractRenderType, rrs)
+    default_order(render::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means the order is not changed.
 Also see [Keep Drop and Order Arguments](@ref) for more information.
@@ -178,17 +178,17 @@ RegressionTables.default_order(::AbstractRenderType, rrs) = [r" & "]
 ```
 will prioritize the interactions in the table.
 """
-default_order(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_order(render::AbstractRenderType, rrs) = Vector{String}()
 
 """
-    default_fixedeffects(rndr::AbstractRenderType, rrs)
+    default_fixedeffects(render::AbstractRenderType, rrs)
 
 Defaults to `Vector{String}()`, which means any fixed effects available are printed.
 """
-default_fixedeffects(rndr::AbstractRenderType, rrs) = Vector{String}()
+default_fixedeffects(render::AbstractRenderType, rrs) = Vector{String}()
 
 """
-    default_labels(rndr::AbstractRenderType, rrs)
+    default_labels(render::AbstractRenderType, rrs)
 
 Defaults to `Dict{String, String}()`, which means no coefficients are changed.
 If you have a master dictionary of variables to change, it can help to set
@@ -198,100 +198,100 @@ If you have a master dictionary of variables to change, it can help to set
 ## Examples
 
 ```julia
-RegressionTables.default_labels(rndr::AbstractRenderType, rrs) = Dict("first" => "New First", "second" => "X > Y")
-RegressionTables.default_labels(rndr::RegressionTables.AbstractLatex, rrs) = Dict("first" => "New First", "second" => "X \$>\$ Y")
+RegressionTables.default_labels(render::AbstractRenderType, rrs) = Dict("first" => "New First", "second" => "X > Y")
+RegressionTables.default_labels(render::RegressionTables.AbstractLatex, rrs) = Dict("first" => "New First", "second" => "X \$>\$ Y")
 ```
 """
-default_labels(rndr::AbstractRenderType, rrs) = Dict{String, String}()
+default_labels(render::AbstractRenderType, rrs) = Dict{String, String}()
 
 """
-    default_below_statistic(rndr::AbstractRenderType)
+    default_below_statistic(render::AbstractRenderType)
 
 Defaults to `StdError`, which means the standard error is printed below the coefficient.
 See [`AbstractUnderStatistic`](@ref) for more information.
 """
-default_below_statistic(rndr::AbstractRenderType) = StdError
+default_below_statistic(render::AbstractRenderType) = StdError
 
 """
-    default_stat_below(rndr::AbstractRenderType)
+    default_stat_below(render::AbstractRenderType)
 
 Defaults to `true`, which means the standard error (or t-stat) is printed below the coefficient.
 If `false`, the standard error is printed to the right of the coefficient (in the same column)
 """
-default_stat_below(rndr::AbstractRenderType) = true
+default_stat_below(render::AbstractRenderType) = true
 
 """
-    default_rndr(rrs)
+    default_render(rrs)
 
 Defaults to `AsciiTable()`, any concrete [`AbstractRenderType`](@ref) is allowed
 """
-default_rndr(rrs) = AsciiTable()
-default_rndr(renderSettings::Nothing, rrs) = default_rndr(rrs)
-default_rndr(renderSettings::AbstractRenderType, rrs) = renderSettings
-default_rndr(renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[1]
+default_render(rrs) = AsciiTable()
+default_render(renderSettings::Nothing, rrs) = default_render(rrs)
+default_render(renderSettings::AbstractRenderType, rrs) = renderSettings
+default_render(renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[1]
 
 """
-    default_file(rndr::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs)
+    default_file(render::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs)
 
 Defaults to `nothing`, which means no file is saved.
 """
-default_file(rndr::AbstractRenderType, rrs) = nothing
-default_file(rndr::AbstractRenderType, renderSettings, rrs) = default_file(rndr, rrs)
-default_file(rndr::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[2]
+default_file(render::AbstractRenderType, rrs) = nothing
+default_file(render::AbstractRenderType, renderSettings, rrs) = default_file(render, rrs)
+default_file(render::AbstractRenderType, renderSettings::Tuple{<:AbstractRenderType, String}, rrs) = renderSettings[2]
 
 """
-    default_print_fe_suffix(rndr::AbstractRenderType)
+    default_print_fe_suffix(render::AbstractRenderType)
 
 Whether or not a suffix will be applied to the fixed effects, defaults to `true`.
 """
-default_print_fe_suffix(rndr::AbstractRenderType) = true
+default_print_fe_suffix(render::AbstractRenderType) = true
 
 """
-    default_print_control_indicator(rndr::AbstractRenderType)
+    default_print_control_indicator(render::AbstractRenderType)
 
 Defaults to `true`, which means if the regression has any variables ommitted
 (due to `keep` or `drop`), then a line is placed with `Controls` and `Yes`.
 """
-default_print_control_indicator(rndr::AbstractRenderType) = true
+default_print_control_indicator(render::AbstractRenderType) = true
 
 """
-    default_standardize_coef(rndr::AbstractRenderType, rrs)
+    default_standardize_coef(render::AbstractRenderType, rrs)
 
 Defaults to `false`. Standardizing the coefficient divides the coefficient by its standard deviation
 and multiplies it by the standard deviation of the dependent variable. It is only possible
 for models that store the matrix, such as those in [GLM.jl](https://github.com/JuliaStats/GLM.jl) and [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl).
 If it is not possible, the coefficients will not change.
 """
-default_standardize_coef(rndr::AbstractRenderType, rrs) = false
+default_standardize_coef(render::AbstractRenderType, rrs) = false
 
 """
-    default_transform_labels(rndr::AbstractRenderType, rrs) = Dict{String, String}()
-    default_transform_labels(rndr::AbstractLatex, rrs) = :latex
+    default_transform_labels(render::AbstractRenderType, rrs) = Dict{String, String}()
+    default_transform_labels(render::AbstractLatex, rrs) = :latex
 
 `transform_labels` apply a `replace` function to the coefficients, dependent variables and fixed effects.
 The default for `AbstractLatex` is used to escape special characters in Latex.
 """
-default_transform_labels(rndr::AbstractRenderType, rrs) = Dict{String, String}()
-default_transform_labels(rndr::AbstractLatex, rrs) = :latex
+default_transform_labels(render::AbstractRenderType, rrs) = Dict{String, String}()
+default_transform_labels(render::AbstractLatex, rrs) = :latex
 
 """
-    default_print_estimator(rndr::AbstractRenderType, rrs)
+    default_print_estimator(render::AbstractRenderType, rrs)
 
 Defaults to `true` if more than one type of estimator is used. For example,
 if all regressions are "OLS", then this section will default to `false`, while
 if one regression is "OLS" and another is "IV", then this section will default to `true`.
 """
-default_print_estimator(rndr::AbstractRenderType, rrs) = length(unique(RegressionType.(rrs))) > 1
+default_print_estimator(render::AbstractRenderType, rrs) = length(unique(RegressionType.(rrs))) > 1
 
 """
-    default_regression_statistics(rndr::AbstractRenderType, rrs)
+    default_regression_statistics(render::AbstractRenderType, rrs)
 
 Defaults to a union of the default_regression_statistics for each regression.
 For example, an "OLS" regression (with no fixed effects) will default to including
 `[Nobs, R2]`, and a Probit regression will include `[Nobs, PseudoR2]`,
 so the default will be `[Nobs, R2, PseudoR2]`.
 """
-default_regression_statistics(rndr::AbstractRenderType, rrs::Tuple) = unique(union(default_regression_statistics.(rndr, rrs)...))
+default_regression_statistics(render::AbstractRenderType, rrs::Tuple) = unique(union(default_regression_statistics.(render, rrs)...))
 
 asciiOutput(file::String) = (AsciiTable(), file)
 latexOutput(file::String) = (LatexTable(), file)
@@ -311,9 +311,9 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `header_align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of the header row (default `:c` centered). Currently works only with ASCII and LaTeX output.
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate.
-* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(rndr::AbstractRenderType, x) = 3`).
+* `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
-* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(rndr::AbstractRenderType, x) = 3`).
+* `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
 * `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `StdError`.
 * `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in types are Recognized symbols are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
 * `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
@@ -322,48 +322,48 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `print_fe_section` is a `Bool` that governs whether a section on fixed effects should be shown. Defaults to `true`.
 * `print_estimator_section`  is a `Bool` that governs whether to print a section on which estimator (OLS/IV/Binomial/Poisson...) is used. Defaults to `true` if more than one value is displayed.
 * `standardize_coef` is a `Bool` that governs whether the table should show standardized coefficients. Note that this only works with `TableRegressionModel`s, and that only coefficient estimates and the `below_statistic` are being standardized (i.e. the R^2 etc still pertain to the non-standardized regression).
-* `rndr::AbstractRenderType` is a `AbstractRenderType` type that governs how the table should be rendered. Standard supported types are ASCII (via `AsciiTable()`) and LaTeX (via `LatexTable()`). Defaults to `AsciiTable()`.
+* `render::AbstractRenderType` is a `AbstractRenderType` type that governs how the table should be rendered. Standard supported types are ASCII (via `AsciiTable()`) and LaTeX (via `LatexTable()`). Defaults to `AsciiTable()`.
 * `file` is a `String` that governs whether the table should be saved to a file. Defaults to `nothing`.
 * `transform_labels` is a `Dict` or one of the `Symbol`s `:ampersand`, `:underscore`, `:underscore2space`, `:latex`
 
 ### Details
-A typical use is to pass a number of `FixedEffectModel`s to the function, along with how it should be rendered (with `rndr` argument):
+A typical use is to pass a number of `FixedEffectModel`s to the function, along with how it should be rendered (with `render` argument):
 ```julia
-regtable(regressionResult1, regressionResult2; rndr = AsciiTable())
+regtable(regressionResult1, regressionResult2; render = AsciiTable())
 ```
 
 Pass a string to the `file` argument to create or overwrite a file. For example, using LaTeX output,
 ```julia
-regtable(regressionResult1, regressionResult2; rndr = LatexTable(), file="myoutfile.tex")
+regtable(regressionResult1, regressionResult2; render = LatexTable(), file="myoutfile.tex")
 ```
 See the full argument list for details.
 """
 function regtable(
     rrs::RegressionModel...;
     renderSettings = nothing,
-    rndr::T = default_rndr(renderSettings, rrs),
-    keep::Vector = default_keep(rndr, rrs), # allows :last and :end as symbol
-    drop::Vector = default_drop(rndr, rrs), # allows :last and :end as symbol
-    order::Vector = default_order(rndr, rrs), # allows :last and :end as symbol
-    fixedeffects::Vector = default_fixedeffects(rndr, rrs),
-    labels::Dict{String,String} = default_labels(rndr, rrs),
-    align::Symbol = default_align(rndr),
-    header_align::Symbol = default_header_align(rndr),
-    below_statistic = default_below_statistic(rndr),# can also be nothing
-    stat_below::Bool = default_stat_below(rndr),# true means StdError or TStat appears below, false means it appears to the right
-    regression_statistics = default_regression_statistics(rndr, rrs), # collection of all statistics to be printed
-    groups = default_groups(rndr, rrs), # displayed above the regression variables
-    print_depvar::Bool = default_depvar(rndr),
-    number_regressions::Bool = default_number_regressions(rndr, rrs), # decoration for the column number, does not display by default if only 1 regression
-    print_estimator_section = default_print_estimator(rndr, rrs),
-    print_fe_section = default_print_fe(rndr, rrs), # defaults to true but only matters if fixed effects are present
-    file = default_file(rndr, renderSettings, rrs),
-    transform_labels::Union{Dict,Symbol} = default_transform_labels(rndr, rrs),
-    extralines = default_extralines(rndr, rrs),
-    section_order = default_section_order(rndr),
-    print_fe_suffix = default_print_fe_suffix(rndr),
-    print_control_indicator = default_print_control_indicator(rndr),
-    standardize_coef=default_standardize_coef(rndr, rrs),# can be vector with same length as rrs
+    render::T = default_render(renderSettings, rrs),
+    keep::Vector = default_keep(render, rrs), # allows :last and :end as symbol
+    drop::Vector = default_drop(render, rrs), # allows :last and :end as symbol
+    order::Vector = default_order(render, rrs), # allows :last and :end as symbol
+    fixedeffects::Vector = default_fixedeffects(render, rrs),
+    labels::Dict{String,String} = default_labels(render, rrs),
+    align::Symbol = default_align(render),
+    header_align::Symbol = default_header_align(render),
+    below_statistic = default_below_statistic(render),# can also be nothing
+    stat_below::Bool = default_stat_below(render),# true means StdError or TStat appears below, false means it appears to the right
+    regression_statistics = default_regression_statistics(render, rrs), # collection of all statistics to be printed
+    groups = default_groups(render, rrs), # displayed above the regression variables
+    print_depvar::Bool = default_depvar(render),
+    number_regressions::Bool = default_number_regressions(render, rrs), # decoration for the column number, does not display by default if only 1 regression
+    print_estimator_section = default_print_estimator(render, rrs),
+    print_fe_section = default_print_fe(render, rrs), # defaults to true but only matters if fixed effects are present
+    file = default_file(render, renderSettings, rrs),
+    transform_labels::Union{Dict,Symbol} = default_transform_labels(render, rrs),
+    extralines = default_extralines(render, rrs),
+    section_order = default_section_order(render),
+    print_fe_suffix = default_print_fe_suffix(render),
+    print_control_indicator = default_print_control_indicator(render),
+    standardize_coef=default_standardize_coef(render, rrs),# can be vector with same length as rrs
     digits=nothing,
     digits_stats=nothing,
     estimformat=nothing,
@@ -387,9 +387,9 @@ function regtable(
     end
     if renderSettings !== nothing
         x = if file === nothing
-            "renderSettings is deprecated. Specify render type with rndr=$rndr"
+            "renderSettings is deprecated. Specify render type with render=$render"
         else
-            "renderSettings is deprecated. Specify render type with rndr=$rndr and file with file=$file"
+            "renderSettings is deprecated. Specify render type with render=$render and file with file=$file"
         end
         @warn(x)
     end
@@ -504,21 +504,21 @@ function regtable(
     if digits !== nothing || estimformat !== nothing || estim_decoration !== nothing
         if estim_decoration === nothing
             if digits !== nothing
-                coefvalues = repr.(rndr, coefvalues; digits)
+                coefvalues = repr.(render, coefvalues; digits)
             elseif estimformat !== nothing
-                coefvalues = repr.(rndr, coefvalues; str_format=estimformat)
+                coefvalues = repr.(render, coefvalues; str_format=estimformat)
             end
         else
             @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
-            @warn("RegressionTables.default_breaks(rndr::AbstractRenderType) = [0.001, 0.01, 0.05]")
+            @warn("RegressionTables.default_breaks(render::AbstractRenderType) = [0.001, 0.01, 0.05]")
             @warn("or set the default symbol globally by running")
-            @warn("RegressionTables.default_symbol(rndr::AbstractRenderType) = '*'")
+            @warn("RegressionTables.default_symbol(render::AbstractRenderType) = '*'")
             if digits !== nothing
-                temp_coef = repr.(rndr, value.(coefvalues); digits)
+                temp_coef = repr.(render, value.(coefvalues); digits)
             elseif estimformat !== nothing
-                temp_coef = repr.(rndr, value.(coefvalues); str_format=estimformat)
+                temp_coef = repr.(render, value.(coefvalues); str_format=estimformat)
             else
-                temp_coef = repr.(rndr, value.(coefvalues); commas=false)
+                temp_coef = repr.(render, value.(coefvalues); commas=false)
             end
             coefvalues = estim_decoration.(temp_coef, coalesce.(value_pvalue.(coefvalues), 1.0))# coalesce to 1.0 since if missing then it should be insignificant
         end
@@ -527,19 +527,19 @@ function regtable(
     if digits !== nothing || statisticformat !== nothing || below_decoration !== nothing
         if below_decoration === nothing
             if digits_stats !== nothing
-                coefbelow = repr.(rndr, coefbelow; digits=digits_stats)
+                coefbelow = repr.(render, coefbelow; digits=digits_stats)
             elseif statisticformat !== nothing
-                coefbelow = repr.(rndr, coefbelow; str_format=statisticformat)
+                coefbelow = repr.(render, coefbelow; str_format=statisticformat)
             end
         else
             @warn("below_decoration is deprecated. Set the below decoration globally by running")
-            @warn("RegressionTables.below_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"")
+            @warn("RegressionTables.below_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
             if digits_stats !== nothing
-                temp_coef = repr.(rndr, value.(coefbelow); digits=digits_stats)
+                temp_coef = repr.(render, value.(coefbelow); digits=digits_stats)
             elseif statisticformat !== nothing
-                temp_coef = repr.(rndr, value.(coefbelow); str_format=statisticformat)
+                temp_coef = repr.(render, value.(coefbelow); str_format=statisticformat)
             else
-                temp_coef = repr.(rndr, value.(coefbelow); commas=false)
+                temp_coef = repr.(render, value.(coefbelow); commas=false)
             end
             coefbelow = [x == "" ? x : below_decoration(x) for x in temp_coef]
         end
@@ -552,62 +552,62 @@ function regtable(
 
         if isa(s, Pair)
             v = first(s)
-            push_DataRow!(out, DataRow(vcat([last(s)], fill("", length(tables)))), align, wdths, false, rndr)
+            push_DataRow!(out, DataRow(vcat([last(s)], fill("", length(tables)))), align, wdths, false, render)
         else
             v = s
         end
         if !isa(v, Symbol)
             al = in_header ? header_align : align
-            push_DataRow!(out, v, al, wdths, in_header, rndr; combine_equals=in_header)
+            push_DataRow!(out, v, al, wdths, in_header, render; combine_equals=in_header)
             continue
         end
         if v == :break
             push!(breaks, length(out))
         elseif v == :depvar
             underlines = i + 1 < length(sections) && sections[i+1] != :break
-            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, rndr; combine_equals=true)
+            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, render; combine_equals=true)
         elseif v == :number_regressions
             if number_regressions_decoration !== nothing
                 @warn("number_regressions_decoration is deprecated, specify decoration globally by running")
-                @warn("RegressionTables.number_regression_decoration(rndr::AbstractRenderType, s) = \"(\$s)\"")
-                push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, rndr; combine_equals=false)
+                @warn("RegressionTables.number_regression_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
+                push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, render; combine_equals=false)
             else
-                push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, rndr; combine_equals=false)
+                push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, render; combine_equals=false)
             end
         elseif v == :coef
             in_header = false
             if below_statistic === nothing
                 temp = hcat(nms, coefvalues)
-                push_DataRow!(out, temp, align, wdths, false, rndr)
+                push_DataRow!(out, temp, align, wdths, false, render)
             else
                 if stat_below
                     temp = hcat(nms, coefvalues)
                     for i in 1:size(temp, 1)
-                        push_DataRow!(out, temp[i, :], align, wdths, false, rndr)
-                        push_DataRow!(out, coefbelow[i, :], align, wdths, false, rndr)
+                        push_DataRow!(out, temp[i, :], align, wdths, false, render)
+                        push_DataRow!(out, coefbelow[i, :], align, wdths, false, render)
                     end
                 else
                     x = [(x, y) for (x, y) in zip(coefvalues, coefbelow)]
                     temp = hcat(nms, x)
-                    push_DataRow!(out, temp, align, wdths, false, rndr)
+                    push_DataRow!(out, temp, align, wdths, false, render)
                 end
             end
         elseif v == :fe
             fe = combine_fe(tables, fixedeffects; print_fe_suffix)
             if !isnothing(fe)
-                push_DataRow!(out, fe, align, wdths, false, rndr)
+                push_DataRow!(out, fe, align, wdths, false, render)
             end
         elseif v == :regtype
             regressiontype = vcat([RegressionType], [t.regressiontype for t in tables])
-            push_DataRow!(out, regressiontype, align, wdths, false, rndr)
+            push_DataRow!(out, regressiontype, align, wdths, false, render)
         elseif v == :stats
             stats = combine_statistics(tables)
             if digits_stats !== nothing
-                stats = repr.(rndr, stats; digits=digits_stats)
+                stats = repr.(render, stats; digits=digits_stats)
             elseif statisticformat !== nothing
-                stats = repr.(rndr, stats; str_format=statisticformat)
+                stats = repr.(render, stats; str_format=statisticformat)
             end
-            push_DataRow!(out, stats, align, wdths, false, rndr)
+            push_DataRow!(out, stats, align, wdths, false, render)
         elseif v == :controls
             v = missing_vars.(tables, Ref(string.(nms)))
             if !any(v)
@@ -617,7 +617,7 @@ function regtable(
                 [HasControls],
                 HasControls.(v) |> collect
             )
-            push_DataRow!(out, dat, align, wdths, false, rndr)
+            push_DataRow!(out, dat, align, wdths, false, render)
         end
     end
     if length(breaks) == 0
@@ -743,16 +743,16 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Matrix, args...; vargs...)
         push_DataRow!(data, vals[i, :], args...; vargs...)
     end
 end
-function push_DataRow!(data::Vector{<:DataRow}, vals::Vector{<:AbstractVector}, align, colwidths, print_underlines::Bool, rndr::AbstractRenderType; combine_equals=print_underlines)
+function push_DataRow!(data::Vector{<:DataRow}, vals::Vector{<:AbstractVector}, align, colwidths, print_underlines::Bool, render::AbstractRenderType; combine_equals=print_underlines)
     for v in vals
-        push_DataRow!(data, v, align, colwidths, print_underlines, rndr; combine_equals)
+        push_DataRow!(data, v, align, colwidths, print_underlines, render; combine_equals)
     end
 end
 push_DataRow!(data::Vector{DataRow{T}}, val::DataRow, args...; vargs...) where {T<:AbstractRenderType} = push!(data, T(val))
-function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, print_underlines::Bool, rndr::AbstractRenderType; combine_equals=print_underlines)
+function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, print_underlines::Bool, render::AbstractRenderType; combine_equals=print_underlines)
     if all(isa.(vals, DataRow) .|| isa.(vals, AbstractVector))
         for v in vals
-            push_DataRow!(data, v, align, colwidths, print_underlines, rndr; combine_equals)
+            push_DataRow!(data, v, align, colwidths, print_underlines, render; combine_equals)
         end
         return data
     elseif any(isa.(vals, DataRow) .|| isa.(vals, AbstractVector))
@@ -783,7 +783,7 @@ function push_DataRow!(data::Vector{<:DataRow}, vals::Vector, align, colwidths, 
             align,
             colwidths,
             vcat([false], fill(print_underlines, length(vals) - 1)), # don't print underline under the leftmost column
-            rndr;
+            render;
             combine_equals=combine_equals
         )
     )

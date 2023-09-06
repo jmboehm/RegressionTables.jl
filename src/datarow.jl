@@ -15,7 +15,7 @@ Base.broadcastable(o::AbstractRenderType) = Ref(o)
         align::String
         colwidths::Vector{Int}
         print_underlines::Vector{Bool}
-        rndr::T
+        render::T
     end
 
     DataRow(x::DataRow) = x
@@ -27,7 +27,7 @@ Base.broadcastable(o::AbstractRenderType) = Ref(o)
         align,
         colwidths,
         print_underlines,
-        rndr::AbstractRenderType;
+        render::AbstractRenderType;
         combine_equals=false
     )
 
@@ -36,7 +36,7 @@ Base.broadcastable(o::AbstractRenderType) = Ref(o)
         align="l" * "r" ^ (length(data) - 1),
         colwidths=fill(0, length(data)),
         print_underlines=zeros(Bool, length(data)),
-        rndr::AbstractRenderType=AsciiTable(),
+        render::AbstractRenderType=AsciiTable(),
         combine_equals=false
     )
 
@@ -79,7 +79,7 @@ julia> DataRow(["Group 0", "Group 1" => 2:3, "Group 2" => 4:5]; colwidths=[20, 2
 Group 0                       Group 1                      Group 2
 --------------------   --------------------   --------------------
 
-julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; rndr=LatexTable())
+julia> DataRow(["", "Group 1" => 2:3, "Group 2" => 4:5]; render=LatexTable())
  & \\multicolumn{2}{r}{Group 1} & \\multicolumn{2}{r}{Group 2} \\\\ 
 ```
 """
@@ -88,23 +88,23 @@ mutable struct DataRow{T<:AbstractRenderType} <: AbstractVector{String}
     align::String
     colwidths::Vector{Int}
     print_underlines::Vector{Bool}
-    rndr::T
+    render::T
     function DataRow(
         data::Vector,
         align,
         colwidths,
         print_underlines,
-        rndr::T;
+        render::T;
         combine_equals=false
     ) where {T<:AbstractRenderType}
         @assert length(data) == length(colwidths) == length(align) == length(print_underlines) "Not all the correct length"
         if combine_equals
-            x = new{T}([], "", Int[], Bool[], rndr)
+            x = new{T}([], "", Int[], Bool[], render)
             for i in eachindex(data, colwidths, print_underlines)
                 add_element!(x, data[i], align[i], colwidths[i], print_underlines[i], i)
             end
         else
-            x = new{T}(data, align, colwidths, print_underlines, rndr)
+            x = new{T}(data, align, colwidths, print_underlines, render)
         end
         if all(x.colwidths .== 0)
             update_widths!(x)
@@ -121,13 +121,13 @@ function DataRow(
     align="l" * "r" ^ (length(data) - 1),
     colwidths=fill(0, length(data)),
     print_underlines=zeros(Bool, length(data)),
-    rndr::AbstractRenderType=AsciiTable(),
+    render::AbstractRenderType=AsciiTable(),
     combine_equals=false
 )
     if isa(print_underlines, Bool)
         print_underlines = fill(print_underlines, length(data))
     end
-    DataRow(data, align, colwidths, print_underlines, rndr; combine_equals)
+    DataRow(data, align, colwidths, print_underlines, render; combine_equals)
 end
 
 """
@@ -248,16 +248,16 @@ Calculate the widths of each column in the table. For rows with multicolumn cell
 among the columns it spans.
 """
 function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
-    rndr = T()
+    render = T()
     out_lengths = fill(0, length(rows[1]))
     for row in rows
         for (i, value) in enumerate(row.data)
-            s = repr(rndr, value)
+            s = repr(render, value)
             if length(s) == 0
                 continue
             end
             if isa(value, Pair)
-                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(rndr)) * (length(last(value))-1)
+                diff = length(s) - sum(out_lengths[last(value)]) - length(colsep(render)) * (length(last(value))-1)
                 if diff > 0
                     # increase width
                     to_add = Int(round(diff / length(last(value))))
@@ -282,7 +282,7 @@ of columns in the table, not the number of elements in the row.
 """
 function update_widths!(row::DataRow{T}, new_lengths=length.(repr.(T(), row.data))) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
-    rndr = T()
+    render = T()
     if length(row.data) == length(new_lengths)
         row.colwidths = new_lengths
         return row
@@ -290,7 +290,7 @@ function update_widths!(row::DataRow{T}, new_lengths=length.(repr.(T(), row.data
     x = 1
     for (i, value) in enumerate(row.data)
         if isa(value, Pair)
-            row.colwidths[i] = sum(new_lengths[last(value)]) + length(colsep(rndr)) * (length(last(value))-1)
+            row.colwidths[i] = sum(new_lengths[last(value)]) + length(colsep(render)) * (length(last(value))-1)
             x += length(last(value))
         else
             row.colwidths[i] = new_lengths[x]

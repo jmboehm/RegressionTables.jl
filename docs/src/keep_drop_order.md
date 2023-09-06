@@ -131,7 +131,7 @@ Within-R2                       0.281      0.642      0.659     0.391
 
 Interacted coefficients are selected using the `&` to separate the interactions, even if the settings use a different interaction. For example, in Latex, the interaction defaults to `\$times\$`, but would still be selected by using `&`:
 ```jldoctest
-regtable(rr1, rr2, rr3, rr4; rndr=LatexTable(), keep=["SepalWidth & PetalLength"])
+regtable(rr1, rr2, rr3, rr4; render=LatexTable(), keep=["SepalWidth & PetalLength"])
 
 # output
 \begin{tabular}{lrrrr}

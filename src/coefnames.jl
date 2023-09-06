@@ -76,7 +76,7 @@ The separator is set by [`interaction_combine`](@ref) function, and the default 
 
 You can change the separator by running:
 ```julia
-RegressionTables.interaction_combine(rndr::\$RenderType) = " & "
+RegressionTables.interaction_combine(render::\$RenderType) = " & "
 ```
 where `\$RenderType` is the type of the renderer you want to change. For example, to change the output in `AbstractLaTeX`:
 ```julia
@@ -85,8 +85,8 @@ RegressionTables.interaction_combine(::AbstractLaTeX) = " \\& "
 
 You can control how interaction terms are displayed more generally by changing:
 ```julia
-Base.repr(rndr::AbstractRenderType, x::RegressionTables.InteractedCoefName; args...) =
-    join(RegressionTables.value.(x), RegressionTables.interaction_combine(rndr))
+Base.repr(render::AbstractRenderType, x::RegressionTables.InteractedCoefName; args...) =
+    join(RegressionTables.value.(x), RegressionTables.interaction_combine(render))
 ```
 
 See [Customization of Defaults](@ref) for more details.
@@ -129,14 +129,14 @@ In a regression, the display of categorical terms is typically displayed as "nam
 categorical term is "equal" by changing the [`categorical_equal`](@ref) function. The default is ": ", but you can change:
 this by setting:
 ```julia
-RegressionTables.categorical_equal(rndr::AbstractRenderType) = " = "
-RegressionTables.categorical_equal(rndr::AbstractLatex) = " \$=\$ "
+RegressionTables.categorical_equal(render::AbstractRenderType) = " = "
+RegressionTables.categorical_equal(render::AbstractLatex) = " \$=\$ "
 ```
 
 You can also change how the categorical term is displayed by changing the [`render`](@ref) function. The default is:
 ```julia
-Base.repr(rndr::AbstractRenderType, x::RegressionTables.CategoricalCoefName; args...) =
-    "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(rndr)) \$(x.level)"
+Base.repr(render::AbstractRenderType, x::RegressionTables.CategoricalCoefName; args...) =
+    "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(render)) \$(x.level)"
 ```
 """
 struct CategoricalCoefName <: AbstractCoefName

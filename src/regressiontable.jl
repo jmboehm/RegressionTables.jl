@@ -4,7 +4,7 @@
     mutable struct RegressionTable{T<:AbstractRenderType} <: AbstractMatrix{String}
         data::Vector{DataRow{T}}
         align::String
-        rndr::T
+        render::T
         breaks::Vector{Int}
         colwidths::Vector{Int}
     end
@@ -13,7 +13,7 @@
     RegressionTable(
         header::Matrix,
         body::Matrix,
-        rndr::T=AsciiTable();
+        render::T=AsciiTable();
         breaks=[size(header, 1)],
         align='l' * 'r' ^ (size(header, 2) - 1),
         colwidths=fill(0, size(header, 2)),
@@ -27,7 +27,7 @@ lines (e.g., `\\midrule` in LaTeX).
 - `data`: A vector of [`DataRow`](@ref) objects.
 - `align`: A string of characters, one for each column, indicating the alignment of the column. The characters are
     `l` for left, `c` for center, and `r` for right.
-- `rndr`: The render type of the table. This must be the same as the render type of the [`DataRow`](@ref) objects and is used for convenience.
+- `render`: The render type of the table. This must be the same as the render type of the [`DataRow`](@ref) objects and is used for convenience.
 - `breaks`: A vector of integers, indicating where to put the lines (e.g., `\\midrule` in LaTeX). When displayed, the break will be placed after
    the line number is printed (breaks = [5] will print a break after the 5th line is printed).
 - `colwidths`: A vector of integers, one for each column, indicating the width of the column. Can calculate the widths
@@ -79,7 +79,7 @@ PetalWidth               1.199   0.762   0.300    1.300   1.800
 mutable struct RegressionTable{T<:AbstractRenderType} <: AbstractMatrix{String}
     data::Vector{DataRow{T}}
     align::String
-    rndr::T
+    render::T
     breaks::Vector{Int}
     colwidths::Vector{Int}
     vertical_gaps::Vector{Int}# necessary for future Excel integration
@@ -146,7 +146,7 @@ RegressionTable(header::Vector, body::Matrix, args...; vargs...) = RegressionTab
 function RegressionTable(
     header::Matrix,
     body::Matrix,
-    rndr::T=AsciiTable();
+    render::T=AsciiTable();
     breaks=[size(header, 1)],
     align='l' * 'r' ^ (size(header, 2) - 1),
     colwidths=fill(0, size(header, 2)),

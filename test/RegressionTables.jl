@@ -297,7 +297,7 @@ rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
 
 RegressionTables.default_print_fe_suffix(x::AbstractRenderType) = true
 RegressionTables.default_print_control_indicator(x::AbstractRenderType) = true
-RegressionTables.default_regression_statistics(x::AbstractRenderType, rrs::Tuple) = unique(union(RegressionTables.default_regression_statistics.(rndr, rrs)...))
+RegressionTables.default_regression_statistics(x::AbstractRenderType, rrs::Tuple) = unique(union(RegressionTables.default_regression_statistics.(render, rrs)...))
 RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = length(unique(RegressionTables.RegressionType.(rrs))) > 1
 
 # to update the reference files, re-create them from the above, then rename

@@ -22,40 +22,40 @@ used to create Latex tables that span the entire text width.
 """
 struct LatexTableStar <: AbstractLatex end
 
-function Base.repr(rndr::AbstractLatex, val::Pair; align="c", args...)
-    s = repr(rndr, first(val); args...)
+function Base.repr(render::AbstractLatex, val::Pair; align="c", args...)
+    s = repr(render, first(val); args...)
     # need to print the multicolumn version since it will miss & otherwise
     if length(s) == 0 && length(last(val)) == 1
         s
     else
-        multicolumn(rndr, s, length(last(val)), align)
+        multicolumn(render, s, length(last(val)), align)
     end
 end
 
 function Base.print(io::IO, row::DataRow{T}) where T<:AbstractLatex
-    rndr = T()
-    print(io, linestart(rndr))
+    render = T()
+    print(io, linestart(render))
     for (i, x) in enumerate(row.data)
         print(
             io,
-            make_padding(repr(rndr, x; align = row.align[i]), row.colwidths[i], row.align[i])
+            make_padding(repr(render, x; align = row.align[i]), row.colwidths[i], row.align[i])
         )
         if i < length(row.data)
-            print(io, colsep(rndr))
+            print(io, colsep(render))
         end
     end
-    print(io, lineend(rndr))
+    print(io, lineend(render))
     if any(row.print_underlines)
         println(io)
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? repr(rndr, first(x)) : repr(rndr, x)
+            s = isa(x, Pair) ? repr(render, first(x)) : repr(render, x)
             if length(s) == 0 || !row.print_underlines[i]
                 continue
             end
             if isa(x, Pair)
-                print(io, underline(rndr, first(last(x)), last(last(x))))
+                print(io, underline(render, first(last(x)), last(last(x))))
             else
-                print(io, underline(rndr, i,i))
+                print(io, underline(render, i,i))
             end
         end
     end
@@ -77,8 +77,8 @@ linestart(::AbstractLatex) = ""
 lineend(::AbstractLatex) = " \\\\ "
 
 # functions to make multiple dispatch easier
-tablestart(tab::RegressionTable{<:AbstractLatex}) = tablestart(tab.rndr, tab.align)
-underline(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = headerule(tab.rndr, colmin, colmax)
+tablestart(tab::RegressionTable{<:AbstractLatex}) = tablestart(tab.render, tab.align)
+underline(tab::RegressionTable{<:AbstractLatex}, colmin::Int, colmax::Int) = headerule(tab.render, colmin, colmax)
 
 
 
