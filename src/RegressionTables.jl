@@ -8,13 +8,8 @@ module RegressionTables
     #
     #   FUNCTIONALITY: (asterisk means priority)
     #   - write more serious tests
-    #   - allow custom ordering of blocks (e.g. [:estimates, :fe, :estimator, :statistics])
-    #   - HTML or CSV output
-    #   - custom statistics
     #
     #   TECHNICAL:
-    #   - Rewrite table cell/row formats using an encapsulating function instead
-    #      of strings (which would allow HTML <td></td>)
     #   - Formatting option: string (or function) for spacer rows
     #
     ##
@@ -43,7 +38,8 @@ module RegressionTables
     ##
     ##############################################################################
 
-    export regtable, LatexTable, LatexTableStar, AsciiTable, HtmlTable, AbstractRenderType
+    export regtable, LatexTable, LatexTableStar, AsciiTable, HtmlTable, AbstractRenderType,
+    AbstractAscii, AbstractLatex, AbstractHtml
     export Nobs, R2, R2McFadden, R2CoxSnell, R2Nagelkerke,
     R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC,
     FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within, PseudoR2, AdjPseudoR2

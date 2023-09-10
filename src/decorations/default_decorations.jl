@@ -52,11 +52,11 @@ end
 
 function make_estim_decorator(breaks=[0.01, 0.05, 0.1], sym='*'; wrapper=identity)
     @assert issorted(breaks)
-    @warn("`make_estim_decorator` is deprecated, set breaks by running `RegressionTables.default_breaks(::AbstractRenderType) = $breaks`,")
-    @warn("set symbol by running `RegressionTables.default_symbol(::AbstractRenderType) = \"$sym\"`,")
-    if wrapper != identity
-        @warn("and set wrapper by running `RegressionTables.wrapper(::AbstractRenderType, deco) = $(string(wrapper))(deco)`")
-    end
+    # @warn("`make_estim_decorator` is deprecated, set breaks by running `RegressionTables.default_breaks(::AbstractRenderType) = $breaks`,")
+    # @warn("set symbol by running `RegressionTables.default_symbol(::AbstractRenderType) = \"$sym\"`,")
+    # if wrapper != identity
+    #     @warn("and set wrapper by running `RegressionTables.wrapper(::AbstractRenderType, deco) = $(string(wrapper))(deco)`")
+    # end
     function estim_decorator(s, pval)
         (pval >= 0 || isnan(pval)) || @error "p value = $pval, but it needs to be non-negative"
 

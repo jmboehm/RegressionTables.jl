@@ -58,8 +58,8 @@ There are some changes to the defaults from version 0.5 and two additional setti
 
 - Interactions in coefficients now vary based on the type of table. In Latex, this now defaults to ` $\\times$ ` and in HTML ` &times; `. These can be changed by running:
   - `RegressionTables.interaction_combine(render::AbstractRenderType) = " & "`
-  - `RegressionTables.interaction_combine(render::RegressionTables.AbstractLatex) = " \$\\times\$ "`
-  - `RegressionTables.interaction_combine(render::RegressionTables.AbstractHtml) = " &times; "`
+  - `RegressionTables.interaction_combine(render::AbstractLatex) = " & "`
+  - `RegressionTables.interaction_combine(render::AbstractHtml) = " & "`
 - `print_estimator` default was `true`, now it is `true` if more than one type of regression is provided (i.e., "IV" and "OLS" will display the estimator, all "OLS" will not). Set to the old default by running:
   - `RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = true`
 - `number_regressions` default was `true`, now it is `true` if more than one regression is provided. Set to the old default by running:
@@ -92,7 +92,7 @@ Run
 RegressionTables.label(render::AbstractRenderType, ::Type{RegressionType}) = "Estimator"
 RegressionTables.fe_value(render::AbstractRenderType, v) = v ? "Yes" : ""
 RegressionTables.label_ols(render::AbstractRenderType) = "OLS"
-RegressionTables.label_iv(render::AbstractRenderType) = "OLS"
+RegressionTables.label_iv(render::AbstractRenderType) = "IV"
 RegressionTables.label_distribution(render::AbstractRenderType, d::Probit) = "Probit"# non-linear values now
 # display distribution instead of "NL"
 ```
@@ -114,16 +114,6 @@ It is also possible to create new statistics equivalent to the ones built in to 
 
 - `renderSettings` is deprecated, use `render` and `file`
 - `regressors` is deprecated, use `keep` `drop` and `order`
-- `below_decoration` is deprecated, set this globally by running:
-  - `RegressionTables.below_decoration(render::AbstractRenderType, s) = \"(\$s)\"`
-- `number_regressions_decoration` is deprecated, set this globally by running:
-  - `RegressionTables.number_regression_decoration(render::AbstractRenderType, s) = \"(\$s)\"`
-- `estim_decoration` is deprecated, depending on what needs to change from defaults, run:
-  - `RegressionTables.default_breaks(render::AbstractRenderType) = [0.001, 0.01, 0.05]`
-  - `RegressionTables.default_symbol(render::AbstractRenderType) = '*'`
-- `make_estim_decorator` is deprecated, see above for changes in breaks or the symbol. To add a wrapper to the decoration, run
-  - `RegressionTables.wrapper(::AbstractRenderType, deco) = \$wrapper(deco)`
-    - This can be set for only Latex or HTML by replacing `AbstractRenderType` with `AbstractLatex` or `AbstractHtml`
 
 ## A brief demonstration
 

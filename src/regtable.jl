@@ -509,10 +509,10 @@ function regtable(
                 coefvalues = repr.(render, coefvalues; str_format=estimformat)
             end
         else
-            @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
-            @warn("RegressionTables.default_breaks(render::AbstractRenderType) = [0.001, 0.01, 0.05]")
-            @warn("or set the default symbol globally by running")
-            @warn("RegressionTables.default_symbol(render::AbstractRenderType) = '*'")
+            # @warn("estim_decoration is deprecated. Set the breaks desired globally by running")
+            # @warn("RegressionTables.default_breaks(render::AbstractRenderType) = [0.001, 0.01, 0.05]")
+            # @warn("or set the default symbol globally by running")
+            # @warn("RegressionTables.default_symbol(render::AbstractRenderType) = '*'")
             if digits !== nothing
                 temp_coef = repr.(render, value.(coefvalues); digits)
             elseif estimformat !== nothing
@@ -532,8 +532,8 @@ function regtable(
                 coefbelow = repr.(render, coefbelow; str_format=statisticformat)
             end
         else
-            @warn("below_decoration is deprecated. Set the below decoration globally by running")
-            @warn("RegressionTables.below_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
+            # @warn("below_decoration is deprecated. Set the below decoration globally by running")
+            # @warn("RegressionTables.below_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
             if digits_stats !== nothing
                 temp_coef = repr.(render, value.(coefbelow); digits=digits_stats)
             elseif statisticformat !== nothing
@@ -568,8 +568,8 @@ function regtable(
             push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, render; combine_equals=true)
         elseif v == :number_regressions
             if number_regressions_decoration !== nothing
-                @warn("number_regressions_decoration is deprecated, specify decoration globally by running")
-                @warn("RegressionTables.number_regression_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
+                # @warn("number_regressions_decoration is deprecated, specify decoration globally by running")
+                # @warn("RegressionTables.number_regression_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
                 push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, render; combine_equals=false)
             else
                 push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, render; combine_equals=false)
