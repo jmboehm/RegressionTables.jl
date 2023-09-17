@@ -64,7 +64,7 @@ Filter = t -> typeof(t) === DataType && t <: RegressionTables.AbstractCoefName &
 RegressionTables.calc_widths
 RegressionTables.update_widths!
 RegressionTables.value_pos
-RegressionTables.combine_fe
+RegressionTables.combine_other_statistics
 RegressionTables.combine_statistics
 RegressionTables.build_nm_list
 RegressionTables.reorder_nms_list
@@ -82,7 +82,7 @@ This section describes how different types are displayed. Throughout this packag
 2. Since most things in this package are types, each can be customized
 
 ```@docs
-RegressionTables.render
+Base.repr
 ```
 
 ## Simple Regression Result

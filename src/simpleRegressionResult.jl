@@ -8,8 +8,8 @@
         coefpvalues::Vector{Float64}
         statistics::Vector
         regressiontype::RegressionType
-        fixedeffects::Union{Nothing, Vector}
         dof_residual::Int
+        other_data::Dict{Symbol, Vector{<:Pair}}
     end
 
 This is a summary type that takes other regression results
@@ -30,8 +30,13 @@ statistics (see [`AbstractRegressionStatistic`](@ref)). If the
 regression has fixed effects, then it should also define an
 [`fe_terms`](@ref) function that parses the necessary formula and
 returns [`FixedEffectCoefName`](@ref) objects.
+
+The `other_data` field is used to store other data that is not
+stored in the other fields. For example, the `other_data` field
+often includes fixed effects, clustering information, or random
+effects.
 """
-struct SimpleRegressionResult
+mutable struct SimpleRegressionResult
     responsename::Union{String, <:AbstractCoefName}
     coefnames::Vector# either string or AbstractCoefName
     coefvalues::Vector{Float64}
@@ -39,8 +44,16 @@ struct SimpleRegressionResult
     coefpvalues::Vector{Float64}
     statistics::Vector
     regressiontype::RegressionType
-    fixedeffects::Union{Nothing, Vector}
     dof_residual::Int
+    other_data::Dict{Symbol, Vector{<:Pair}}
+end
+
+function Base.getproperty(x::SimpleRegressionResult, s::Symbol)
+    if hasfield(SimpleRegressionResult, s)
+        getfield(x, s)
+    else
+        get(getfield(x, :other_data), s, nothing)
+    end
 end
 
 StatsAPI.responsename(x::SimpleRegressionResult) = x.responsename
@@ -76,20 +89,24 @@ function SimpleRegressionResult(
     regression_statistics::Vector,
     reg_type=RegressionType(rr),
     fixedeffects::Union{Nothing, Vector}=nothing,
-    df=dof_residual(rr);
+    df=dof_residual(rr),
+    other=other_stats(rr);
     labels=Dict{String, String}(),
     transform_labels=Dict{String, String}(),
 )
     SimpleRegressionResult(
-        replace_name(lhs, labels, transform_labels),
-        replace_name.(rhs, Ref(labels), Ref(transform_labels)),
+        lhs,
+        rhs,
+        # replace_name(lhs, labels, transform_labels),
+        # replace_name.(rhs, Ref(labels), Ref(transform_labels)),
         coefvalues,
         coefstderrors,
         coefpvalues,
         make_reg_stats.(Ref(rr), regression_statistics),
         reg_type,
-        replace_name.(fixedeffects, Ref(labels), Ref(transform_labels)),
-        df
+        #replace_name.(fixedeffects, Ref(labels), Ref(transform_labels)),
+        df,
+        other
     )
 end
 
@@ -125,6 +142,8 @@ make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, fir
 
 default_regression_statistics(x::AbstractRenderType, rr::RegressionModel) = default_regression_statistics(rr)
 default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
+
+other_stats(x::RegressionModel) = Dict{Symbol, Vector{Pair}}()
 
 """
     fe_terms(rr::RegressionModel; args...)

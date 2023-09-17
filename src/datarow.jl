@@ -191,7 +191,7 @@ function add_element!(row::DataRow, val::Pair, align_i, colwidth_i, print_underl
 end
 
 Base.size(x::DataRow) = (length(x.data),)
-function Base.getindex(row::DataRow{T}, i) where {T}
+function Base.getindex(row::DataRow{T}, i::Int) where {T}
     v = 0
     for x in row.data
         if isa(x, Pair)
@@ -205,7 +205,7 @@ function Base.getindex(row::DataRow{T}, i) where {T}
     end
     error("Index $i out of bounds")
 end
-function Base.setindex!(row::DataRow, val, i)
+function Base.setindex!(row::DataRow, val, i::Int)
     v = 0
     for j in eachindex(row.data)
         x = row.data[j]

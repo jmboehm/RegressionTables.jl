@@ -1240,6 +1240,43 @@ Pseudo R2                0.006       0.811       0.347       0.297
 ------------------------------------------------------------------
 ```
 
+## Show Clustered Standard Errors
+
+Displays whether or not the standard errors are clustered and in what ways.
+
+```jldoctest
+df_cigar = dataset("plm", "Cigar");
+
+rr_c1 = reg(df_cigar, @formula(Sales ~ NDI + fe(State) + fe(Year)), Vcov.cluster(:State));
+rr_c2 = reg(df_cigar, @formula(Sales ~ NDI + Price + fe(State) + fe(Year)), Vcov.cluster(:State, :Year));
+rr_c3 = reg(df_cigar, @formula(Sales ~ NDI + Price + fe(State)), Vcov.cluster(:Year));
+regtable(rr_c1, rr_c2, rr_c3; print_clusters=true, labels=Dict("Year" => "Sales Year"))
+
+# output
+
+ 
+----------------------------------------------------------
+                                        Sales
+                           -------------------------------
+                                (1)        (2)         (3)
+----------------------------------------------------------
+NDI                        -0.007**    -0.005*      0.002*
+                            (0.003)    (0.003)     (0.001)
+Price                                 -0.823**   -0.413***
+                                       (0.230)     (0.084)
+----------------------------------------------------------
+State Fixed Effects             Yes        Yes         Yes
+Sales Year Fixed Effects        Yes        Yes
+----------------------------------------------------------
+State Clustering                Yes        Yes
+Sales Year Clustering                      Yes         Yes
+----------------------------------------------------------
+N                             1,380      1,380       1,380
+R2                            0.832      0.846       0.774
+Within-R2                     0.154      0.227       0.273
+----------------------------------------------------------
+```
+
 ## MixedModels Support
 
 This package does support [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl), but instead of displaying fixed effects it will display the variation from the random effects.

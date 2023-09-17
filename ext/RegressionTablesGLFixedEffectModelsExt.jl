@@ -13,21 +13,29 @@ function RegressionTables.RegressionType(x::GLFixedEffectModel)
     end
 end
 
-function RegressionTables.fe_terms(rr::GLFixedEffectModel)
+function RegressionTables.other_stats(rr::GLFixedEffectModel)
     out = []
     if !isdefined(rr, :formula)
-        return nothing
+        return Dict{Symbol, Vector{Pair}}()
     end
     for t in rr.formula.rhs
         if has_fe(t)
             push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
         end
     end
-    if length(out) > 0
-        out
+    if length(out) > 0 && rr.nclusters === nothing
+        out_dict = Dict(:fe => (out .=> RegressionTables.FixedEffectValue(true)))
+    elseif length(out) > 0 && rr.nclusters !== nothing
+        out_dict = Dict(
+            :fe => (out .=> RegressionTables.FixedEffectValue(true)),
+            :clusters => collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters)))
+        )
+    elseif length(out) == 0 && rr.nclusters !== nothing
+        out_dict = Dict(:clusters => collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters))))
     else
-        nothing
+        out_dict = Dict{Symbol, Vector{Pair}}()
     end
+    out_dict
 end
 
 # necessary because GLFixedEffectModels.jl does not have a formula function

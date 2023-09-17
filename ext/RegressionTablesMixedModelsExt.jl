@@ -24,13 +24,14 @@ RegressionTables.standardize_coef_values(x::MixedModel, coefvalues, coefstderror
 Technically not a fixed effect term, but this allows it to fit into
 the current setup
 =#
-function RegressionTables.fe_terms(x::MixedModel; args...)
+function RegressionTables.other_stats(x::MixedModel; args...)
     f = formula(x)
     if length(f.rhs) == 1
-        return nothing
+        return Dict{Symbol, Vector{Pair}}()
     end
     out = RegressionTables.RandomEffectCoefName[]
     vals = x.σs
+    out_vals = Float64[]
     for re in f.rhs[2:end]
         rhs_sym = re.rhs |> Symbol
         rhs_name = RegressionTables.CoefName(String(rhs_sym))
@@ -39,12 +40,14 @@ function RegressionTables.fe_terms(x::MixedModel; args...)
         if isa(lhs_sym, AbstractVector)
             for (ls, ln) in zip(lhs_sym, lhs_names)
                 val = vals[rhs_sym][ls]
-                push!(out, RegressionTables.RandomEffectCoefName(rhs_name, ln, val))
+                push!(out, RegressionTables.RandomEffectCoefName(rhs_name, ln))
+                push!(out_vals, val)
             end
         else# just one term
-            push!(out, RegressionTables.RandomEffectCoefName(rhs_name, lhs_names, vals[rhs_sym][lhs_sym]))
+            push!(out, RegressionTables.RandomEffectCoefName(rhs_name, lhs_names))
+            push!(out_vals, vals[rhs_sym][lhs_sym])
         end
     end
-    out
+    Dict(:randomeffects => (out .=> RegressionTables.RandomEffectValue.(out_vals)))
 end
 end

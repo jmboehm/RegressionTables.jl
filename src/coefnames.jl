@@ -212,6 +212,21 @@ Base.get(x::Dict{String, String}, val::FixedEffectCoefName, def::FixedEffectCoef
 
 Base.replace(x::FixedEffectCoefName, r::Pair) = FixedEffectCoefName(replace(x.name, r))
 
+struct ClusterCoefName <: AbstractCoefName
+    name::AbstractCoefName
+    ClusterCoefName(x::AbstractCoefName) = new(x)
+end
+
+ClusterCoefName(x::String) = ClusterCoefName(CoefName(x))
+
+value(x::ClusterCoefName) = x.name
+Base.string(x::ClusterCoefName) = string(x.name)
+Base.get(x::Dict{String, String}, val::ClusterCoefName, def::ClusterCoefName) =
+    ClusterCoefName(get(x, val.name, def.name))
+
+Base.replace(x::ClusterCoefName, r::Pair) = ClusterCoefName(replace(x.name, r))
+
+
 """
     struct RandomEffectCoefName <: AbstractCoefName
         rhs::CoefName
@@ -226,8 +241,7 @@ since that is often the useful information on the relationship between rhs and l
 struct RandomEffectCoefName <: AbstractCoefName
     rhs::CoefName
     lhs::AbstractCoefName
-    val::Real# real so it could also be changed to true/false
-    RandomEffectCoefName(rhs::CoefName, lhs::AbstractCoefName, v::Real) = new(rhs, lhs, v)
+    RandomEffectCoefName(rhs::CoefName, lhs::AbstractCoefName) = new(rhs, lhs)
 end
 
 value(x::RandomEffectCoefName) = x
@@ -237,5 +251,5 @@ Base.:(==)(x::RandomEffectCoefName, y::RandomEffectCoefName) = string(x) == stri
 function Base.get(x::Dict{String, String}, val::RandomEffectCoefName, def::RandomEffectCoefName)
     rhs = get(x, val.rhs, def.rhs)
     lhs = get(x, val.lhs, def.lhs)
-    RandomEffectCoefName(rhs, lhs, val.val)
+    RandomEffectCoefName(rhs, lhs)
 end

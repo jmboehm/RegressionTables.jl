@@ -1,3 +1,8 @@
+abstract type AbstractRegressionData end
+
+Base.broadcastable(x::AbstractRegressionData) = Ref(x)
+
+
 """
 AbstractRegressionStatistic encapsulates all regression statistics
 (e.g., number of observations, ``R^2``, etc.). In most cases, the individual regression
@@ -28,7 +33,7 @@ end
 RegressionTable.label(render::AbstractRenderType, x::Type{YMean}) = "Mean of Y"
 ```
 """
-abstract type AbstractRegressionStatistic end
+abstract type AbstractRegressionStatistic <: AbstractRegressionData end
 
 
 """
@@ -451,7 +456,7 @@ New values can be added by subtyping `AbstractUnderStatistic` and defining
 the struct and a constructor. The constructer should accept
 the standard error, the coefficient, and the degrees of freedom.
 """
-abstract type AbstractUnderStatistic end
+abstract type AbstractUnderStatistic <: AbstractRegressionData end
 
 """
     struct TStat <: AbstractUnderStatistic
@@ -510,7 +515,7 @@ value(x::AbstractUnderStatistic) = x.val
 
 The value of a coefficient and its p-value.
 """
-struct CoefValue
+struct CoefValue <: AbstractRegressionData
     val::Float64
     pvalue::Float64
 end
@@ -540,7 +545,7 @@ Or for individual distributions by running:
 Base.repr(render::AbstractRenderType, x::\$Distribution; args...) = \$Name
 ```
 """
-struct RegressionType{T}
+struct RegressionType{T} <: AbstractRegressionData
     val::T
     is_iv::Bool
     RegressionType(x::T, is_iv::Bool=false) where {T<:UnivariateDistribution} = new{T}(x, is_iv)
@@ -566,7 +571,7 @@ be changed by setting
 RegressionTables.label(render::AbstractRenderType, x::Type{RegressionTables.HasControls}) = \$name
 ```
 """
-struct HasControls
+struct HasControls <: AbstractRegressionData
     val::Bool
 end
 value(x::HasControls) = x.val
@@ -588,7 +593,7 @@ The default displays these as `(\$i)`, which can be set by running
 RegressionTables.number_regressions_decoration(render::AbstractRenderType, s) = "(\$s)"
 ```
 """
-struct RegressionNumbers
+struct RegressionNumbers <: AbstractRegressionData
     val::Int
 end
 value(x::RegressionNumbers) = x.val
@@ -609,7 +614,7 @@ value(x::String) = x
 A simple store of true/false for whether a fixed effect is used in the regression, used to determine
 how to display the value. The default is `"Yes"` and `""`, which can be changed by setting [`fe_value`](@ref).
 """
-struct FixedEffectValue
+struct FixedEffectValue <: AbstractRegressionData
     val::Bool
 end
 
@@ -623,8 +628,26 @@ value(x::FixedEffectValue) = x.val
 A simple sotre of the random effect value, by default equal to the standard deviation of the random effect.
 Typically will then be displayed the same as other `Float64` values.
 """
-struct RandomEffectValue
+struct RandomEffectValue <: AbstractRegressionData
     val::Real# real so it could also be changed to true/false
 end
 
 value(x::RandomEffectValue) = x.val
+
+
+"""
+    struct ClusterValue
+        val::Int
+    end
+
+A simple store of the number of clusters used in the regression. Typically will be displayed
+the same as other `Bool` values (e.g., `"Yes"` or `""`).
+"""
+struct ClusterValue <: AbstractRegressionData
+    val::Int
+end
+
+value(x::ClusterValue) = x.val
+
+fill_missing(x::AbstractRegressionData) = missing
+fill_missing(x::FixedEffectValue) = FixedEffectValue(false)

@@ -63,6 +63,9 @@ RegressionTables.default_print_control_indicator
 RegressionTables.default_standardize_coef
 RegressionTables.default_print_estimator
 RegressionTables.default_regression_statistics
+RegressionTables.default_print_randomeffects
+RegressionTables.default_print_clusters
+
 ```
 
 ## Other Defaults
@@ -81,6 +84,7 @@ RegressionTables.number_regressions_decoration
 RegressionTables.fe_suffix
 RegressionTables.wrapper
 RegressionTables.fe_value
+RegressionTables.cluster_suffix
 ```
 
 ## Labels

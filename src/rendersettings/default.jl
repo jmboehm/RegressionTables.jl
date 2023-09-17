@@ -111,6 +111,18 @@ RegressionTables.fe_suffix(render::AbstractRenderType) = " Fixed Effects"
 """
 fe_suffix(render::AbstractRenderType) = " Fixed Effects"
 
+
+"""
+    cluster_suffix(render::AbstractRenderType)
+
+Used to add a suffix to the clustering and defaults to " Clustering".
+Change this by running:
+```julia
+RegressionTables.cluster_suffix(render::AbstractRenderType) = " Clustering"
+```
+"""
+cluster_suffix(render::AbstractRenderType) = " Clustering"
+
 """
     fe_value(render::AbstractRenderType, v)
 
@@ -257,6 +269,13 @@ By default, will render the coefficient and add `" Fixed Effects"` as a suffix, 
 Base.repr(render::AbstractRenderType, x::FixedEffectCoefName; args...) = repr(render, value(x); args...) * fe_suffix(render)
 
 """
+    Base.repr(render::AbstractRenderType, x::RandomEffectCoefName; args...)
+
+By default, will render the coefficient and add the `" Clustering"` function as a separator, also see [Regression Statistics](@ref)
+"""
+Base.repr(render::AbstractRenderType, x::ClusterCoefName; args...) = repr(render, value(x); args...) * cluster_suffix(render)
+
+"""
     Base.repr(render::AbstractRenderType, x::InteractedCoefName; args...)
 
 By default, will render the coefficient and add the `interaction_combine` function as a separator, also see [Regression Statistics](@ref)
@@ -350,6 +369,18 @@ Base.repr(render::AbstractRenderType, x::RandomEffectCoefName; args...) =
 How to render a [`FixedEffectValue`](@ref) and defaults to calling [`fe_value`](@ref)
 """
 Base.repr(render::AbstractRenderType, x::FixedEffectValue; args...) = fe_value(render, value(x))
+
+"""
+    Base.repr(render::AbstractRenderType, x::ClusterValue; args...)
+
+How to render a [`ClusterValue`](@ref) and defaults to how `true` and `false` is displayed.
+
+If wanting to show the size of the clusters, run:
+```julia
+RegressionTables.repr(render::AbstractRenderType, x::ClusterValue; args...) = repr(render, value(x); args...)
+```
+"""
+Base.repr(render::AbstractRenderType, x::ClusterValue; args...) = repr(render, value(x) > 0; args...)
 
 """
     Base.repr(render::AbstractRenderType, x::RandomEffectValue; args...)

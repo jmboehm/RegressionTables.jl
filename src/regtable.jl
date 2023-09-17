@@ -84,11 +84,11 @@ default_digits(render::AbstractRenderType, x) = 3
     default_section_order(render::AbstractRenderType)
 
 Default section order for the table, defaults to
-`[:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]`
+`[:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :randomeffects, :break, :clusters, :break, :regtype, :break, :controls, :break, :stats, :extralines]`
 
 `:break` is a special keyword that adds a line break between sections (e.g. between `\\midrule` in Latex)
 """
-default_section_order(render::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :regtype, :break, :controls, :break, :stats, :extralines]
+default_section_order(render::AbstractRenderType) = [:groups, :depvar, :number_regressions, :break, :coef, :break, :fe, :break, :randomeffects, :break, :clusters, :break, :regtype, :break, :controls, :break, :stats, :extralines]
 
 """
     default_align(render::AbstractRenderType)
@@ -129,6 +129,13 @@ Defaults to `true`, but the section will not be printed if there are not fixed e
 If `false` the fixed effects are not printed
 """
 default_print_fe(render::AbstractRenderType, rrs) = true
+
+"""
+    default_print_randomeffects(render::AbstractRenderType, rrs)
+
+Defaults to `true`, but the section will not be printed if there are not random effects.
+"""
+default_print_randomeffects(render::AbstractRenderType, rrs) = true
 
 """
     default_groups(render::AbstractRenderType, rrs)
@@ -284,6 +291,13 @@ if one regression is "OLS" and another is "IV", then this section will default t
 default_print_estimator(render::AbstractRenderType, rrs) = length(unique(RegressionType.(rrs))) > 1
 
 """
+    default_print_clusters(render::AbstractRenderType, rrs)
+
+Defaults to `false`, which means no cluster information is printed.
+"""
+default_print_clusters(render::AbstractRenderType, rrs) = false
+
+"""
     default_regression_statistics(render::AbstractRenderType, rrs)
 
 Defaults to a union of the default_regression_statistics for each regression.
@@ -364,6 +378,8 @@ function regtable(
     print_fe_suffix = default_print_fe_suffix(render),
     print_control_indicator = default_print_control_indicator(render),
     standardize_coef=default_standardize_coef(render, rrs),# can be vector with same length as rrs
+    print_clusters=default_print_clusters(render, rrs),
+    print_randomeffects=default_print_randomeffects(render, rrs),
     digits=nothing,
     digits_stats=nothing,
     estimformat=nothing,
@@ -372,6 +388,7 @@ function regtable(
     number_regressions_decoration::Union{Nothing, Function}=nothing,
     estim_decoration::Union{Nothing, Function}=nothing,
     regressors=nothing,
+    kwargs...
 ) where {T<:AbstractRenderType}
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
     @assert header_align ∈ (:l, :r, :c) "header_align must be one of :l, :r, :c"
@@ -452,6 +469,14 @@ function regtable(
             if print_control_indicator
                 push!(sections, :controls)
             end
+        elseif s == :clusters
+            if print_clusters
+                push!(sections, :clusters)
+            end
+        elseif s == :randomeffects
+            if print_randomeffects
+                push!(sections, :randomeffects)
+            end
         else
             push!(sections, s)
         end
@@ -464,11 +489,14 @@ function regtable(
         rrs,
         standardize_coef;
         regression_statistics,
-        labels,
-        fixedeffects,
-        transform_labels,
+        # labels,
+        # fixedeffects,
+        # transform_labels,
     )
-
+    for t in tables
+        t.responsename = replace_name(t.responsename, labels, transform_labels)
+        t.coefnames = replace_name.(t.coefnames, Ref(labels), Ref(transform_labels))
+    end
     out = Vector{DataRow{T}}()
     breaks = Int[]
     wdths=fill(0, length(tables)+1)
@@ -592,11 +620,6 @@ function regtable(
                     push_DataRow!(out, temp, align, wdths, false, render)
                 end
             end
-        elseif v == :fe
-            fe = combine_fe(tables, fixedeffects; print_fe_suffix)
-            if !isnothing(fe)
-                push_DataRow!(out, fe, align, wdths, false, render)
-            end
         elseif v == :regtype
             regressiontype = vcat([RegressionType], [t.regressiontype for t in tables])
             push_DataRow!(out, regressiontype, align, wdths, false, render)
@@ -618,6 +641,17 @@ function regtable(
                 HasControls.(v) |> collect
             )
             push_DataRow!(out, dat, align, wdths, false, render)
+        else
+            temp = [getproperty(t, v) for t in tables]
+            if all(isnothing, temp)
+                continue
+            end
+            i = findfirst(!isnothing, temp)
+            fill_val = fill_missing(last(first(temp[i])))# first element of vector, last value of pair
+            st = combine_other_statistics(temp; fill_val, print_fe_suffix, fixedeffects, labels, transform_labels, kwargs...)
+            if !isnothing(st)
+                push_DataRow!(out, st, align, wdths, false, render)
+            end
         end
     end
     if length(breaks) == 0
@@ -636,15 +670,27 @@ function regtable(
 end
 
 """
-    combine_fe(tables, fixedeffects; print_fe_suffix=true)
+    combine_other_statistics(combine_other_statistics(
+        stats;
+        fill_val=missing,
+        print_fe_suffix=true,
+        fixedeffects=Vector{String}(),
+        labels=Dict{String, String}(),
+        transform_labels=Dict{String, String}(),
+        kwargs...
+    )
 
-Takes a set of [`SimpleRegressionResult`](@ref) and combines the fixed effects
-into a single matrix. The first matrix column is a list of unique fixed
-effects and the remaining columns are a boolean matrix indicating which
-fixed effects are present in each regression.
+Takes a set of [`SimpleRegressionResult`](@ref) and combines the `other_stats`
+section. These stats should be a vector of pairs, so this function expects a vector
+of these vector pairs or nothing. The function will combine the pairs into a single
+matrix. The first matrix column is a list of unique names which are the first value
+of the pairs and the rest of the matrix is the last value of the pairs organized.
 
 ## Arguments
-- `tables` is a `Vector` of [`SimpleRegressionResult`](@ref) to combine
+- `stats` is a `Vector` of `Vector{Pair}` or `nothing` that should be combined.
+- `fill_val` defaults to `missing` but is the default value if the statistic is not
+   present in that regression. For example, with fixed effects this defaults to
+   `FixedEffectValue(false)` if the fixed effect is not present in the regression.
 - `fixedeffects` is a `Vector` of fixed effects to include in the table. 
    Defaults to `Vector{String}()`, which means all fixed effects are included.
    Can also be regex, integers or ranges to select which fixed effects
@@ -652,57 +698,59 @@ fixed effects are present in each regression.
    be printed with a suffix. Defaults to `true`, which means the fixed effects
    will be printed as `\$X Fixed Effects`. If `false`, the fixed effects will
    just be the fixed effect (`\$X`).
+- `labels` is the labels from the main `regtable`, used to change the names of
+   the names.
+- `transform_labels` is the transform_labels from the main `regtable`.
+- `kwargs` are any other `kwargs` passed to `regtable`, allowing for flexible
+   arguments for truly custom type naming.
 """
-function combine_fe(tables, fixedeffects; print_fe_suffix=true)
-    fe = []
-    for table in tables
-        if !isnothing(table.fixedeffects)
-            for f in table.fixedeffects
-                if !(string(f) in string.(fe))
-                    push!(fe, f)
+function combine_other_statistics(
+    stats;
+    fill_val=missing,
+    print_fe_suffix=true,
+    fixedeffects=Vector{String}(),
+    labels=Dict{String, String}(),
+    transform_labels=Dict{String, String}(),
+    kwargs...
+)
+    nms = []
+    for s in stats
+        if !isnothing(s)
+            for f in first.(s)
+                if !(string(f) in string.(nms))
+                    push!(nms, f)
                 end
             end
         end
     end
-    if length(fe) == 0
+    if length(nms) == 0
         return nothing
     end
+    nms = replace_name.(nms, Ref(labels), Ref(transform_labels))
     if length(fixedeffects) > 0
-        fe = build_nm_list(fe, fixedeffects)
+        nms = build_nm_list(nms, fixedeffects)
     end
-    mat = Matrix{Union{Missing, Any}}(missing, length(fe), 0)
-    for table in tables
-        mat = hcat(mat, make_fe_vec(fe, table.fixedeffects))
-    end
-    if !print_fe_suffix
-        fe = value.(fe)
-    end
-    hcat(fe, mat)
-end
-
-function make_fe_vec(fe_list, random_effects::Vector{RandomEffectCoefName})
-    out = Vector{Union{Missing, RandomEffectValue}}(missing, length(fe_list))
-    fe_list = string.(fe_list)
-    for r in random_effects
-        i = findfirst(string(r) .== fe_list)
-        if i === nothing
+    mat = Matrix{Union{Missing, Any}}(missing, length(nms), length(stats))
+    for (i, s) in enumerate(stats)
+        if isnothing(s)
+            mat[:, i] .= fill_val
             continue
         end
-        out[i] = RandomEffectValue(r.val)
-    end
-    out
-end
-make_fe_vec(fe_list, fe_nothing::Nothing) = fill(FixedEffectValue(false), length(fe_list))
-function make_fe_vec(fe_list, fe::T) where {T} # should just be FixedEffectCoefName
-    out = Vector{Union{Missing, FixedEffectValue}}(missing, length(fe_list))
-    for (i, v) in enumerate(fe_list)
-        if v in fe
-            out[i] = FixedEffectValue(true)
-        elseif typeof(v) == T
-            out[i] = FixedEffectValue(false)
+        val_nms = first.(s)
+        val_nms = replace_name.(val_nms, Ref(labels), Ref(transform_labels))
+        for (j, nm) in enumerate(nms)
+            k = findfirst(string(nm) .== string.(val_nms))
+            if k === nothing
+                mat[j, i] = fill_val
+            else
+                mat[j, i] = last(s[k])
+            end
         end
     end
-    out
+    if !print_fe_suffix
+        nms = value.(nms)
+    end
+    hcat(nms, mat)
 end
 
 """
