@@ -38,5 +38,5 @@ DocMeta.setdocmeta!(
 )
 
 @testset "Regression Tables Documentation" begin
-    doctest(RegressionTables; manual=false)
+    doctest(RegressionTables)
 end

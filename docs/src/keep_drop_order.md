@@ -1,9 +1,9 @@
 ```@meta
 DocTestSetup = quote # hide
-    using RegressionTables, DataFrames, FixedEffectModels, RDatasets, CategoricalArrays
+    using RegressionTables, DataFrames, FixedEffectModels, RDatasets
 
     df = dataset("datasets", "iris")
-    df[!,:SpeciesDummy] = categorical(df[!,:Species])
+    df[!,:SpeciesDummy] = df[!,:Species]
 
     rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)))
     rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
@@ -30,10 +30,10 @@ the `keep`, `drop` and `order` keyword arguments act similarly and allow for qui
 
 Just to setup these examples:
 ```julia
-using RegressionTables, DataFrames, FixedEffectModels, RDatasets, CategoricalArrays
+using RegressionTables, DataFrames, FixedEffectModels, RDatasets
 
 df = dataset("datasets", "iris")
-df[!,:SpeciesDummy] = categorical(df[!,:Species])
+df[!,:SpeciesDummy] = df[!,:Species]
 
 rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)))
 rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
