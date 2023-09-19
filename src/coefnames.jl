@@ -147,7 +147,7 @@ end
 
 value(x::CategoricalCoefName) = x.name
 Base.string(x::CategoricalCoefName) = "$(value(x)): $(x.level)"
-get_coefname(x::CategoricalTerm) = [CategoricalCoefName(string(x.sym), string(n)) for n in x.contrasts.termnames]
+get_coefname(x::CategoricalTerm) = [CategoricalCoefName(string(x.sym), string(n)) for n in coefnames(x.contrasts)]
 function Base.get(x::Dict{String, String}, val::CategoricalCoefName, def::CategoricalCoefName)
     # similar to interactioncoefname, if the categorical term exactly matches what would be in StatsModels, just return that
     if haskey(x, string(val))

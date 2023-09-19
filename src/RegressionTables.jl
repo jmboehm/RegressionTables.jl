@@ -48,6 +48,8 @@ module RegressionTables
 
     export make_estim_decorator
 
+    export latexOutput, asciiOutput, htmlOutput
+
 
     ##############################################################################
     ##
