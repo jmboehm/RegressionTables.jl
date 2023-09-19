@@ -133,7 +133,7 @@ RegressionTables.categorical_equal(render::AbstractRenderType) = " = "
 RegressionTables.categorical_equal(render::AbstractLatex) = " \$=\$ "
 ```
 
-You can also change how the categorical term is displayed by changing the [`render`](@ref) function. The default is:
+You can also change how the categorical term is displayed by changing the [`repr`](@ref) function. The default is:
 ```julia
 Base.repr(render::AbstractRenderType, x::RegressionTables.CategoricalCoefName; args...) =
     "\$(RegressionTables.value(x))\$(RegressionTables.categorical_equal(render)) \$(x.level)"
@@ -147,7 +147,7 @@ end
 
 value(x::CategoricalCoefName) = x.name
 Base.string(x::CategoricalCoefName) = "$(value(x)): $(x.level)"
-get_coefname(x::CategoricalTerm) = [CategoricalCoefName(string(x.sym), string(n)) for n in coefnames(x.contrasts)]
+get_coefname(x::CategoricalTerm) = [CategoricalCoefName(string(x.sym), string(n)) for n in x.contrasts.coefnames]
 function Base.get(x::Dict{String, String}, val::CategoricalCoefName, def::CategoricalCoefName)
     # similar to interactioncoefname, if the categorical term exactly matches what would be in StatsModels, just return that
     if haskey(x, string(val))
