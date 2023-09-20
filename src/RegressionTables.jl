@@ -62,7 +62,7 @@ module RegressionTables
     include("RegressionStatistics.jl")
     include("coefnames.jl")
     include("regressiontable.jl")
-    include("simpleRegressionResult.jl")
+    include("regressionResults.jl")
     include("rendersettings/default.jl")
     include("rendersettings/ascii.jl")
     include("rendersettings/latex.jl")
