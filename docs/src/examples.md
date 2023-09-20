@@ -1290,14 +1290,38 @@ contr = Dict(:spkr => EffectsCoding(),
              :load => EffectsCoding(),
              :item => Grouping(),
              :subj => Grouping())
-kbm1 = fit(MixedModel, form1, MixedModels.dataset(:kb07); contrasts=contr, progress=false)
+# to make sure the results are always the same, these values help fix the model into one result
+fmreθ = [
+    0.8648075226444749, 0.43344406279292136, 0.532698219245229,
+    0.03139575786126669, 0.269825335511795, 0.5307313041693793,
+    0.23438217856147925, 0.0349964462168697, 0.948766814931185,
+    0.40866263683286375, 0.6055999220729944, 0.9928229644500718,
+    0.05342261972167761,
+]
+kbm1 = updateL!(setθ!(LinearMixedModel(form1, MixedModels.dataset(:kb07); contrasts=contr), fmreθ))
 form2 = @formula(rt_trunc ~ 1 + spkr + prec + load +
                           (1 + spkr + prec + load | subj))
-kbm2 = fit(MixedModel, form2, MixedModels.dataset(:kb07); contrasts=contr, progress=false)
+
+fmreθ = [
+    0.27115451643185495, 0.02114691520013967, 0.8794734878503344,
+    0.7343424423913391, 0.6603201740011742, 0.8497808579576883,
+    0.6355311618411573, 0.7807843933484198, 0.9669197738773895,
+    0.03814101806846881,
+]
+kbm2 = updateL!(setθ!(LinearMixedModel(form2, MixedModels.dataset(:kb07); contrasts=contr), fmreθ))
 form3 = @formula(rt_trunc ~ 1 + spkr + prec + load +
                           (1 + load | item) +
                           (1 + spkr + prec * load | subj))
-kbm3 = fit(MixedModel, form3, MixedModels.dataset(:kb07); contrasts=contr, progress=false)
+
+fmreθ = [
+    0.7221403658923715, 0.3078425012729602, 0.2917886795704724,
+    0.5000142926713435, 0.7426865162047754, 0.1731367021580622,
+    0.020327890985133656, 0.7595447732279332, 0.48724482279872006,
+    0.6205745741154292, 0.3954285463498247, 0.09594315730251379,
+    0.13946651488431383, 0.6672989094861689, 0.2341117878022333,
+    0.053650218835408436, 0.143772505670828, 0.027822254707002392,
+]
+kbm3 = updateL!(setθ!(LinearMixedModel(form3, MixedModels.dataset(:kb07); contrasts=contr), fmreθ))
 regtable(kbm1, kbm2, kbm3; labels=Dict(
      "subj" => "Subject",
      "item" => "Item",
@@ -1315,24 +1339,24 @@ regtable(kbm1, kbm2, kbm3; labels=Dict(
                         ---------------------------------------
                                 (1)           (2)           (3)
 ---------------------------------------------------------------
-(Intercept)             2182.161***   2181.920***   2183.425***
-                           (78.193)      (45.665)      (77.399)
-Old Speaker               68.031***      68.195**     68.715***
-                           (19.106)      (21.254)      (18.602)
-Prec                    -333.638***   -333.475***   -333.387***
-                           (18.623)      (22.785)      (18.333)
-Load                      78.282***     78.523***     79.641***
-                           (19.057)      (21.719)      (19.116)
+(Intercept)             2181.911***   2182.017***   2180.342***
+                          (117.772)      (35.214)      (58.616)
+Old Speaker                  68.034        67.884       67.225*
+                           (53.386)      (74.384)      (28.793)
+Prec                    -333.636***     -333.785*   -334.362***
+                           (76.398)     (158.971)      (66.565)
+Load                         78.532        78.426        75.764
+                          (167.790)     (150.341)      (70.860)
 ---------------------------------------------------------------
-Item | (Intercept)          358.402                     354.490
-Item | Load                  15.725                      19.726
-Subject | (Intercept)       318.842       311.305       319.695
-Subject | Old Speaker        67.114        73.680        67.566
-Subject | Prec               59.029        95.949        58.425
-Subject | Load               62.973        80.922        83.850
-Subject | Prec & Load                                   102.091
+Item | (Intercept)          447.735                      40.270
+Item | Load                 735.081                     109.918
+Subject | (Intercept)       639.374       220.685       542.038
+Subject | Old Speaker       377.476       537.692       265.104
+Subject | Prec              556.544     1,180.880       514.950
+Subject | Load              783.505     1,115.791       751.626
+Subject | Prec & Load                                   855.252
 ---------------------------------------------------------------
 N                             1,789         1,789         1,789
-Log Likelihood          -14,403.064   -14,555.420   -14,394.150
+Log Likelihood          -14,685.198   -14,765.033   -14,711.866
 ---------------------------------------------------------------
 ```
