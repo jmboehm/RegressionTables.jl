@@ -489,9 +489,6 @@ function regtable(
         rrs,
         standardize_coef;
         regression_statistics,
-        # labels,
-        # fixedeffects,
-        # transform_labels,
     )
     for t in tables
         t.responsename = replace_name(t.responsename, labels, transform_labels)

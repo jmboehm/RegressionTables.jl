@@ -42,9 +42,7 @@ end
 function RegressionTables.SimpleRegressionResult(
     rr::GLFixedEffectModel,
     standardize_coef=false;
-    labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
-    transform_labels = Dict(),
     args...
 )
     coefvalues = coef(rr)
@@ -58,10 +56,8 @@ function RegressionTables.SimpleRegressionResult(
         coefstderrors,
         coefpvalues,
         regression_statistics,
-        RegressionType(rr),
-        RegressionTables.fe_terms(rr),
-        labels=labels,
-        transform_labels=transform_labels,
+        RegressionType(rr);
+        other=RegressionTables.other_stats(rr),
     )
 end
 

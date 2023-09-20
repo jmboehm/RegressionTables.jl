@@ -71,7 +71,7 @@ RegressionTables.reorder_nms_list
 RegressionTables.drop_names!
 RegressionTables.add_blank
 RegressionTables.missing_vars
-RegressionTables.fe_terms
+RegressionTables.other_stats
 RegressionTables.add_element!
 ```
 

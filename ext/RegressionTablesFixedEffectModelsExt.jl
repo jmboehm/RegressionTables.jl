@@ -17,7 +17,7 @@ RegressionTables.get_coefname(x::StatsModels.FunctionTerm{typeof(FixedEffectMode
 RegressionTables.get_coefname(x::FixedEffectModels.FixedEffectTerm) = RegressionTables.CoefName(string(x.x))
 
 """
-    RegressionTables.fe_terms(rr::FixedEffectModel; fixedeffects=String[], fe_suffix="Fixed Effects")
+    RegressionTables.other_stats(rr::FixedEffectModel; fixedeffects=String[], fe_suffix="Fixed Effects")
 
 Return a vector of fixed effects terms. If `fixedeffects` is not empty, only the fixed effects in `fixedeffects` are returned. If `fe_suffix` is not empty, the fixed effects are returned as a tuple with the suffix.
 """

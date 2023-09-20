@@ -28,7 +28,7 @@ following functions should be defined for the regression:
 The regression should also define functions related to regression
 statistics (see [`AbstractRegressionStatistic`](@ref)). If the
 regression has fixed effects, then it should also define an
-[`fe_terms`](@ref) function that parses the necessary formula and
+[`other_stats`](@ref) function that parses the necessary formula and
 returns [`FixedEffectCoefName`](@ref) objects.
 
 The `other_data` field is used to store other data that is not
@@ -88,23 +88,17 @@ function SimpleRegressionResult(
     coefpvalues::Vector{Float64},
     regression_statistics::Vector,
     reg_type=RegressionType(rr),
-    fixedeffects::Union{Nothing, Vector}=nothing,
     df=dof_residual(rr),
     other=other_stats(rr);
-    labels=Dict{String, String}(),
-    transform_labels=Dict{String, String}(),
 )
     SimpleRegressionResult(
         lhs,
         rhs,
-        # replace_name(lhs, labels, transform_labels),
-        # replace_name.(rhs, Ref(labels), Ref(transform_labels)),
         coefvalues,
         coefstderrors,
         coefpvalues,
         make_reg_stats.(Ref(rr), regression_statistics),
         reg_type,
-        #replace_name.(fixedeffects, Ref(labels), Ref(transform_labels)),
         df,
         other
     )
@@ -143,23 +137,22 @@ make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, fir
 default_regression_statistics(x::AbstractRenderType, rr::RegressionModel) = default_regression_statistics(rr)
 default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
 
+
+"""
+    other_stats(rr::RegressionModel; args...)
+
+Returns any other statistics to be displayed. This is used (if the appropriate extension is loaded)
+to display the fixed effects in a FixedEffectModel (or GLFixedEffectModel),
+clusters in those two, or Random Effects in a MixedModel. For other regressions, this
+returns an empty `Dict`.
+"""
 other_stats(x::RegressionModel) = Dict{Symbol, Vector{Pair}}()
 
-"""
-    fe_terms(rr::RegressionModel; args...)
-
-Returns the fixed effects terms for the regression. This is used (if the appropriate extension is loaded)
-to display the fixed effects in the regression table. For regressions that do not have fixed effects, this
-returns `nothing`.
-"""
-fe_terms(rr::RegressionModel; args...) = nothing
 
 function SimpleRegressionResult(
     rr::RegressionModel,
     standardize_coef=false;
-    labels::Dict{String, String} = Dict{String, String}(),
     regression_statistics::Vector = default_regression_statistics(rr),
-    transform_labels = Dict(),
     args...
 )
     coefvalues = coef(rr)
@@ -177,9 +170,7 @@ function SimpleRegressionResult(
         coefpvalues,
         regression_statistics,
         RegressionType(rr),
-        fe_terms(rr),
         dof_residual(rr);
-        labels=labels,
-        transform_labels=transform_labels,
+        other=other_stats(rr)
     )
 end
