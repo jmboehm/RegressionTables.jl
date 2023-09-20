@@ -395,6 +395,9 @@ function regtable(
     if isa(transform_labels, Symbol)
         transform_labels = _escape(transform_labels)
     end
+    if isa(standardize_coef, Bool)
+        standardize_coef = fill(standardize_coef, length(rrs))
+    end
     if regressors !== nothing
         @warn("regressors is deprecated. Use keep instead.")
         base_names = union(coefnames.(rrs)...)
@@ -485,20 +488,11 @@ function regtable(
         pop!(sections)
     end
 
-    tables = SimpleRegressionResult.(
-        rrs,
-        standardize_coef;
-        regression_statistics,
-    )
-    for t in tables
-        t.responsename = replace_name(t.responsename, labels, transform_labels)
-        t.coefnames = replace_name.(t.coefnames, Ref(labels), Ref(transform_labels))
-    end
     out = Vector{DataRow{T}}()
     breaks = Int[]
-    wdths=fill(0, length(tables)+1)
+    wdths=fill(0, length(rrs)+1)
 
-    nms = union(coefnames.(tables)...) |> unique
+    nms = union([replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels)) for rr in rrs]...) |> unique
     if length(keep) > 0
         nms = build_nm_list(nms, keep)
     end
@@ -508,16 +502,23 @@ function regtable(
     if length(order) > 0
         nms = reorder_nms_list(nms, order)
     end
-    coefvalues = Matrix{Any}(missing, length(nms), length(tables))
-    coefbelow = Matrix{Any}(missing, length(nms), length(tables))
-    for (i, table) in enumerate(tables)
+    coefvalues = Matrix{Any}(missing, length(nms), length(rrs))
+    coefbelow = Matrix{Any}(missing, length(nms), length(rrs))
+    for (i, rr) in enumerate(rrs)
+        cur_nms = replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels))
+        cur_coef = _coef(rr)
+        cur_coefpvalues = _pvalue(rr)
+        cur_stderror = _stderror(rr)
+        if standardize_coef[i]
+            cur_coef, cur_stderror = standardize_coef_values(rr, cur_coef, cur_stderror)
+        end
+
         for (j, nm) in enumerate(nms)
-            if nm in coefnames(table)
-                k = findfirst(coefnames(table) .== nm)
-                coefvalues[j, i] = CoefValue(coef(table)[k], table.coefpvalues[k])
-                if below_statistic !== nothing
-                    coefbelow[j, i] = below_statistic(stderror(table)[k], coef(table)[k], dof_residual(table))
-                end
+            k = findfirst(cur_nms .== nm)
+            k === nothing && continue
+            coefvalues[j, i] = CoefValue(cur_coef[k], cur_coefpvalues[k])
+            if below_statistic !== nothing
+                coefbelow[j, i] = below_statistic(cur_stderror[k], cur_coef[k], _dof_residual(rr))
             end
         end
     end
@@ -577,7 +578,7 @@ function regtable(
 
         if isa(s, Pair)
             v = first(s)
-            push_DataRow!(out, DataRow(vcat([last(s)], fill("", length(tables)))), align, wdths, false, render)
+            push_DataRow!(out, DataRow(vcat([last(s)], fill("", length(rrs)))), align, wdths, false, render)
         else
             v = s
         end
@@ -590,14 +591,15 @@ function regtable(
             push!(breaks, length(out))
         elseif v == :depvar
             underlines = i + 1 < length(sections) && sections[i+1] != :break
-            push_DataRow!(out, collect(responsename.(tables)), header_align, wdths, underlines, render; combine_equals=true)
+            y_name = replace_name.(_responsename.(rrs), Ref(labels), Ref(transform_labels))
+            push_DataRow!(out, collect(y_name), header_align, wdths, underlines, render; combine_equals=true)
         elseif v == :number_regressions
             if number_regressions_decoration !== nothing
                 # @warn("number_regressions_decoration is deprecated, specify decoration globally by running")
                 # @warn("RegressionTables.number_regression_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
-                push_DataRow!(out, number_regressions_decoration.(1:length(tables)), align, wdths, false, render; combine_equals=false)
+                push_DataRow!(out, number_regressions_decoration.(1:length(rrs)), align, wdths, false, render; combine_equals=false)
             else
-                push_DataRow!(out, RegressionNumbers.(1:length(tables)), align, wdths, false, render; combine_equals=false)
+                push_DataRow!(out, RegressionNumbers.(1:length(rrs)), align, wdths, false, render; combine_equals=false)
             end
         elseif v == :coef
             in_header = false
@@ -618,10 +620,10 @@ function regtable(
                 end
             end
         elseif v == :regtype
-            regressiontype = vcat([RegressionType], [t.regressiontype for t in tables])
+            regressiontype = vcat([RegressionType], collect(RegressionType.(rrs)))
             push_DataRow!(out, regressiontype, align, wdths, false, render)
         elseif v == :stats
-            stats = combine_statistics(tables)
+            stats = combine_statistics(rrs, regression_statistics)
             if digits_stats !== nothing
                 stats = repr.(render, stats; digits=digits_stats)
             elseif statisticformat !== nothing
@@ -629,7 +631,7 @@ function regtable(
             end
             push_DataRow!(out, stats, align, wdths, false, render)
         elseif v == :controls
-            v = missing_vars.(tables, Ref(string.(nms)))
+            v = missing_vars.(rrs, Ref(string.(nms)); labels, transform_labels)
             if !any(v)
                 continue
             end
@@ -639,7 +641,7 @@ function regtable(
             )
             push_DataRow!(out, dat, align, wdths, false, render)
         else
-            temp = [getproperty(t, v) for t in tables]
+            temp = [other_stats(t, v) for t in rrs]
             if all(isnothing, temp)
                 continue
             end
@@ -677,8 +679,8 @@ end
         kwargs...
     )
 
-Takes a set of [`SimpleRegressionResult`](@ref) and combines the `other_stats`
-section. These stats should be a vector of pairs, so this function expects a vector
+Takes vector of nothing or statistics and combines these into a single section.
+These stats should be a vector of pairs, so this function expects a vector
 of these vector pairs or nothing. The function will combine the pairs into a single
 matrix. The first matrix column is a list of unique names which are the first value
 of the pairs and the rest of the matrix is the last value of the pairs organized.
@@ -750,33 +752,24 @@ function combine_other_statistics(
     hcat(nms, mat)
 end
 
+display_val(x::Pair) = last(x)
+display_val(x::Type) = x
+f_val(x::Pair) = first(x)
+f_val(x::Type) = x
 """
-    combine_statistics(tables)
+    combine_statistics(tables, stats)
 
-Takes a set of [`SimpleRegressionResult`](@ref) and combines the statistics
-into a single matrix. The first matrix column is a list of unique statistics
-(either in `String` format or the type of [`AbstractRegressionStatistic`](@ref)). The rest of the columns are the values of the statistics, or `missing` if the statistic is not present in that regression.
+Takes a set of tables (`RegressionModel`s) and a vector of [`AbstractRegressionStatistic`](@ref).
+The `stats` argument can also be a pair of `AbstractRegressionStatistic => String`, which
+uses the second value as the name of the statistic in the final table.
 """
-function combine_statistics(tables)
-    types_strings = []
-    for t in tables
-        for s in t.statistics
-            if isa(s, AbstractRegressionStatistic)
-                push!(types_strings, typeof(s))
-            elseif isa(s, Pair)
-                push!(types_strings, last(s))
-            end
-        end
-    end
-    types_strings = unique(types_strings)
+function combine_statistics(tables, stats)
+    types_strings = display_val.(stats)
+    type_f = f_val.(stats)
     mat = Matrix{Any}(missing, length(types_strings), length(tables))
     for (i, t) in enumerate(tables)
-        for (j, s) in enumerate(t.statistics)
-            if isa(s, AbstractRegressionStatistic)
-                mat[j, i] = s
-            elseif isa(s, Pair)
-                mat[j, i] = first(s)
-            end
+        for (j, s) in enumerate(type_f)
+            mat[j, i] = s(t)
         end
     end
     hcat(types_strings, mat)
@@ -1065,13 +1058,13 @@ function drop_names!(nms, to_drop)
 end
 
 """
-    missing_vars(table::SimpleRegressionResult, coefs::Vector)
+    missing_vars(table::RegressionModel, coefs::Vector)
 
 Checks whether any of the coefficients in `table` are not in `coefs`,
 returns `true` if so, `false` otherwise.
 """
-function missing_vars(table::SimpleRegressionResult, coefs::Vector)
-    table_coefs = string.(coefnames(table))
+function missing_vars(table::RegressionModel, coefs::Vector; labels=Dict(), transform_labels=Dict())
+    table_coefs = string.(replace_name.(_coefnames(table), Ref(labels), Ref(transform_labels)))
     coefs = string.(coefs)
     for x in table_coefs
         if x ∉ coefs

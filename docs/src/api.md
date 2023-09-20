@@ -84,9 +84,3 @@ This section describes how different types are displayed. Throughout this packag
 ```@docs
 Base.repr
 ```
-
-## Simple Regression Result
-
-```@docs
-RegressionTables.SimpleRegressionResult
-```

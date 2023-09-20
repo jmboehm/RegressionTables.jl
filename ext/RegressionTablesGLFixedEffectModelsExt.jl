@@ -13,52 +13,30 @@ function RegressionTables.RegressionType(x::GLFixedEffectModel)
     end
 end
 
-function RegressionTables.other_stats(rr::GLFixedEffectModel)
-    out = []
-    if !isdefined(rr, :formula)
-        return Dict{Symbol, Vector{Pair}}()
-    end
-    for t in rr.formula.rhs
-        if has_fe(t)
-            push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
+function RegressionTables.other_stats(rr::GLFixedEffectModel, s::Symbol)
+    if s == :fe
+        out = []
+        if !isdefined(rr, :formula)
+            return Dict{Symbol, Vector{Pair}}()
         end
-    end
-    if length(out) > 0 && rr.nclusters === nothing
-        out_dict = Dict(:fe => (out .=> RegressionTables.FixedEffectValue(true)))
-    elseif length(out) > 0 && rr.nclusters !== nothing
-        out_dict = Dict(
-            :fe => (out .=> RegressionTables.FixedEffectValue(true)),
-            :clusters => collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters)))
-        )
-    elseif length(out) == 0 && rr.nclusters !== nothing
-        out_dict = Dict(:clusters => collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters))))
+        for t in rr.formula.rhs
+            if has_fe(t)
+                push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
+            end
+        end
+        if length(out) > 0
+            out .=> RegressionTables.FixedEffectValue(true)
+        else
+            nothing
+        end
+    elseif s == :clusters && rr.nclusters !== nothing
+       collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters)))
     else
-        out_dict = Dict{Symbol, Vector{Pair}}()
+        nothing
     end
-    out_dict
 end
 
 # necessary because GLFixedEffectModels.jl does not have a formula function
-function RegressionTables.SimpleRegressionResult(
-    rr::GLFixedEffectModel,
-    standardize_coef=false;
-    regression_statistics::Vector = default_regression_statistics(rr),
-    args...
-)
-    coefvalues = coef(rr)
-    coefstderrors = stderror(rr)
-    tt = coefvalues ./ coefstderrors
-    coefpvalues = ccdf.(Ref(FDist(1, dof_residual(rr))), abs2.(tt))
-    RegressionTables.SimpleRegressionResult(
-        rr,
-        rr.formula_schema,
-        coefvalues,
-        coefstderrors,
-        coefpvalues,
-        regression_statistics,
-        RegressionType(rr);
-        other=RegressionTables.other_stats(rr),
-    )
-end
+RegressionTables._formula(x::GLFixedEffectModel) = x.formula_schema
 
 end

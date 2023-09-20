@@ -1,107 +1,31 @@
 
-"""
-    struct SimpleRegressionResult
-        responsename::Union{String, <:AbstractCoefName}
-        coefnames::Vector# either string or AbstractCoefName
-        coefvalues::Vector{Float64}
-        coefstderrors::Vector{Float64}
-        coefpvalues::Vector{Float64}
-        statistics::Vector
-        regressiontype::RegressionType
-        dof_residual::Int
-        other_data::Dict{Symbol, Vector{<:Pair}}
+#=
+These are the necessary functions to create a table from a regression result.
+If the regression result does not provide a function by default, then
+within an extension, it is possible to define the necessary function.
+=#
+_formula(x::RegressionModel) = formula(x)
+function _responsename(x::RegressionModel)
+    x = get_coefname(_formula(x).lhs)
+    if isa(x, AbstractVector)
+        x = first(x)
     end
-
-This is a summary type that takes other regression results
-and stores them in a single unified type. If the regression
-follows [StatsAPI.jl](https://github.com/JuliaStats/StatsAPI.jl),
-then the default settings should work. In particular, the
-following functions should be defined for the regression:
-- `coef` to return the coefficient values
-- `stderror` to return the standard errors
-- `dof_residual` to return the residual degrees of freedom
-- `formula` to return the formula schema
-- `islinear` to return whether the regression is linear
-   (this can be avoided if the regression defines
-   `RegressionTables.RegressionType` in an extension)
-
-The regression should also define functions related to regression
-statistics (see [`AbstractRegressionStatistic`](@ref)). If the
-regression has fixed effects, then it should also define an
-[`other_stats`](@ref) function that parses the necessary formula and
-returns [`FixedEffectCoefName`](@ref) objects.
-
-The `other_data` field is used to store other data that is not
-stored in the other fields. For example, the `other_data` field
-often includes fixed effects, clustering information, or random
-effects.
-"""
-mutable struct SimpleRegressionResult
-    responsename::Union{String, <:AbstractCoefName}
-    coefnames::Vector# either string or AbstractCoefName
-    coefvalues::Vector{Float64}
-    coefstderrors::Vector{Float64}
-    coefpvalues::Vector{Float64}
-    statistics::Vector
-    regressiontype::RegressionType
-    dof_residual::Int
-    other_data::Dict{Symbol, Vector{<:Pair}}
+    x
 end
-
-function Base.getproperty(x::SimpleRegressionResult, s::Symbol)
-    if hasfield(SimpleRegressionResult, s)
-        getfield(x, s)
-    else
-        get(getfield(x, :other_data), s, nothing)
+function _coefnames(x::RegressionModel)
+    out = get_coefname(_formula(x).rhs)
+    if !isa(out, AbstractVector)
+        out = [out]
     end
+    out
 end
+_coef(x::RegressionModel) = coef(x)
+_stderror(x::RegressionModel) = stderror(x)
+_dof_residual(x::RegressionModel) = dof_residual(x)
 
-StatsAPI.responsename(x::SimpleRegressionResult) = x.responsename
-StatsAPI.coefnames(x::SimpleRegressionResult) = x.coefnames
-StatsAPI.coef(x::SimpleRegressionResult) = x.coefvalues
-StatsAPI.stderror(x::SimpleRegressionResult) = x.coefstderrors
-StatsAPI.dof_residual(x::SimpleRegressionResult) = x.dof_residual
-
-SimpleRegressionResult(rr::RegressionModel, f::FormulaTerm, args...; vargs...) =
-    SimpleRegressionResult(rr::RegressionModel, f.lhs, f.rhs, args...; vargs...)
-
-SimpleRegressionResult(rr::RegressionModel, lhs::FormulaTerm, rhs::AbstractTerm, args...; vargs...) =
-    SimpleRegressionResult(rr::RegressionModel, get_coefname(lhs), get_coefname(rhs), args...; vargs...)
-
-SimpleRegressionResult(rr::RegressionModel, lhs::AbstractTerm, rhs::AbstractTerm, args...; vargs...) =
-    SimpleRegressionResult(rr::RegressionModel, get_coefname(lhs), get_coefname(rhs), args...; vargs...)
-
-
-SimpleRegressionResult(rr::RegressionModel, lhs::Union{AbstractString, AbstractCoefName}, rhs::Union{AbstractString, AbstractCoefName}, args...; vargs...) =
-    SimpleRegressionResult(rr, lhs, [rhs], args...; vargs...)
-
-SimpleRegressionResult(rr::RegressionModel, lhs::Vector, rhs::Union{AbstractString, AbstractCoefName}, args...; vargs...) =
-    SimpleRegressionResult(rr, first(lhs), rhs, args...; vargs...)
-SimpleRegressionResult(rr::RegressionModel, lhs::Vector, rhs::Vector, args...; vargs...) =
-    SimpleRegressionResult(rr, first(lhs), rhs, args...; vargs...)
-function SimpleRegressionResult(
-    rr::RegressionModel,
-    lhs::Union{AbstractString, AbstractCoefName},
-    rhs::Vector,
-    coefvalues::Vector{Float64},
-    coefstderrors::Vector{Float64},
-    coefpvalues::Vector{Float64},
-    regression_statistics::Vector,
-    reg_type=RegressionType(rr),
-    df=dof_residual(rr),
-    other=other_stats(rr);
-)
-    SimpleRegressionResult(
-        lhs,
-        rhs,
-        coefvalues,
-        coefstderrors,
-        coefpvalues,
-        make_reg_stats.(Ref(rr), regression_statistics),
-        reg_type,
-        df,
-        other
-    )
+function _pvalue(x::RegressionModel)
+    tt = _coef(x) ./ _stderror(x)
+    ccdf.(Ref(FDist(1, _dof_residual(x))), abs2.(tt))
 end
 
 function standardize_coef_values(rr::T, coefvalues, coefstderrors) where {T <: RegressionModel}
@@ -139,38 +63,11 @@ default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
 
 
 """
-    other_stats(rr::RegressionModel; args...)
+    other_stats(rr::RegressionModel, s::Symbol)
 
 Returns any other statistics to be displayed. This is used (if the appropriate extension is loaded)
 to display the fixed effects in a FixedEffectModel (or GLFixedEffectModel),
 clusters in those two, or Random Effects in a MixedModel. For other regressions, this
-returns an empty `Dict`.
+returns `nothing`.
 """
-other_stats(x::RegressionModel) = Dict{Symbol, Vector{Pair}}()
-
-
-function SimpleRegressionResult(
-    rr::RegressionModel,
-    standardize_coef=false;
-    regression_statistics::Vector = default_regression_statistics(rr),
-    args...
-)
-    coefvalues = coef(rr)
-    coefstderrors = stderror(rr)
-    if standardize_coef
-        coefvalues, coefstderrors = standardize_coef_values(rr, coefvalues, coefstderrors)
-    end
-    tt = coefvalues ./ coefstderrors
-    coefpvalues = ccdf.(Ref(FDist(1, dof_residual(rr))), abs2.(tt))
-    SimpleRegressionResult(
-        rr,
-        formula(rr),
-        coefvalues,
-        coefstderrors,
-        coefpvalues,
-        regression_statistics,
-        RegressionType(rr),
-        dof_residual(rr);
-        other=other_stats(rr)
-    )
-end
+other_stats(x::RegressionModel, s::Symbol) = nothing

@@ -21,34 +21,34 @@ RegressionTables.get_coefname(x::FixedEffectModels.FixedEffectTerm) = Regression
 
 Return a vector of fixed effects terms. If `fixedeffects` is not empty, only the fixed effects in `fixedeffects` are returned. If `fe_suffix` is not empty, the fixed effects are returned as a tuple with the suffix.
 """
-function RegressionTables.other_stats(rr::FixedEffectModel)
-    out = []
-    if !isdefined(rr, :formula)
-        return Dict{Symbol, Vector{Pair}}()
-    end
-    rhs_itr = if isa(rr.formula.rhs, StatsModels.Term)
-        [rr.formula.rhs]
-    else
-        rr.formula.rhs
-    end
-    for t in rhs_itr
-        if has_fe(t)
-            push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
+function RegressionTables.other_stats(rr::FixedEffectModel, s::Symbol)
+    if s == :fe
+
+        out = []
+        if !isdefined(rr, :formula)
+            return Dict{Symbol, Vector{Pair}}()
         end
-    end
-    if length(out) > 0 && rr.nclusters === nothing
-        out_dict = Dict(:fe => (out .=> RegressionTables.FixedEffectValue(true)))
-    elseif length(out) > 0 && rr.nclusters !== nothing
-        out_dict = Dict(
-            :fe => (out .=> RegressionTables.FixedEffectValue(true)),
-            :clusters => collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters)))
-        )
-    elseif length(out) == 0 && rr.nclusters !== nothing
-        out_dict = Dict(:clusters => collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters))))
+        rhs_itr = if isa(rr.formula.rhs, StatsModels.Term)
+            [rr.formula.rhs]
+        else
+            rr.formula.rhs
+        end
+
+        for t in rhs_itr
+            if has_fe(t)
+                push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
+            end
+        end
+        if length(out) > 0
+            out .=> RegressionTables.FixedEffectValue(true)
+        else
+            nothing
+        end
+    elseif s == :clusters && rr.nclusters !== nothing
+        collect(RegressionTables.ClusterCoefName.(string.(keys(rr.nclusters))) .=> RegressionTables.ClusterValue.(values(rr.nclusters)))
     else
-        out_dict = Dict{Symbol, Vector{Pair}}()
+        nothing
     end
-    out_dict
 end
 
 function RegressionTables.default_regression_statistics(rr::FixedEffectModel)
