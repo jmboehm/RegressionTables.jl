@@ -24,3 +24,7 @@ Documenter.makedocs(
     ]
 )
 
+deploydocs(
+    repo = "github.com/jmboehm/RegressionTables.jl.git",
+    target = "build",
+)
