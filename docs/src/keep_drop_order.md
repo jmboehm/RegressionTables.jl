@@ -19,7 +19,7 @@ end # hide
 Pages=["keep_order_drop.md"]
 ```
 
-the `keep`, `drop` and `order` keyword arguments act similarly and allow for quick selection of coefficients to keep and change. The sequence these coefficients are applied in is `keep` -> `drop` -> `order`, so coefficients kept can then be reordered. There are four fundamental ways to select arguments:
+the `keep`, `drop` and `order` keyword arguments act similarly and allow for quick selection of coefficients to keep and change. The sequence these options are applied in is `keep` -> `drop` -> `order`, so coefficients kept can then be reordered. There are four fundamental ways to select arguments:
 - By string
 - By Regex
 - By index number

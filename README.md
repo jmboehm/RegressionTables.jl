@@ -252,6 +252,8 @@ Version 0.6 was a major rewrite of the backend with the goal of increasing the f
 - It is possible to change the order of the major blocks in a regression table
 - Using RegressionTables for descriptive statistics is now easier. Describe a DataFrame (`df_described=describe(df)`) and provide that to a RegressionTable (`tab = RegressionTable(names(df_described), Matrix(df_described))`), there are also options to render the table as a `LatexTable` or `HtmlTable`. Write this to a file using `write(file_name, tab)`
 - It is possible to overwrite almost any setting. For example, to make T-Statistics the default in all tables, run `RegressionTables.default_below_statistic(render::AbstractRenderType)=TStat`
+- Option to show clustering (`print_clusters=true`).
+  - Can also be the size of the clusters by running `Base.repr(render::AbstractRenderType, x::RegressionTables.ClusterValue; args...) = repr(render, value(x); args...)`
 - Several new regression statistics are now available, the full list is: `[Nobs, R2, PseudoR2, R2CoxSnell, R2Nagelkerke, R2Deviance, AdjR2, AdjPseudoR2, AdjR2Deviance, DOF, LogLikelihood, AIC, AICC, BIC, FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within]`
 - Use `LatexTableStar` to create a table that expands the entire text width
 
