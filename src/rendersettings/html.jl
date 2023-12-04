@@ -1,57 +1,105 @@
-function htmlOutput(outfile::String = "")
-    htmlRegressandTransform(s::String,colmin::Int64,colmax::Int64) = "<td colspan=\"$(colmax-colmin+1)\" style=\"padding:0.2cm; text-align:center; border-bottom:1px solid;\">$s</td>"
-    htmlTableHeader(numberOfResults::Int64, align::String) = "<table style=\"border-collapse:collapse; border:none;border-top:double;border-bottom:double;\">\n<tbody>"
-    htmlTableFooter(numberOfResults::Int64, align::String) = "</tbody></table>"
-    function htmlHeaderRule(headerCellStartEnd::Vector{Vector{Int64}})
-        # if length(headerCellStartEnd)<2
-        #     error("Invalid headerCellStartEnd: need to have at least two columns.")
-        # end
-        # s = ""
-        # for i in headerCellStartEnd[2:end]
-        #     s = s * "\\cmidrule(lr){$(i[1])-$(i[2])}" * " "
-        # end
-        # return s
-        return ""
+"""
+    abstract type AbstractHtml <: AbstractRenderType end
+
+The abstract type for most plain text rendering. Printing is defined using the `AbstractHtml`, so
+new tables (with different defaults) can be created by subtyping `AbstractHtml` with minimal effort.
+"""
+abstract type AbstractHtml <: AbstractRenderType end
+
+"""
+    struct HtmlTable <: AbstractHtml end    
+
+The main concrete type for [`AbstractHtml`](@ref). This type is
+used to create HTML tables.
+"""
+struct HtmlTable <: AbstractHtml end
+
+function Base.repr(render::AbstractHtml, val::Pair; align='c', print_underlines=false, args...)
+    s = repr(render, first(val); args...)
+    if length(s) == 0
+        s
+    else
+        multicolumn(render, s, length(last(val)), align, print_underlines)
     end
-    
-    # toprule: just a spacer <tr>
-    toprule = "<tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
-    # midrule: a <tr> with black border on bottom, and a <tr> spacer
-    midrule = "<tr style=\"border-bottom:1px solid\"><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr><tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
-    # bottomrule: a slightly larger spacer
-    bottomrule = "<tr><td style=\"padding:0.15cm\" colspan=\"100%\"></td></tr>"
-    headerrule = htmlHeaderRule
-    headercolsep = " "
-    colsep = " </td><td style=\"padding:0.2em; padding-left:0.8em; padding-right:0.8em;\"> "
-    linestart = "<tr><td>"
-    linebreak = " </td></tr>"
-
-    label_fe_yes = "Yes"
-    label_fe_no = ""
-
-    label_statistic_n = "<i>N</i>"
-    label_statistic_r2 = "<i>R<sup>2</sup></i>"
-    label_statistic_f = "<i>F</i>"
-    label_statistic_adjr2 = "Adjusted <i>R<sup>2</sup></i>"
-    label_statistic_r2_within = "Within-<i>R<sup>2</sup></i>"
-    label_statistic_p = "<i>F</i>-test <i>p</i> value"
-    label_statistic_f_kp = "First-stage <i>F</i> statistic"
-    label_statistic_p_kp = "First-stage <i>p</i> value"
-    label_statistic_dof = "Degrees of Freedom"
-
-    label_estimator = "Estimator"
-    label_estimator_ols = "OLS"
-    label_estimator_iv = "IV"
-    label_estimator_nl = "NL"
-
-    foutfile = outfile
-    encapsulateRegressand = htmlRegressandTransform
-    header = htmlTableHeader
-    footer = htmlTableFooter
-    return RenderSettings(toprule, midrule, bottomrule, headerrule, headercolsep, colsep, linestart, 
-        linebreak, label_fe_yes, label_fe_no,
-        label_statistic_n, label_statistic_r2, label_statistic_adjr2, label_statistic_r2_within,
-        label_statistic_f, label_statistic_p, label_statistic_f_kp, label_statistic_p_kp, label_statistic_dof,
-        label_estimator, label_estimator_ols, label_estimator_iv, label_estimator_nl,
-        foutfile, encapsulateRegressand, header, footer)
 end
+
+function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractHtml}
+    render = T()
+    print(io, "<tr>")
+    for (i, x) in enumerate(row.data)
+        if isa(x, Pair)
+            s = repr(render, x; align=row.align[i], print_underlines=row.print_underlines[i])
+            if length(s) == 0
+                print(io, "<td></td>")
+                continue
+            end
+            s = make_padding(s, row.colwidths[i], row.align[i])
+
+            print(io,s)
+        else
+            s = make_padding(repr(render, x), row.colwidths[i], row.align[i])
+            print(io, "<td>", s, "</td>")
+        end
+    end
+    print(io, "</tr>")
+end
+
+
+
+function multicolumn(::AbstractHtml, s, cols::Int, align="c", underline=true)
+    align = if align == "c" || align == 'c'
+        "center"
+    elseif align == "l" || align == 'l'
+        "left"
+    elseif align == "r" || align == 'r'
+        "right"
+    else
+        "center"
+    end
+    u = if underline
+        "border-bottom:1px solid;"
+    else
+        ""
+    end
+    "<td colspan=\"$cols\" style=\"padding:0.2cm; text-align:$align; $u\">$s</td>"
+end
+tablestart(::AbstractHtml) = """
+<table>
+<style>
+table {
+    border-collapse: collapse;
+    border: none;
+    border-top: double;
+    border-bottom: double;
+}
+th, td {
+    padding: 0.2em;
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+}
+</style>
+<tbody>
+"""
+tableend(::AbstractHtml) = "</tbody></table>"
+underline(::AbstractHtml) = ""
+
+# toprule: just a spacer <tr>
+toprule(::AbstractHtml) = "<tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
+# midrule: a <tr> with black border on bottom, and a <tr> spacer
+midrule(::AbstractHtml) = "<tr style=\"border-bottom:1px solid\"><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr><tr><td style=\"padding:0.1cm\" colspan=\"100%\"></td></tr>"
+# bottomrule: a slightly larger spacer
+bottomrule(::AbstractHtml) = "<tr><td style=\"padding:0.15cm\" colspan=\"100%\"></td></tr>"
+colsep(::AbstractHtml) = "<td></td>"
+linestart(::AbstractHtml) = "<tr><td>"
+lineend(::AbstractHtml) = " </td></tr>"
+
+
+label(::AbstractHtml, x::Type{Nobs}) = "<i>" * label(AsciiTable(), x) * "</i>"
+label(::AbstractHtml, x::Type{R2}) = "<i>R<sup>2</sup></i>"
+label(::AbstractHtml, x::Type{FStat}) = "<i>" * label(AsciiTable(), x) * "</i>"
+label_p(::AbstractHtml) = "<i>" * label_p(AsciiTable()) * "</i>"
+interaction_combine(::AbstractHtml) = " &times; "
+
+# if both MIME is html and the table is an HtmlTable, then show the table as html
+Base.show(io::IO, x::MIME{Symbol("text/html")}, tab::RegressionTable{<:AbstractHtml}) = show(io, tab)
+Base.show(io::IO, x::MIME{Symbol("text/markdown")}, tab::RegressionTable{<:AbstractHtml}) = show(io, tab)

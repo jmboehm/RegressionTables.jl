@@ -14,6 +14,11 @@ rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + f
 rr6 = reg(df, @formula(SepalLength ~ SepalWidth + fe(Species)&fe(isWide) + fe(isSmall)))
 rr7 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength&fe(isWide) + fe(isSmall)))
 
+
+RegressionTables.default_print_fe_suffix(x::AbstractRenderType) = false
+RegressionTables.default_print_control_indicator(x::AbstractRenderType) = false
+RegressionTables.default_regression_statistics(x::AbstractRenderType, rrs::Tuple) = [Nobs, R2]
+RegressionTables.default_print_estimator(x::AbstractRenderType, rrs) = true
 # GLM.jl
 dobson = DataFrame(Counts = [18.,17,15,20,10,20,25,13,12],
     Outcome = repeat(["A", "B", "C"], outer = 3),
@@ -38,6 +43,8 @@ function checkfilesarethesame(file1::String, file2::String)
 
     close(f1)
     close(f2)
+    s1 = replace(s1, "\r\n" => "\n")
+    s2 = replace(s2, "\r\n" => "\n")
 
     # Character-by-character comparison
     for i=1:length(s1)
@@ -57,6 +64,7 @@ function checkfilesarethesame(file1::String, file2::String)
     end
 end
 
+##
 
 # ASCII TABLES
 
@@ -190,11 +198,12 @@ RegressionTables.regtable(lm1, lm2, gm1; renderSettings = RegressionTables.ascii
 RegressionTables.regtable(lm1, lm2, lm4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test8.txt")), regression_statistics = [:nobs, :r2])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test8.txt"), joinpath(dirname(@__FILE__), "tables", "test8_reference.txt"))
 
+
 using Statistics
-comments = ["Baseline", "Preferred"]
-means = [Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
-mystats = NamedTuple{(:comments, :means)}((comments, means))
-RegressionTables.regtable(rr1, rr2; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test9.txt")), regression_statistics = [:nobs, :r2],custom_statistics = mystats, labels = Dict("__LABEL_CUSTOM_STATISTIC_comments__" => "Specification", "__LABEL_CUSTOM_STATISTIC_means__" => "My custom mean") )
+comments = ["Specification", "Baseline", "Preferred"]
+means = ["My custom mean", Statistics.mean(df.SepalLength[rr1.esample]), Statistics.mean(df.SepalLength[rr2.esample])]
+mystats = [comments, means]
+RegressionTables.regtable(rr1, rr2; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "test9.txt")), regression_statistics = [:nobs, :r2],extralines = mystats)
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "test9.txt"), joinpath(dirname(@__FILE__), "tables", "test9_reference.txt"))
 
 # below_decoration = :none
@@ -275,6 +284,7 @@ rm(joinpath(dirname(@__FILE__), "tables", "ftest9.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test3.txt"))
+rm(joinpath(dirname(@__FILE__), "tables", "test3.tex"))
 rm(joinpath(dirname(@__FILE__), "tables", "test4.tex"))
 #rm(joinpath(dirname(@__FILE__), "tables", "test5.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test6.tex"))
@@ -284,6 +294,11 @@ rm(joinpath(dirname(@__FILE__), "tables", "test9.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test10.txt"))
 rm(joinpath(dirname(@__FILE__), "tables", "test1.html"))
 rm(joinpath(dirname(@__FILE__), "tables", "test2.html"))
+
+RegressionTables.default_print_fe_suffix(render::AbstractRenderType) = true
+RegressionTables.default_print_control_indicator(render::AbstractRenderType) = true
+RegressionTables.default_regression_statistics(render::AbstractRenderType, rrs::Tuple) = unique(union(RegressionTables.default_regression_statistics.(render, rrs)...))
+RegressionTables.default_print_estimator(render::AbstractRenderType, rrs) = length(unique(RegressionTables.RegressionType.(rrs))) > 1
 
 # to update the reference files, re-create them from the above, then rename
 # mv(joinpath(dirname(@__FILE__), "tables", "ftest1.txt"),joinpath(dirname(@__FILE__), "tables", "ftest1_reference.txt"))

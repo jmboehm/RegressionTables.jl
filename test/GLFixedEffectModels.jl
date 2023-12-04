@@ -21,7 +21,7 @@ rr3 = GLFixedEffectModels.nlreg(df, m, Binomial(), LogitLink(), GLFixedEffectMod
 m = GLFixedEffectModels.@formula SepalLength ~ SepalWidth + PetalLength + GLFixedEffectModels.fe(Species) +  GLFixedEffectModels.fe(isSmall)
 rr4 = GLFixedEffectModels.nlreg(df, m, Poisson(), LogLink() , start = [0.2;0.2] )
 
-RegressionTables.regtable(rr1,rr2,rr3,rr4; renderSettings = RegressionTables.asciiOutput(joinpath(dirname(@__FILE__), "tables", "glftest1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
+regtable(rr1,rr2,rr3,rr4; file = joinpath(dirname(@__FILE__), "tables", "glftest1.txt"), print_fe_section=false, regression_statistics = [Nobs, R2, AdjR2, R2Within, FStat, FStatPValue, FStatIV, FStatIVPValue, DOF])
 @test checkfilesarethesame(joinpath(dirname(@__FILE__), "tables", "glftest1.txt"), joinpath(dirname(@__FILE__), "tables", "glftest1_reference.txt"))
 
 rm(joinpath(dirname(@__FILE__), "tables", "glftest1.txt"))
