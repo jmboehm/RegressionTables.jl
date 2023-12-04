@@ -1,3 +1,5 @@
+
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://jmboehm.github.io/RegressionTables.jl/stable/)
 [![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master) [![DOI](https://zenodo.org/badge/110714417.svg)](https://zenodo.org/badge/latestdoi/110714417)
 
 # RegressionTables.jl
