@@ -6,10 +6,10 @@ using FixedEffectModels, RegressionTables, Distributions
 RegressionTables.FStat(x::FixedEffectModel) = FStat(x.F)
 RegressionTables.FStatPValue(x::FixedEffectModel) = FStatPValue(x.p)
 
-RegressionTables.FStatIV(x::FixedEffectModel) = FStatIV(x.F_kp) # is a value or missing already
-RegressionTables.FStatIVPValue(x::FixedEffectModel) = FStatIVPValue(x.p_kp) # is a value or missing already
+RegressionTables.FStatIV(x::FixedEffectModel) = has_iv(x) ? FStatIV(x.F_kp) : FStatIV(nothing)
+RegressionTables.FStatIVPValue(x::FixedEffectModel) = has_iv(x) ? FStatIVPValue(x.p_kp) : FStatIVPValue(nothing)
 
-RegressionTables.R2Within(x::FixedEffectModel) = R2Within(x.r2_within) # is a value or missing already
+RegressionTables.R2Within(x::FixedEffectModel) = has_fe(x) ? R2Within(x.r2_within) : R2Within(nothing)
 
 RegressionTables.RegressionType(x::FixedEffectModel) = RegressionType(Normal(), has_iv(x))
 
