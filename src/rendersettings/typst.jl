@@ -1,13 +1,13 @@
 abstract type AbstractTypst <: AbstractRenderType end
 struct TypstTable <: AbstractTypst end
 
-function tablestart(::TypstTable, align)
+function tablestart(::AbstractTypst, align)
     cols = [c == 'l' ? "left" : c == 'r' ? "right" : "center" for c in align]
     cols_align = join(cols, ", ")
     cols = join(fill("auto", length(cols)), ", ")
 
 """
-#import "@preview/tablex:0.0.6": colspanx, hlinex, gridx
+#import "@preview/tablex:0.0.7": colspanx, hlinex, gridx
 #gridx(
     columns: ($cols),
     align: ($cols_align),
@@ -17,7 +17,7 @@ end
 
 wrapper(::AbstractTypst, x) = "\$\"\"^($x)\$"
 
-tableend(::TypstTable) = ")"
+tableend(::AbstractTypst) = ")"
 
 function Base.repr(rndr::AbstractTypst, val::Pair; align="c", args...)
     s = Base.repr(rndr, first(val); args...)
@@ -45,7 +45,7 @@ midrule(x::AbstractTypst) = linestart(x) * "hlinex(), "
 bottomrule(x::AbstractTypst) = linestart(x) * "hlinex(), "
 linestart(::AbstractTypst) = "  "
 lineend(::AbstractTypst) = ","
-tablestart(tab::RegressionTable{<:AbstractTypst}) = tablestart(tab.rndr, tab.align)
+tablestart(tab::RegressionTable{<:AbstractTypst}) = tablestart(tab.render, tab.align)
 colsep(::AbstractTypst) = ", "
 
 label(::AbstractTypst, x::Type{Nobs}) = "_N_"
@@ -56,34 +56,34 @@ label_p(::AbstractTypst, ) = "_p_"
 interaction_combine(::AbstractTypst) = " \$times\$ "
 
 function Base.print(io::IO, row::DataRow{T}) where {T<:AbstractTypst}
-    rndr = T()
-    print(io, linestart(rndr))
+    render = T()
+    print(io, linestart(render))
     for (i, x) in enumerate(row.data)
         s = if isa(x, Pair)
-            render(rndr, x; align = row.align[i])
+            repr(render, x; align = row.align[i])
         else
-            "[" * render(rndr, x; align = row.align[i]) * "]"
+            "[" * repr(render, x; align = row.align[i]) * "]"
         end
         print(io, make_padding(s, row.colwidths[i], row.align[i]))
         if i < length(row.data)
-            print(io, colsep(rndr))
+            print(io, colsep(render))
         end
     end
-    print(io, lineend(rndr))
+    print(io, lineend(render))
     if any(row.print_underlines)
         println(io)
-        print(io, linestart(rndr))
+        print(io, linestart(render))
         for (i, x) in enumerate(row.data)
-            s = isa(x, Pair) ? render(rndr, first(x)) : render(rndr, x)
+            s = isa(x, Pair) ? repr(render, first(x)) : repr(render, x)
             if length(s) == 0 || !row.print_underlines[i]
                 continue
             end
             if isa(x, Pair)
-                print(io, underline(rndr, first(last(x)), last(last(x))))
+                print(io, underline(render, first(last(x)), last(last(x))))
             else
-                print(io, underline(rndr, i,i))
+                print(io, underline(render, i,i))
             end
-            print(io, colsep(rndr))
+            print(io, colsep(render))
         end
     end
 end
