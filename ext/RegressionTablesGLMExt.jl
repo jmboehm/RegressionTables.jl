@@ -7,8 +7,12 @@ RegressionTables.default_regression_statistics(rr::StatsModels.TableRegressionMo
 
 RegressionTables.RegressionType(x::StatsModels.TableRegressionModel{T}) where {T<:GLM.AbstractGLM} = RegressionType(x.model)
 RegressionTables.RegressionType(x::StatsModels.TableRegressionModel{T}) where {T<:LinearModel} = RegressionType(x.model)
-RegressionTables.standardize_coef_values(x::StatsModels.TableRegressionModel, coefvalues, coefstderrors) =
-    RegressionTables.standardize_coef_values(std(modelmatrix(x), dims=1)[1, :], std(response(x)), coefvalues, coefstderrors)
+
+# k is which coefficient or standard error to standardize
+RegressionTables.standardize_coef_values(x::StatsModels.TableRegressionModel, val, k) =
+    RegressionTables.standardize_coef_values(std(modelmatrix(x)[:, k]), std(response(x)), val)
+
+RegressionTables.can_standardize(x::StatsModels.TableRegressionModel) = true
 
 RegressionTables.RegressionType(x::LinearModel) = RegressionType(Normal())
 RegressionTables.RegressionType(x::GLM.LmResp) = RegressionType(Normal())

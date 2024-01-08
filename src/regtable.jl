@@ -307,6 +307,14 @@ so the default will be `[Nobs, R2, PseudoR2]`.
 """
 default_regression_statistics(render::AbstractRenderType, rrs::Tuple) = unique(union(default_regression_statistics.(render, rrs)...))
 
+"""
+    default_confint_level(render::AbstractRenderType, rr)
+
+Defaults to `0.95`, which means the 95% confidence interval is printed below the coefficient.
+"""
+default_confint_level(render::AbstractRenderType, rr) = 0.95
+
+
 asciiOutput(file::String) = (AsciiTable(), file)
 latexOutput(file::String) = (LatexTable(), file)
 htmlOutput(file::String) = (HtmlTable(), file)
@@ -397,6 +405,9 @@ function regtable(
     end
     if isa(standardize_coef, Bool)
         standardize_coef = fill(standardize_coef, length(rrs))
+    end
+    for (i, rr) in enumerate(rrs)
+        standardize_coef[i] = standardize_coef[i] && can_standardize(rr)
     end
     if regressors !== nothing
         @warn("regressors is deprecated. Use keep instead.")
@@ -506,19 +517,13 @@ function regtable(
     coefbelow = Matrix{Any}(missing, length(nms), length(rrs))
     for (i, rr) in enumerate(rrs)
         cur_nms = replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels))
-        cur_coef = _coef(rr)
-        cur_coefpvalues = _pvalue(rr)
-        cur_stderror = _stderror(rr)
-        if standardize_coef[i]
-            cur_coef, cur_stderror = standardize_coef_values(rr, cur_coef, cur_stderror)
-        end
 
         for (j, nm) in enumerate(nms)
             k = findfirst(cur_nms .== nm)
             k === nothing && continue
-            coefvalues[j, i] = CoefValue(cur_coef[k], cur_coefpvalues[k])
+            coefvalues[j, i] = CoefValue(rr, k; standardize=standardize_coef[i])
             if below_statistic !== nothing
-                coefbelow[j, i] = below_statistic(cur_stderror[k], cur_coef[k], _dof_residual(rr))
+                coefbelow[j, i] = below_statistic(rr, k; standardize=standardize_coef[i], level=default_confint_level(render, rr))
             end
         end
     end

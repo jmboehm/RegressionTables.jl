@@ -28,16 +28,17 @@ function _pvalue(x::RegressionModel)
     ccdf.(Ref(FDist(1, _dof_residual(x))), abs2.(tt))
 end
 
-function standardize_coef_values(rr::T, coefvalues, coefstderrors) where {T <: RegressionModel}
+function can_standardize(x::T) where {T<:RegressionModel}
     @warn "standardize_coef is not possible for $T"
-    coefvalues, coefstderrors
+    false
 end
 
-function standardize_coef_values(std_X::Vector, std_Y, coefvalues::Vector, coefstderrors::Vector)
-    std_X = replace(std_X, 0 => 1) # constant has 0 std, so the interpretation is how many Y std away from 0 is the intercept
-    coefvalues = coefvalues .* std_X ./ std_Y
-    coefstderrors = coefstderrors .* std_X  ./ std_Y
-    coefvalues, coefstderrors
+function standardize_coef_values(std_X, std_Y, val)
+    if std_X == 0 # constant has 0 std, so the interpretation is how many Y std away from 0 is the intercept
+        val / std_Y
+    else
+        val * std_X / std_Y
+    end
 end
 
 transformer(s::Nothing, repl_dict::AbstractDict) = s
