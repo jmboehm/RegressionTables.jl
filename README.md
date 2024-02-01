@@ -1,6 +1,12 @@
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://jmboehm.github.io/RegressionTables.jl/dev/)
+[![dev][docs-dev-img]][docs-dev-url]
+[![stable][docs-stable-img]][docs-stable-url]
 [![Build Status](https://travis-ci.org/jmboehm/RegressionTables.jl.svg?branch=master)](https://travis-ci.org/jmboehm/RegressionTables.jl) [![codecov.io](http://codecov.io/github/jmboehm/RegressionTables.jl/coverage.svg?branch=master)](http://codecov.io/github/jmboehm/RegressionTables.jl?branch=master) [![DOI](https://zenodo.org/badge/110714417.svg)](https://zenodo.org/badge/latestdoi/110714417)
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg?style=flat-square
+[docs-dev-url]: https://jmboehm.github.io/RegressionTables.jl/dev/
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg?style=flat-square
+[docs-stable-url]: https://jmboehm.github.io/RegressionTables.jl/stable/
 
 # RegressionTables.jl
 
