@@ -307,6 +307,14 @@ so the default will be `[Nobs, R2, PseudoR2]`.
 """
 default_regression_statistics(render::AbstractRenderType, rrs::Tuple) = unique(union(default_regression_statistics.(render, rrs)...))
 
+"""
+    default_use_relabeled_values(render::AbstractRenderType, rrs) = true
+
+Defaults to `true`, which means the `keep`, `drop` and `order` arguments will use the relabeled
+values instead of the original values.
+"""
+default_use_relabeled_values(render::AbstractRenderType, rrs) = true
+
 asciiOutput(file::String) = (AsciiTable(), file)
 latexOutput(file::String) = (LatexTable(), file)
 htmlOutput(file::String) = (HtmlTable(), file)
@@ -388,6 +396,7 @@ function regtable(
     number_regressions_decoration::Union{Nothing, Function}=nothing,
     estim_decoration::Union{Nothing, Function}=nothing,
     regressors=nothing,
+    use_relabeled_values=default_use_relabeled_values(render, rrs),
     kwargs...
 ) where {T<:AbstractRenderType}
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
@@ -492,7 +501,12 @@ function regtable(
     breaks = Int[]
     wdths=fill(0, length(rrs)+1)
 
-    nms = union([replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels)) for rr in rrs]...) |> unique
+    nms = if use_relabeled_values
+        union([replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels)) for rr in rrs]...) |> unique
+    else
+        union([_coefnames(rr) for rr in rrs]...) |> unique
+    end
+
     if length(keep) > 0
         nms = build_nm_list(nms, keep)
     end
@@ -501,6 +515,10 @@ function regtable(
     end
     if length(order) > 0
         nms = reorder_nms_list(nms, order)
+    end
+    if !use_relabeled_values
+        nms = replace_name.(nms, Ref(labels), Ref(transform_labels)) |> unique
+        # unique necessary to make sure only one of each coefficient is printed
     end
     coefvalues = Matrix{Any}(missing, length(nms), length(rrs))
     coefbelow = Matrix{Any}(missing, length(nms), length(rrs))
