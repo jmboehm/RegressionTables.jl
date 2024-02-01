@@ -28,6 +28,9 @@ the `keep`, `drop` and `order` keyword arguments act similarly and allow for qui
 !!! note
     `keep` also adjusts the order of the coefficients, so specifying `keep` and then `order` would allow `order` to adjust the coefficients kept. `drop` does not change order of coefficients.
 
+!!! note
+     The `keep`, `drop` and `order` arguments use the relabeled versions of coefficients. If labels (or transform_labels) are used, then the `keep`, `drop` and `order` arguments should use the relabeled versions of the coefficients.
+
 Just to setup these examples:
 ```julia
 using RegressionTables, DataFrames, FixedEffectModels, RDatasets
