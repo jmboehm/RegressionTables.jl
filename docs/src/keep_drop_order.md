@@ -28,6 +28,9 @@ the `keep`, `drop` and `order` keyword arguments act similarly and allow for qui
 !!! note
     `keep` also adjusts the order of the coefficients, so specifying `keep` and then `order` would allow `order` to adjust the coefficients kept. `drop` does not change order of coefficients.
 
+!!! note
+     The `keep`, `drop` and `order` arguments use the relabeled versions of coefficients. If labels (or transform_labels) are used, then the `keep`, `drop` and `order` arguments should use the relabeled versions of the coefficients.
+
 Just to setup these examples:
 ```julia
 using RegressionTables, DataFrames, FixedEffectModels, RDatasets
@@ -100,33 +103,6 @@ N                                 150        150        150          150
 R2                              0.726      0.863      0.870        0.635
 Within-R2                       0.281      0.642      0.659        0.391
 ------------------------------------------------------------------------
-```
-
-Note, if labels change the name of the arguments, then the `keep` argument would also need to change:
-```jldoctest
-regtable(rr1, rr2, rr3, rr4; labels=Dict("SepalWidth" => "SW", "PetalLength" => "PL"), keep=["SW", "PL"])
-
-# output
-
- 
----------------------------------------------------------------------
-                                       SepalLength               SW
-                             ------------------------------   -------
-                                  (1)        (2)        (3)       (4)
----------------------------------------------------------------------
-SW                           0.804***   0.432***   0.719***
-                              (0.106)    (0.081)    (0.155)
-PL                                      0.776***   1.047***   -0.188*
-                                         (0.064)    (0.143)   (0.083)
----------------------------------------------------------------------
-SpeciesDummy Fixed Effects        Yes        Yes        Yes       Yes
----------------------------------------------------------------------
-Controls                                                Yes       Yes
----------------------------------------------------------------------
-N                                 150        150        150       150
-R2                              0.726      0.863      0.870     0.635
-Within-R2                       0.281      0.642      0.659     0.391
----------------------------------------------------------------------
 ```
 
 Interacted coefficients are selected using the `&` to separate the interactions, even if the settings use a different interaction. For example, in Latex, the interaction defaults to `\$times\$`, but would still be selected by using `&`:
@@ -399,4 +375,61 @@ N                                150         150
 R2                             0.867       0.863
 Within-R2                      0.652
 ------------------------------------------------
+```
+
+## Relabeled Coefficients
+
+By default, if labels change the name of the arguments, then `keep`, `drop` and `order` should use the relabeled versions of the coefficients. For example, if the coefficients are relabeled:
+
+```jldoctest
+regtable(rr1, rr2, rr3, rr4; labels=Dict("SepalWidth" => "SW", "PetalLength" => "PL"), keep=["SW", "PL"])
+
+# output
+
+ 
+---------------------------------------------------------------------
+                                       SepalLength               SW
+                             ------------------------------   -------
+                                  (1)        (2)        (3)       (4)
+---------------------------------------------------------------------
+SW                           0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PL                                      0.776***   1.047***   -0.188*
+                                         (0.064)    (0.143)   (0.083)
+---------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes       Yes
+---------------------------------------------------------------------
+Controls                                                Yes       Yes
+---------------------------------------------------------------------
+N                                 150        150        150       150
+R2                              0.726      0.863      0.870     0.635
+Within-R2                       0.281      0.642      0.659     0.391
+---------------------------------------------------------------------
+```
+
+To use the original coefficient names, set `use_relabeled_values=false`:
+```jldoctest
+regtable(rr1, rr2, rr3, rr4; labels=Dict("SepalWidth" => "SW", "PetalLength" => "PL"), keep=["SepalWidth", "PetalLength"], use_relabeled_values=false)
+
+# output
+
+ 
+---------------------------------------------------------------------
+                                       SepalLength               SW  
+                             ------------------------------   -------
+                                  (1)        (2)        (3)       (4)
+---------------------------------------------------------------------
+SW                           0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PL                                      0.776***   1.047***   -0.188*
+                                         (0.064)    (0.143)   (0.083)
+---------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes       Yes
+---------------------------------------------------------------------
+Controls                                                Yes       Yes
+---------------------------------------------------------------------
+N                                 150        150        150       150
+R2                              0.726      0.863      0.870     0.635
+Within-R2                       0.281      0.642      0.659     0.391
+---------------------------------------------------------------------
 ```

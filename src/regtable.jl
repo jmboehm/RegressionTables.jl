@@ -315,6 +315,14 @@ Defaults to `0.95`, which means the 95% confidence interval is printed below the
 default_confint_level(render::AbstractRenderType, rr) = 0.95
 
 
+"""
+    default_use_relabeled_values(render::AbstractRenderType, rrs) = true
+
+Defaults to `true`, which means the `keep`, `drop` and `order` arguments will use the relabeled
+values instead of the original values.
+"""
+default_use_relabeled_values(render::AbstractRenderType, rrs) = true
+
 asciiOutput(file::String) = (AsciiTable(), file)
 latexOutput(file::String) = (LatexTable(), file)
 htmlOutput(file::String) = (HtmlTable(), file)
@@ -325,9 +333,9 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 
 ### Arguments
 * `rr::FixedEffectModel...` are the `FixedEffectModel`s from `FixedEffectModels.jl` that should be printed. Only required argument.
-* `keep` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown.
-* `drop` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should not be shown. Defaults to an empty vector, in which case no regressors will be dropped.
-* `order` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should be shown in that order. Defaults to an empty vector, in which case the order of regressors will be unchanged. Other regressors are still shown (assuming `drop` is empty)
+* `keep` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should be shown, in that order. Defaults to an empty vector, in which case all regressors will be shown. The strings should be the relabeld names of the coefficients.
+* `drop` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should not be shown. Defaults to an empty vector, in which case no regressors will be dropped. The strings should be the relabeld names of the coefficients.
+* `order` is a `Vector` of regressor names (`String`s), integers, ranges or regex that should be shown in that order. Defaults to an empty vector, in which case the order of regressors will be unchanged. Other regressors are still shown (assuming `drop` is empty). The strings should be the relabeld names of the coefficients.
 * `fixedeffects` is a `Vector` of FE names (`String`s), integers, ranges or regex that should be shown, in that order. Defaults to an empty vector, in which case all FE's will be shown.
 * `align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of results columns (default `:r` right-aligned). Currently works only with ASCII and LaTeX output.
 * `header_align` is a `Symbol` from the set `[:l,:c,:r]` indicating the alignment of the header row (default `:c` centered). Currently works only with ASCII and LaTeX output.
@@ -396,6 +404,7 @@ function regtable(
     number_regressions_decoration::Union{Nothing, Function}=nothing,
     estim_decoration::Union{Nothing, Function}=nothing,
     regressors=nothing,
+    use_relabeled_values=default_use_relabeled_values(render, rrs),
     kwargs...
 ) where {T<:AbstractRenderType}
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
@@ -503,7 +512,12 @@ function regtable(
     breaks = Int[]
     wdths=fill(0, length(rrs)+1)
 
-    nms = union([replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels)) for rr in rrs]...) |> unique
+    nms = if use_relabeled_values
+        union([replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels)) for rr in rrs]...) |> unique
+    else
+        union([_coefnames(rr) for rr in rrs]...) |> unique
+    end
+
     if length(keep) > 0
         nms = build_nm_list(nms, keep)
     end
@@ -512,6 +526,10 @@ function regtable(
     end
     if length(order) > 0
         nms = reorder_nms_list(nms, order)
+    end
+    if !use_relabeled_values
+        nms = replace_name.(nms, Ref(labels), Ref(transform_labels)) |> unique
+        # unique necessary to make sure only one of each coefficient is printed
     end
     coefvalues = Matrix{Any}(missing, length(nms), length(rrs))
     coefbelow = Matrix{Any}(missing, length(nms), length(rrs))
