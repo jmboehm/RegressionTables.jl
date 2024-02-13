@@ -30,7 +30,7 @@ end
 RegressionTables.standardize_coef_values(x::MixedModel, val, k) =
     RegressionTables.standardize_coef_values(std(modelmatrix(x)[:, k]), std(response(x)), val)
 
-RegressionTables.can_standardize(x::StatsModels.TableRegressionModel) = true
+RegressionTables.can_standardize(x::MixedModel) = true
 
 function RegressionTables.other_stats(x::MixedModel, s::Symbol)
     if s == :randomeffects
