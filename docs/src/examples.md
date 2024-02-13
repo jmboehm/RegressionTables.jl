@@ -211,7 +211,7 @@ Within-R2                                             0.642             0.598   
 ------------------------------------------------------------------------------------------------
 ```
 
-Set the Confidence Interval level either by setting [`default_confint_level`](@ref) or by adjusting the `confint_level` keyword argument
+Set the Confidence Interval level either by setting [`RegressionTables.default_confint_level`](@ref) or by adjusting the `confint_level` keyword argument
 
 ```jldoctest
 regtable(rr1,rr2,rr3,rr4; below_statistic = ConfInt, confint_level=0.9, align=:c)
