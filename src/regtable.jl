@@ -312,7 +312,8 @@ default_regression_statistics(render::AbstractRenderType, rrs::Tuple) = unique(u
 
 Defaults to `0.95`, which means the 95% confidence interval is printed below the coefficient.
 """
-default_confint_level(render::AbstractRenderType, rr) = 0.95
+default_confint_level(render::AbstractRenderType, rr) = default_confint_level()
+default_confint_level() = 0.95 # to maintain better backwards compatibility with v0.6.x
 
 
 """
