@@ -218,7 +218,7 @@ regtable(rr1,rr2,rr3,rr4; below_statistic = ConfInt, confint_level=0.9, align=:c
 
 # output
 
-
+ 
 -------------------------------------------------------------------------------------------------
                                                SepalLength                          SepalWidth
                            ---------------------------------------------------   ----------------
@@ -231,7 +231,7 @@ SepalWidth                      -0.223          0.432***          0.516***
 PetalLength                                     0.776***          0.723***            -0.188*
                                              (0.669, 0.882)    (0.510, 0.937)    (-0.326, -0.049)
 PetalWidth                                                         -0.625            0.626***
-                                                              (-1.211, -0.038)    (0.421, 0.830) 
+                                                              (-1.211, -0.038)    (0.421, 0.830)
 PetalLength & PetalWidth                                            0.066
                                                                (-0.045, 0.177)
 SepalLength                                                                          0.378***
@@ -1280,11 +1280,12 @@ Pseudo R2                0.006       0.811       0.347       0.297
 It is also possible to standardize some coefficients and not others
 
 ```jldoctest
+lm1 = lm(@formula(SepalLength ~ SepalWidth), df);
 regtable(lm1, lm1, rr7, rr7; standardize_coef=[false, true, false, true])
 
 # output
 
-
+ 
 ---------------------------------------------------------
                   SepalLength              isSmall
               -------------------   ---------------------
