@@ -300,7 +300,7 @@ default_print_clusters(render::AbstractRenderType, rrs) = false
 """
     default_regression_statistics(render::AbstractRenderType, rrs)
 
-Defaults to a union of the default_regression_statistics for each regression.
+Defaults to a union of the `default_regression_statistics` for each regression.
 For example, an "OLS" regression (with no fixed effects) will default to including
 `[Nobs, R2]`, and a Probit regression will include `[Nobs, PseudoR2]`,
 so the default will be `[Nobs, R2, PseudoR2]`.
