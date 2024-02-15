@@ -28,7 +28,6 @@ Filter = t -> typeof(t) === DataType && t <: RegressionTables.AbstractUnderStati
 
 ```@docs
 RegressionTables.CoefValue
-RegressionTables.RegressionType
 RegressionTables.HasControls
 RegressionTables.RegressionNumbers
 RegressionTables.FixedEffectValue
