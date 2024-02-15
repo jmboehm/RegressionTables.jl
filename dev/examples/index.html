@@ -126,7 +126,7 @@ isSmall Fixed Effects                                 Yes
 N                               150        150        150          150
 R2                            0.014      0.863      0.868        0.635
 Within-R2                                0.642      0.598        0.391
-----------------------------------------------------------------------</code></pre><h3 id="ConfInt-(Confidence-Interval)"><a class="docs-heading-anchor" href="#ConfInt-(Confidence-Interval)">ConfInt (Confidence Interval)</a><a id="ConfInt-(Confidence-Interval)-1"></a><a class="docs-heading-anchor-permalink" href="#ConfInt-(Confidence-Interval)" title="Permalink"></a></h3><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; below_statistic = ConfInt)
+----------------------------------------------------------------------</code></pre><h3 id="ConfInt-(Confidence-Interval)"><a class="docs-heading-anchor" href="#ConfInt-(Confidence-Interval)">ConfInt (Confidence Interval)</a><a id="ConfInt-(Confidence-Interval)-1"></a><a class="docs-heading-anchor-permalink" href="#ConfInt-(Confidence-Interval)" title="Permalink"></a></h3><p>Confidence level defaults to the 95th percentile:</p><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; below_statistic = ConfInt)
 
 # output
 
@@ -155,7 +155,36 @@ isSmall Fixed Effects                                                     Yes
 N                                      150              150               150                150
 R2                                   0.014            0.863             0.868              0.635
 Within-R2                                             0.642             0.598              0.391
-------------------------------------------------------------------------------------------------</code></pre><h2 id="Standard-Errors-on-same-line-as-coefficient"><a class="docs-heading-anchor" href="#Standard-Errors-on-same-line-as-coefficient">Standard Errors on same line as coefficient</a><a id="Standard-Errors-on-same-line-as-coefficient-1"></a><a class="docs-heading-anchor-permalink" href="#Standard-Errors-on-same-line-as-coefficient" title="Permalink"></a></h2><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; stat_below=false)
+------------------------------------------------------------------------------------------------</code></pre><p>Set the Confidence Interval level either by setting <a href="../customization/#RegressionTables.default_confint_level"><code>RegressionTables.default_confint_level</code></a> or by adjusting the <code>confint_level</code> keyword argument</p><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; below_statistic = ConfInt, confint_level=0.9, align=:c)
+
+# output
+
+ 
+-------------------------------------------------------------------------------------------------
+                                               SepalLength                          SepalWidth
+                           ---------------------------------------------------   ----------------
+                                 (1)               (2)               (3)                (4)
+-------------------------------------------------------------------------------------------------
+(Intercept)                    6.526***
+                            (5.734, 7.319)
+SepalWidth                      -0.223          0.432***          0.516***
+                           (-0.480, 0.033)   (0.297, 0.567)    (0.345, 0.688)
+PetalLength                                     0.776***          0.723***            -0.188*
+                                             (0.669, 0.882)    (0.510, 0.937)    (-0.326, -0.049)
+PetalWidth                                                         -0.625            0.626***
+                                                              (-1.211, -0.038)    (0.421, 0.830)
+PetalLength &amp; PetalWidth                                            0.066
+                                                               (-0.045, 0.177)
+SepalLength                                                                          0.378***
+                                                                                  (0.269, 0.486)
+-------------------------------------------------------------------------------------------------
+Species Fixed Effects                              Yes               Yes                Yes
+isSmall Fixed Effects                                                Yes
+-------------------------------------------------------------------------------------------------
+N                                150               150               150                150
+R2                              0.014             0.863             0.868              0.635
+Within-R2                                         0.642             0.598              0.391
+-------------------------------------------------------------------------------------------------</code></pre><h2 id="Standard-Errors-on-same-line-as-coefficient"><a class="docs-heading-anchor" href="#Standard-Errors-on-same-line-as-coefficient">Standard Errors on same line as coefficient</a><a id="Standard-Errors-on-same-line-as-coefficient-1"></a><a class="docs-heading-anchor-permalink" href="#Standard-Errors-on-same-line-as-coefficient" title="Permalink"></a></h2><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; stat_below=false)
 
 # output
 
@@ -1019,7 +1048,34 @@ Estimator                  OLS         OLS    Binomial    Binomial
 N                          150         150         150         150
 R2                       0.014       0.863
 Pseudo R2                0.006       0.811       0.347       0.297
-------------------------------------------------------------------</code></pre><h2 id="Show-Clustered-Standard-Errors"><a class="docs-heading-anchor" href="#Show-Clustered-Standard-Errors">Show Clustered Standard Errors</a><a id="Show-Clustered-Standard-Errors-1"></a><a class="docs-heading-anchor-permalink" href="#Show-Clustered-Standard-Errors" title="Permalink"></a></h2><p>Displays whether or not the standard errors are clustered and in what ways.</p><pre><code class="language-julia hljs">df_cigar = dataset(&quot;plm&quot;, &quot;Cigar&quot;);
+------------------------------------------------------------------</code></pre><p>It is also possible to standardize some coefficients and not others</p><pre><code class="language-julia hljs">lm1 = lm(@formula(SepalLength ~ SepalWidth), df);
+regtable(lm1, lm1, rr7, rr7; standardize_coef=[false, true, false, true])
+
+# output
+
+ 
+---------------------------------------------------------
+                  SepalLength              isSmall
+              -------------------   ---------------------
+                   (1)        (2)         (3)         (4)
+---------------------------------------------------------
+(Intercept)   6.526***   7.881***   10.189***   21.894***
+               (0.479)    (0.578)     (2.607)     (5.601)
+SepalWidth      -0.223     -0.118
+               (0.155)    (0.082)
+SepalLength                         -3.519***   -6.260***
+                                      (0.697)     (1.240)
+PetalLength                          3.580***   13.578***
+                                      (0.708)     (2.686)
+PetalWidth                           -3.637**    -5.957**
+                                      (1.127)     (1.846)
+---------------------------------------------------------
+Estimator          OLS        OLS    Binomial    Binomial
+---------------------------------------------------------
+N                  150        150         150         150
+R2               0.014      0.014
+Pseudo R2        0.006      0.006       0.297       0.297
+---------------------------------------------------------</code></pre><h2 id="Show-Clustered-Standard-Errors"><a class="docs-heading-anchor" href="#Show-Clustered-Standard-Errors">Show Clustered Standard Errors</a><a id="Show-Clustered-Standard-Errors-1"></a><a class="docs-heading-anchor-permalink" href="#Show-Clustered-Standard-Errors" title="Permalink"></a></h2><p>Displays whether or not the standard errors are clustered and in what ways.</p><pre><code class="language-julia hljs">df_cigar = dataset(&quot;plm&quot;, &quot;Cigar&quot;);
 
 rr_c1 = reg(df_cigar, @formula(Sales ~ NDI + fe(State) + fe(Year)), Vcov.cluster(:State));
 rr_c2 = reg(df_cigar, @formula(Sales ~ NDI + Price + fe(State) + fe(Year)), Vcov.cluster(:State, :Year));
@@ -1124,4 +1180,4 @@ Subject | Prec &amp; Load                                   855.252
 ---------------------------------------------------------------
 N                             1,789         1,789         1,789
 Log Likelihood          -14,685.198   -14,765.033   -14,711.866
----------------------------------------------------------------</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../regression_statistics/">« Regression Statistics</a><a class="docs-footer-nextpage" href="../keep_drop_order/">Keep Drop and Order Arguments »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Monday 12 February 2024 16:45">Monday 12 February 2024</span>. Using Julia version 1.10.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+---------------------------------------------------------------</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../regression_statistics/">« Regression Statistics</a><a class="docs-footer-nextpage" href="../keep_drop_order/">Keep Drop and Order Arguments »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 15 February 2024 19:00">Thursday 15 February 2024</span>. Using Julia version 1.10.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
