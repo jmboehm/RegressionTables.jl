@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Keep Drop and Order Arguments · RegressionTables.jl</title><meta name="title" content="Keep Drop and Order Arguments · RegressionTables.jl"/><meta property="og:title" content="Keep Drop and Order Arguments · RegressionTables.jl"/><meta property="twitter:title" content="Keep Drop and Order Arguments · RegressionTables.jl"/><meta name="description" content="Documentation for RegressionTables.jl."/><meta property="og:description" content="Documentation for RegressionTables.jl."/><meta property="twitter:description" content="Documentation for RegressionTables.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">RegressionTables.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../regression_statistics/">Regression Statistics</a></li><li><a class="tocitem" href="../examples/">Examples</a></li><li class="is-active"><a class="tocitem" href>Keep Drop and Order Arguments</a><ul class="internal"><li><a class="tocitem" href="#By-String"><span>By String</span></a></li><li><a class="tocitem" href="#By-Regex"><span>By Regex</span></a></li><li><a class="tocitem" href="#By-Integer"><span>By Integer</span></a></li><li><a class="tocitem" href="#By-Range"><span>By Range</span></a></li><li><a class="tocitem" href="#Mixing-keep,-drop-and-order"><span>Mixing keep, drop and order</span></a></li><li><a class="tocitem" href="#Relabeled-Coefficients"><span>Relabeled Coefficients</span></a></li></ul></li><li><a class="tocitem" href="../api/">API</a></li><li><a class="tocitem" href="../customization/">Customization and Defaults</a></li><li><a class="tocitem" href="../function_reference/">Function and Type Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Keep Drop and Order Arguments</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Keep Drop and Order Arguments</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/jmboehm/RegressionTables.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/jmboehm/RegressionTables.jl/blob/master/docs/src/keep_drop_order.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Keep-Drop-and-Order-Arguments"><a class="docs-heading-anchor" href="#Keep-Drop-and-Order-Arguments">Keep Drop and Order Arguments</a><a id="Keep-Drop-and-Order-Arguments-1"></a><a class="docs-heading-anchor-permalink" href="#Keep-Drop-and-Order-Arguments" title="Permalink"></a></h1><ul></ul><p>the <code>keep</code>, <code>drop</code> and <code>order</code> keyword arguments act similarly and allow for quick selection of coefficients to keep and change. The sequence these options are applied in is <code>keep</code> -&gt; <code>drop</code> -&gt; <code>order</code>, so coefficients kept can then be reordered. There are four fundamental ways to select arguments:</p><ul><li>By string</li><li>By Regex</li><li>By index number</li><li>By range</li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p><code>keep</code> also adjusts the order of the coefficients, so specifying <code>keep</code> and then <code>order</code> would allow <code>order</code> to adjust the coefficients kept. <code>drop</code> does not change order of coefficients.</p></div></div><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>The <code>keep</code>, <code>drop</code> and <code>order</code> arguments use the relabeled versions of coefficients. If labels (or transform_labels) are used, then the <code>keep</code>, <code>drop</code> and <code>order</code> arguments should use the relabeled versions of the coefficients.</p></div></div><p>Just to setup these examples:</p><pre><code class="language-julia hljs">using RegressionTables, DataFrames, FixedEffectModels, RDatasets
+
+df = dataset(&quot;datasets&quot;, &quot;iris&quot;)
+df[!,:SpeciesDummy] = df[!,:Species]
+
+rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)))
+rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(SpeciesDummy)))
+rr3 = reg(df, @formula(SepalLength ~ SepalWidth * PetalLength + PetalWidth + fe(SpeciesDummy)))
+rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(SpeciesDummy)))
+rr5 = reg(df, @formula(SepalLength ~ SepalWidth * PetalLength + fe(SpeciesDummy)))
+rr6 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + SpeciesDummy))</code></pre><h2 id="By-String"><a class="docs-heading-anchor" href="#By-String">By String</a><a id="By-String-1"></a><a class="docs-heading-anchor-permalink" href="#By-String" title="Permalink"></a></h2><p>Selecting coefficients by string is the most straightforward. Specify arguments by exactly matching the <em>output</em> string (if labels are not used, these are the same as the input string). For example, starting with the original example:</p><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4)
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PetalLength                             0.776***   1.047***      -0.188*
+                                         (0.064)    (0.143)      (0.083)
+PetalWidth                                           -0.259     0.626***
+                                                    (0.154)      (0.123)
+SepalWidth &amp; PetalLength                             -0.070
+                                                    (0.041)
+SepalLength                                                     0.378***
+                                                                 (0.066)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><p>To select the first two coefficients, specify <code>keep=[&quot;SepalWidth&quot;, &quot;PetalLength&quot;]</code>:</p><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; keep=[&quot;SepalWidth&quot;, &quot;PetalLength&quot;])
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PetalLength                             0.776***   1.047***      -0.188*
+                                         (0.064)    (0.143)      (0.083)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+Controls                                                Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><p>Interacted coefficients are selected using the <code>&amp;</code> to separate the interactions, even if the settings use a different interaction. For example, in Latex, the interaction defaults to <code>\$times\$</code>, but would still be selected by using <code>&amp;</code>:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; render=LatexTable(), keep=[&quot;SepalWidth &amp; PetalLength&quot;])
+
+# output
+\begin{tabular}{lrrrr}
+\toprule
+                                &amp; \multicolumn{3}{c}{SepalLength} &amp; \multicolumn{1}{c}{SepalWidth} \\ 
+\cmidrule(lr){2-4} \cmidrule(lr){5-5}
+                                &amp;      (1) &amp;      (2) &amp;       (3) &amp;                            (4) \\ 
+\midrule
+SepalWidth $\times$ PetalLength &amp;          &amp;          &amp;    -0.070 &amp;                                \\ 
+                                &amp;          &amp;          &amp;   (0.041) &amp;                                \\ 
+\midrule
+SpeciesDummy Fixed Effects      &amp;      Yes &amp;      Yes &amp;       Yes &amp;                            Yes \\ 
+\midrule
+Controls                        &amp;      Yes &amp;      Yes &amp;       Yes &amp;                            Yes \\ 
+\midrule
+$N$                             &amp;      150 &amp;      150 &amp;       150 &amp;                            150 \\ 
+$R^2$                           &amp;    0.726 &amp;    0.863 &amp;     0.870 &amp;                          0.635 \\ 
+Within-$R^2$                    &amp;    0.281 &amp;    0.642 &amp;     0.659 &amp;                          0.391 \\ 
+\bottomrule
+\end{tabular}</code></pre><p>Similar to interacted coefficients, categorical coefficients are selected using a <code>:</code> between the name and the category.</p><h2 id="By-Regex"><a class="docs-heading-anchor" href="#By-Regex">By Regex</a><a id="By-Regex-1"></a><a class="docs-heading-anchor-permalink" href="#By-Regex" title="Permalink"></a></h2><p>Regex allows the selection of multiple coefficients based on the provided information. For example, to select coefficients with &quot;Width&quot;, specify <code>keep=[r&quot;Width&quot;]</code>:</p><pre><code class="language-julia hljs">regtable(rr1,rr2,rr3,rr4; keep=[r&quot;Width&quot;])
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PetalWidth                                           -0.259     0.626***
+                                                    (0.154)      (0.123)
+SepalWidth &amp; PetalLength                             -0.070
+                                                    (0.041)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+Controls                                     Yes        Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><p>Regex works similarly to the exact string argument, so if the coefficients are labeled then the regex needs to match the relabeled value. It also expects any interaction to be based on <code>&amp;</code> and categorical variables to be <code>:</code>, for example:</p><pre><code class="language-julia hljs">regtable(rr5, rr6)
+
+# output
+
+ 
+-------------------------------------------------
+                                  SepalLength
+                             --------------------
+                                  (1)         (2)
+-------------------------------------------------
+SepalWidth                   0.715***    0.432***
+                              (0.156)     (0.081)
+PetalLength                  1.050***    0.776***
+                              (0.144)     (0.064)
+SepalWidth &amp; PetalLength      -0.085*
+                              (0.040)
+(Intercept)                              2.390***
+                                          (0.262)
+SpeciesDummy: versicolor                -0.956***
+                                          (0.215)
+SpeciesDummy: virginica                 -1.394***
+                                          (0.286)
+-------------------------------------------------
+SpeciesDummy Fixed Effects        Yes
+-------------------------------------------------
+N                                 150         150
+R2                              0.867       0.863
+Within-R2                       0.652
+-------------------------------------------------</code></pre><pre><code class="language-julia hljs">regtable(rr5, rr6; keep=[r&quot;: &quot;, r&quot; &amp; &quot;])
+
+# output
+
+ 
+------------------------------------------------
+                                 SepalLength
+                             -------------------
+                                 (1)         (2)
+------------------------------------------------
+SpeciesDummy: versicolor               -0.956***
+                                         (0.215)
+SpeciesDummy: virginica                -1.394***
+                                         (0.286)
+SepalWidth &amp; PetalLength     -0.085*
+                             (0.040)
+------------------------------------------------
+SpeciesDummy Fixed Effects       Yes
+------------------------------------------------
+Controls                         Yes         Yes
+------------------------------------------------
+N                                150         150
+R2                             0.867       0.863
+Within-R2                      0.652
+------------------------------------------------</code></pre><h2 id="By-Integer"><a class="docs-heading-anchor" href="#By-Integer">By Integer</a><a id="By-Integer-1"></a><a class="docs-heading-anchor-permalink" href="#By-Integer" title="Permalink"></a></h2><p>Specifying an integer allows the selection of specific coefficients:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; drop=[3])
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PetalLength                             0.776***   1.047***      -0.188*
+                                         (0.064)    (0.143)      (0.083)
+SepalWidth &amp; PetalLength                             -0.070
+                                                    (0.041)
+SepalLength                                                     0.378***
+                                                                 (0.066)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+Controls                                                Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><p>In typical arrays, Julia specifies the <code>end</code> argument to access the last argument. This does not work without direct access to the array, so this package provides an <code>:end</code> symbol that is handled similarly:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; keep=[1, :end, (:end, 2)])
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+SepalLength                                                     0.378***
+                                                                 (0.066)
+PetalWidth                                           -0.259     0.626***
+                                                    (0.154)      (0.123)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+Controls                                     Yes        Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><p>The <code>Tuple (:end, 2)</code> is equivalent to <code>end-2</code>.</p><h2 id="By-Range"><a class="docs-heading-anchor" href="#By-Range">By Range</a><a id="By-Range-1"></a><a class="docs-heading-anchor-permalink" href="#By-Range" title="Permalink"></a></h2><p>Specifying a range works similarly to an integer:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; keep=[1:3])
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PetalLength                             0.776***   1.047***      -0.188*
+                                         (0.064)    (0.143)      (0.083)
+PetalWidth                                           -0.259     0.626***
+                                                    (0.154)      (0.123)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+Controls                                                Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><p>There is also a special symbol for selecting a range at the end, <code>:last</code>. By itself, <code>:last</code> works the same as <code>:end</code>, but in a Tuple <code>(:last, x)</code> selects the last <code>x</code> coefficients:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; keep=[1, (:last, 2)])
+
+# output
+
+ 
+------------------------------------------------------------------------
+                                       SepalLength            SepalWidth
+                             ------------------------------   ----------
+                                  (1)        (2)        (3)          (4)
+------------------------------------------------------------------------
+SepalWidth                   0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+SepalWidth &amp; PetalLength                             -0.070
+                                                    (0.041)
+SepalLength                                                     0.378***
+                                                                 (0.066)
+------------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes          Yes
+------------------------------------------------------------------------
+Controls                                     Yes        Yes          Yes
+------------------------------------------------------------------------
+N                                 150        150        150          150
+R2                              0.726      0.863      0.870        0.635
+Within-R2                       0.281      0.642      0.659        0.391
+------------------------------------------------------------------------</code></pre><h2 id="Mixing-keep,-drop-and-order"><a class="docs-heading-anchor" href="#Mixing-keep,-drop-and-order">Mixing keep, drop and order</a><a id="Mixing-keep,-drop-and-order-1"></a><a class="docs-heading-anchor-permalink" href="#Mixing-keep,-drop-and-order" title="Permalink"></a></h2><p>As mentioned, <code>keep</code> is applied first, then <code>drop</code> and finally <code>order</code>. <code>keep</code> also will rearrange arguments, so integer and range arguments in <code>order</code> are applied to the resorted arguments from <code>keep</code>. It is also possible to mix the different types of selectors. For example, if you want the last coefficient and all coefficients that are interactions:</p><pre><code class="language-julia hljs">regtable(rr5, rr6; keep=[:end, r&quot; &amp; &quot;])
+
+# output
+
+ 
+------------------------------------------------
+                                 SepalLength
+                             -------------------
+                                 (1)         (2)
+------------------------------------------------
+SpeciesDummy: virginica                -1.394***
+                                         (0.286)
+SepalWidth &amp; PetalLength     -0.085*
+                             (0.040)
+------------------------------------------------
+SpeciesDummy Fixed Effects       Yes
+------------------------------------------------
+Controls                         Yes         Yes
+------------------------------------------------
+N                                150         150
+R2                             0.867       0.863
+Within-R2                      0.652
+------------------------------------------------</code></pre><h2 id="Relabeled-Coefficients"><a class="docs-heading-anchor" href="#Relabeled-Coefficients">Relabeled Coefficients</a><a id="Relabeled-Coefficients-1"></a><a class="docs-heading-anchor-permalink" href="#Relabeled-Coefficients" title="Permalink"></a></h2><p>By default, if labels change the name of the arguments, then <code>keep</code>, <code>drop</code> and <code>order</code> should use the relabeled versions of the coefficients. For example, if the coefficients are relabeled:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; labels=Dict(&quot;SepalWidth&quot; =&gt; &quot;SW&quot;, &quot;PetalLength&quot; =&gt; &quot;PL&quot;), keep=[&quot;SW&quot;, &quot;PL&quot;])
+
+# output
+
+ 
+---------------------------------------------------------------------
+                                       SepalLength               SW
+                             ------------------------------   -------
+                                  (1)        (2)        (3)       (4)
+---------------------------------------------------------------------
+SW                           0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PL                                      0.776***   1.047***   -0.188*
+                                         (0.064)    (0.143)   (0.083)
+---------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes       Yes
+---------------------------------------------------------------------
+Controls                                                Yes       Yes
+---------------------------------------------------------------------
+N                                 150        150        150       150
+R2                              0.726      0.863      0.870     0.635
+Within-R2                       0.281      0.642      0.659     0.391
+---------------------------------------------------------------------</code></pre><p>To use the original coefficient names, set <code>use_relabeled_values=false</code>:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3, rr4; labels=Dict(&quot;SepalWidth&quot; =&gt; &quot;SW&quot;, &quot;PetalLength&quot; =&gt; &quot;PL&quot;), keep=[&quot;SepalWidth&quot;, &quot;PetalLength&quot;], use_relabeled_values=false)
+
+# output
+
+ 
+---------------------------------------------------------------------
+                                       SepalLength               SW  
+                             ------------------------------   -------
+                                  (1)        (2)        (3)       (4)
+---------------------------------------------------------------------
+SW                           0.804***   0.432***   0.719***
+                              (0.106)    (0.081)    (0.155)
+PL                                      0.776***   1.047***   -0.188*
+                                         (0.064)    (0.143)   (0.083)
+---------------------------------------------------------------------
+SpeciesDummy Fixed Effects        Yes        Yes        Yes       Yes
+---------------------------------------------------------------------
+Controls                                                Yes       Yes
+---------------------------------------------------------------------
+N                                 150        150        150       150
+R2                              0.726      0.863      0.870     0.635
+Within-R2                       0.281      0.642      0.659     0.391
+---------------------------------------------------------------------</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../examples/">« Examples</a><a class="docs-footer-nextpage" href="../api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="auto">Automatic (OS)</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.2.1 on <span class="colophon-date" title="Thursday 15 February 2024 19:40">Thursday 15 February 2024</span>. Using Julia version 1.10.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
