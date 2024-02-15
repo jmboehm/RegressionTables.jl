@@ -26,8 +26,11 @@ function RegressionTables._coefnames(x::MixedModel)
     out
 end
 
-RegressionTables.standardize_coef_values(x::MixedModel, coefvalues, coefstderrors) =
-    RegressionTables.standardize_coef_values(std(modelmatrix(x), dims=1)[1, :], std(response(x)), coefvalues, coefstderrors)
+# k is which coefficient or standard error to standardize
+RegressionTables.standardize_coef_values(x::MixedModel, val, k) =
+    RegressionTables.standardize_coef_values(std(modelmatrix(x)[:, k]), std(response(x)), val)
+
+RegressionTables.can_standardize(x::MixedModel) = true
 
 function RegressionTables.other_stats(x::MixedModel, s::Symbol)
     if s == :randomeffects

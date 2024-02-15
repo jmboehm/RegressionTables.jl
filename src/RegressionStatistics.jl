@@ -462,44 +462,57 @@ abstract type AbstractUnderStatistic <: AbstractRegressionData end
     struct TStat <: AbstractUnderStatistic
         val::Float64
     end
-    TStat(se, coef, dof=0)
+    TStat(rr::RegressionModel, k::Int; vargs...)
 
 The t-statistic of a coefficient.
 """
 struct TStat <: AbstractUnderStatistic
     val::Float64
 end
-TStat(se, coef, dof=0) = TStat(coef / se)
+TStat(rr::RegressionModel, k::Int; vargs...) = TStat(_coef(rr)[k] / _stderror(rr)[k])
 
 """
     struct StdError <: AbstractUnderStatistic
         val::Float64
     end
-    StdError(se, coef, dof=0)
+    StdError(rr::RegressionModel, k::Int; standardize=false, vargs...)
 
 The standard error of a coefficient.
 """
 struct StdError <: AbstractUnderStatistic
     val::Float64
 end
-StdError(se, coef, dof=0) = StdError(se)
+function StdError(rr::RegressionModel, k::Int; standardize=false, vargs...)
+    if standardize
+        StdError(standardize_coef_values(rr, _stderror(rr)[k], k))
+    else
+        StdError(_stderror(rr)[k])
+    end
+end
 
 """
     struct ConfInt <: AbstractUnderStatistic
         val::Tuple{Float64, Float64}
     end
-    ConfInt(se, coef, dof; level=default_confint_level())
+    ConfInt(rr::RegressionModel, k::Int; level=0.95, standardize=false, vargs...)
 
 The confidence interval of a coefficient. The default confidence
 level is 95% (can be changed by setting 
-`RegressionTable.default_confint_level() = 0.90` or similar).
+`RegressionTable.default_confint_level(render::AbstractRenderType, rr) = 0.90` or similar).
 """
 struct ConfInt <: AbstractUnderStatistic
     val::Tuple{Float64, Float64}
 end
-default_confint_level() = 0.95
-function ConfInt(se, coef, dof; level=default_confint_level())
+
+function ConfInt(rr::RegressionModel, k::Int; level=0.95, standardize=false, vargs...)
     @assert 0 < level < 1 "Confidence level must be between 0 and 1"
+    se = _stderror(rr)[k]
+    coef = _coef(rr)[k]
+    dof = _dof_residual(rr)
+    if standardize
+        se = standardize_coef_values(rr, se, k)
+        coef = standardize_coef_values(rr, coef, k)
+    end
     scale = quantile(TDist(dof), 1 - (1-level) / 2)
     ConfInt((coef - scale * se, coef + scale * se))
 end
@@ -518,6 +531,14 @@ The value of a coefficient and its p-value.
 struct CoefValue <: AbstractRegressionData
     val::Float64
     pvalue::Float64
+end
+function CoefValue(rr::RegressionModel, k::Int; standardize=false, vargs...)
+    val = _coef(rr)[k]
+    p = _pvalue(rr)[k]
+    if standardize
+        val = standardize_coef_values(rr, val, k)
+    end
+    CoefValue(val, p)
 end
 value(x::CoefValue) = x.val
 value_pvalue(x::CoefValue) = x.pvalue

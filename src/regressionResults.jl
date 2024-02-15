@@ -4,7 +4,26 @@ These are the necessary functions to create a table from a regression result.
 If the regression result does not provide a function by default, then
 within an extension, it is possible to define the necessary function.
 =#
+
+"""
+    _formula(x::RegressionModel)
+
+Generally a passthrough for the `formula` function from the `StatsModels` package.
+Note tha the `formula` function returns the `FormulaSchema`.
+
+This function is only used internally in the [`RegressionTables._responsename`](@ref)
+and [`RegressionTables._coefnames`](@ref) functions. Therefore, if the `RegressionModel`
+uses those two functions without using `formula`, this function is not necessary.
+"""
 _formula(x::RegressionModel) = formula(x)
+
+"""
+    _responsename(x::RegressionModel)
+
+Returns the name of the dependent variable in the regression model.
+The default of this returns a `AbstractCoefName` object, but it can be
+a `String` or `Symbol` as well.
+"""
 function _responsename(x::RegressionModel)
     x = get_coefname(_formula(x).lhs)
     if isa(x, AbstractVector)
@@ -12,6 +31,14 @@ function _responsename(x::RegressionModel)
     end
     x
 end
+
+"""
+    _coefnames(x::RegressionModel)
+
+Returns a vector of the names of the coefficients in the regression model.
+The default of this returns a vector of `AbstractCoefName` objects, but it can be
+a vector of `String` or `Symbol` as well.
+"""
 function _coefnames(x::RegressionModel)
     out = get_coefname(_formula(x).rhs)
     if !isa(out, AbstractVector)
@@ -19,25 +46,85 @@ function _coefnames(x::RegressionModel)
     end
     out
 end
+
+"""
+    _coef(x::RegressionModel)
+
+Returns a vector of the coefficients in the regression model.
+By default, is just a passthrough for the `coef` function from the `StatsModels` package.
+"""
 _coef(x::RegressionModel) = coef(x)
+
+"""
+    _stderror(x::RegressionModel)
+
+Returns a vector of the standard errors of the coefficients in the regression model.
+By default, is just a passthrough for the `stderror` function from the `StatsModels` package.
+"""
 _stderror(x::RegressionModel) = stderror(x)
+
+"""
+    _dof_residual(x::RegressionModel)
+
+Returns the degrees of freedom of the residuals in the regression model.
+By default, is just a passthrough for the `dof_residual` function from the `StatsModels` package.
+"""
 _dof_residual(x::RegressionModel) = dof_residual(x)
 
+"""
+    _pvalue(x::RegressionModel)
+
+Returns a vector of the p-values of the coefficients in the regression model.
+"""
 function _pvalue(x::RegressionModel)
     tt = _coef(x) ./ _stderror(x)
     ccdf.(Ref(FDist(1, _dof_residual(x))), abs2.(tt))
 end
 
-function standardize_coef_values(rr::T, coefvalues, coefstderrors) where {T <: RegressionModel}
+"""
+    can_standardize(x::RegressionModel)
+
+Returns a boolean indicating whether the coefficients can be standardized.
+standardized coefficients are coefficients that are scaled by the standard deviation of the
+variables. This is useful for comparing the relative importance of the variables in the model.
+
+This is only possible of the `RegressionModel` includes the model matrix or the
+standard deviation of the dependent variable. If the `RegressionModel` does not include
+either of these, then this function should return `false`.
+
+See also [`RegressionTables.standardize_coef_values`](@ref).
+"""
+function can_standardize(x::T) where {T<:RegressionModel}
     @warn "standardize_coef is not possible for $T"
-    coefvalues, coefstderrors
+    false
 end
 
-function standardize_coef_values(std_X::Vector, std_Y, coefvalues::Vector, coefstderrors::Vector)
-    std_X = replace(std_X, 0 => 1) # constant has 0 std, so the interpretation is how many Y std away from 0 is the intercept
-    coefvalues = coefvalues .* std_X ./ std_Y
-    coefstderrors = coefstderrors .* std_X  ./ std_Y
-    coefvalues, coefstderrors
+"""
+    standardize_coef_values(std_X, std_Y, val)
+
+Standardizes the coefficients by the standard deviation of the variables.
+This is useful for comparing the relative importance of the variables in the model.
+
+This function is only used if the [`RegressionTables.can_standardize`](@ref) function returns `true`.
+
+### Arguments
+- `std_X::Real`: The standard deviation of the independent variable.
+- `std_Y::Real`: The standard deviation of the dependent variable.
+- `val::Real`: The value to be standardized (either the coefficient or the standard error).
+
+!!! note
+    If the standard deviation of the independent variable is 0, then the interpretation of the
+    coefficient is how many standard deviations of the dependent variable away from 0 is the intercept.
+    In this case, the function returns `val / std_Y`.
+
+    Otherwise, the function returns `val * std_X / std_Y`.
+"""
+function standardize_coef_values(std_X, std_Y, val)
+    if std_X == 0 # constant has 0 std, so the interpretation is how many Y std away from 0 is the intercept
+        val / std_Y
+    else
+        val * std_X / std_Y
+    end
 end
 
 transformer(s::Nothing, repl_dict::AbstractDict) = s
@@ -59,6 +146,13 @@ make_reg_stats(rr, stat) = stat
 make_reg_stats(rr, stat::Pair{<:Any, <:AbstractString}) = make_reg_stats(rr, first(stat)) => last(stat)
 
 default_regression_statistics(x::AbstractRenderType, rr::RegressionModel) = default_regression_statistics(rr)
+"""
+    default_regression_statistics(rr::RegressionModel)
+
+Returns a vector of [`AbstractRegressionStatistic`](@ref) objects. This is used to display the
+statistics in the table. This is customizable for each `RegressionModel` type. The default
+is to return a vector of `Nobs` and `R2`.
+"""
 default_regression_statistics(rr::RegressionModel) = [Nobs, R2]
 
 

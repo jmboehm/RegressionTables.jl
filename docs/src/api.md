@@ -71,7 +71,6 @@ RegressionTables.reorder_nms_list
 RegressionTables.drop_names!
 RegressionTables.add_blank
 RegressionTables.missing_vars
-RegressionTables.other_stats
 RegressionTables.add_element!
 ```
 
@@ -83,4 +82,25 @@ This section describes how different types are displayed. Throughout this packag
 
 ```@docs
 Base.repr
+```
+
+## New RegressionModel Types
+
+This package is designed to be generally compatible with the [RegressionModel abstraction](https://juliastats.org/StatsBase.jl/latest/statmodels/). It has special conditions defined around four commonly used packages ([FixedEffectModels.jl](https://github.com/matthieugomez/FixedEffectModels.jl), [GLM.jl](https://github.com/JuliaStats/GLM.jl), [GLFixedEffectModels.jl](https://github.com/jmboehm/GLFixedEffectModels.jl) and [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl)). It is possible to add new models to this list, either by creating an extension for this package or by creating the necessary items in an independent package.
+
+For any new `RegressionModel`, there may be a need to define the following functions for the package to work correctly. Many of these will work without any issues if following the StatsModels API, and many of the others are useful for customizing how the regression result is displayed. It is also possible to redefine how [`RegressionTables.AbstractRegressionStatistic`](@ref) are displayed.
+
+```@docs
+RegressionTables._formula
+RegressionTables._responsename
+RegressionTables._coefnames
+RegressionTables._coef
+RegressionTables._stderror
+RegressionTables._dof_residual
+RegressionTables._pvalue
+RegressionTables.other_stats
+RegressionTables.default_regression_statistics(::RegressionModel)
+RegressionTables.can_standardize
+RegressionTables.standardize_coef_values
+RegressionTables.RegressionType
 ```
