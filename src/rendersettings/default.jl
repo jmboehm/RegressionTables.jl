@@ -164,7 +164,7 @@ that instead of `digits` and `commas`
 """
 function Base.repr(render::AbstractRenderType, x::Float64; digits=default_digits(render, x), commas=true, str_format=nothing, args...)
     if str_format !== nothing
-        sprintf1(str_format, x)
+        cfmt(str_format, x)
     else
         format(x; precision=digits, commas)
     end
