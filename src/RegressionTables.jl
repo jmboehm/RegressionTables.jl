@@ -26,6 +26,7 @@ module RegressionTables
     using StatsModels
     using Statistics
     using StatsAPI
+    using PythonCall
 
     using Distributions
     using Format
@@ -37,7 +38,7 @@ module RegressionTables
     ##############################################################################
 
     export regtable, LatexTable, LatexTableStar, AsciiTable, HtmlTable, AbstractRenderType,
-    AbstractAscii, AbstractLatex, AbstractHtml
+    AbstractAscii, AbstractLatex, AbstractHtml, AbstractExcel, ExcelTable
     export Nobs, R2, R2McFadden, R2CoxSnell, R2Nagelkerke,
     R2Deviance, AdjR2, AdjR2McFadden, AdjR2Deviance, DOF, LogLikelihood, AIC, BIC, AICC,
     FStat, FStatPValue, FStatIV, FStatIVPValue, R2Within, PseudoR2, AdjPseudoR2
@@ -65,6 +66,7 @@ module RegressionTables
     include("rendersettings/ascii.jl")
     include("rendersettings/latex.jl")
     include("rendersettings/html.jl")
+    include("rendersettings/excel.jl")
 
 
     # main settings
