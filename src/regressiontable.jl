@@ -88,16 +88,37 @@ mutable struct RegressionTable{T<:AbstractRenderType} <: AbstractMatrix{String}
         align::String,
         breaks=[length(data)],
         colwidths::Vector{Int}=zeros(Int, length(data[1])),
-        vertical_gaps::Vector{Int}=Int[]
+        vertical_gaps::Union{Nothing, Vector{Int}}=nothing
     ) where {T<:AbstractRenderType}
         if all(colwidths .== 0)
             colwidths = calc_widths(data)
         end
         update_widths!.(data, Ref(colwidths))
+        if vertical_gaps === nothing
+            vertical_gaps = find_vertical_gaps(data)
+        end
         @assert all(length.(data) .== length(colwidths)) && length(colwidths) == length(align) "Not all the correct length"
         @assert length(data) .>= maximum(breaks) "Breaks must be less than the number of rows"
         new{T}(data,align, T(), breaks, colwidths, vertical_gaps)
     end
+end
+
+function find_vertical_gaps(data::Vector{DataRow{T}}) where T
+    out = Set{Int}()
+    for row in data
+        i = 0
+        for (j, x) in enumerate(row.data)
+            if isa(x, Pair)
+                i += length(last(x))
+            else
+                i += 1
+            end
+            if row.print_underlines[j] && i < length(row)
+                push!(out, i)
+            end
+        end
+    end
+    sort(collect(out))
 end
 
 Base.size(tab::RegressionTable) = (length(data(tab)), length(data(tab)[1]))
