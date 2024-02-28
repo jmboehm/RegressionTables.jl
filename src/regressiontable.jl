@@ -7,6 +7,7 @@
         render::T
         breaks::Vector{Int}
         colwidths::Vector{Int}
+        vertical_gaps::Vector{Int}
     end
 
     RegressionTable(header::Vector, body::Matrix, args...; vargs...)
@@ -32,6 +33,8 @@ lines (e.g., `\\midrule` in LaTeX).
    the line number is printed (breaks = [5] will print a break after the 5th line is printed).
 - `colwidths`: A vector of integers, one for each column, indicating the width of the column. Can calculate the widths
     automatically using [`calc_widths`](@ref) and update them with [`update_widths!`](@ref).
+- `vertical_gaps`: A vector of integers, indicating where to put vertical gaps in the table. These are places where two underlined cells
+    are not connected. This is necessary for Excel integration.
 
 The `RegressionTable` is a subtype of the `AbstractMatrix{String}` type (though this functionality is somewhat experimental).
 Importantly, this implements `getindex` and `setindex!`, which means individual elements of the table can be modified after
@@ -88,16 +91,45 @@ mutable struct RegressionTable{T<:AbstractRenderType} <: AbstractMatrix{String}
         align::String,
         breaks=[length(data)],
         colwidths::Vector{Int}=zeros(Int, length(data[1])),
-        vertical_gaps::Vector{Int}=Int[]
+        vertical_gaps::Union{Nothing, Vector{Int}}=nothing
     ) where {T<:AbstractRenderType}
         if all(colwidths .== 0)
             colwidths = calc_widths(data)
         end
         update_widths!.(data, Ref(colwidths))
+        if vertical_gaps === nothing
+            vertical_gaps = find_vertical_gaps(data)
+        end
         @assert all(length.(data) .== length(colwidths)) && length(colwidths) == length(align) "Not all the correct length"
         @assert length(data) .>= maximum(breaks) "Breaks must be less than the number of rows"
         new{T}(data,align, T(), breaks, colwidths, vertical_gaps)
     end
+end
+
+"""
+    find_vertical_gaps(data::Vector{DataRow{T}}) where T
+
+Finds locations in a vector of `DataRow` objects where there are vertical gaps. A "vertical gap" is a place
+where two underlined cells are not connected. If there is a gap, then there needs to be a space between
+the current column and the next column. This makes it unnecessary to have a final vertical gap since
+the table ends there.
+"""
+function find_vertical_gaps(data::Vector{DataRow{T}}) where T
+    out = Set{Int}()
+    for row in data
+        i = 0
+        for (j, x) in enumerate(row.data)
+            if isa(x, Pair)
+                i += length(last(x))
+            else
+                i += 1
+            end
+            if row.print_underlines[j] && i < length(row)
+                push!(out, i)
+            end
+        end
+    end
+    sort(collect(out))
 end
 
 Base.size(tab::RegressionTable) = (length(data(tab)), length(data(tab)[1]))
