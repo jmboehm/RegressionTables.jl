@@ -7,11 +7,11 @@ function tablestart(::AbstractTypst, align)
     cols = join(fill("auto", length(cols)), ", ")
 
 """
-#import "@preview/tablex:0.0.7": colspanx, hlinex, gridx
-#gridx(
+#table(
     columns: ($cols),
     align: ($cols_align),
     column-gutter: 1fr,
+    stroke: none,
 """
 end
 
@@ -35,14 +35,14 @@ function multicolumn(rndr::AbstractTypst, s, cols::Int, align="c")
     elseif align == "r" || align == 'r'
         "right"
     end
-    "colspanx($cols, align: $x)[$s]"
+    "table.cell(colspan: $cols, align: $x)[$s]"
 end
 
-underline(::AbstractTypst, colmin::Int, colmax::Int) = "hlinex(start: $(colmin-1), end: $(colmax), stop-pre-gutter: true)"
+underline(::AbstractTypst, colmin::Int, colmax::Int) = "table.hline(start: $(colmin-1), end: $(colmax), stroke: 0.5pt)"
 
-toprule(x::AbstractTypst) = linestart(x) * "hlinex(), "
-midrule(x::AbstractTypst) = linestart(x) * "hlinex(), "
-bottomrule(x::AbstractTypst) = linestart(x) * "hlinex(), "
+toprule(x::AbstractTypst) = linestart(x) * "table.hline(), "
+midrule(x::AbstractTypst) = linestart(x) * "table.hline(stroke: 0.7pt), "
+bottomrule(x::AbstractTypst) = linestart(x) * "table.hline(), "
 linestart(::AbstractTypst) = "  "
 lineend(::AbstractTypst) = ","
 tablestart(tab::RegressionTable{<:AbstractTypst}) = tablestart(tab.render, tab.align)
