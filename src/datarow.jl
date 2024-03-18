@@ -267,7 +267,7 @@ function calc_widths(rows::Vector{DataRow{T}}) where {T<:AbstractRenderType}
                     end
                 end
             else
-                out_lengths[i] = max(out_lengths[i], length(s))
+                out_lengths[i] = max(out_lengths[i], length(s) + extra_cell_space(render))
             end
         end
     end
@@ -280,7 +280,10 @@ end
 Updates the widths of each column in the row. If lengths are provided, then it should equate to the total number
 of columns in the table, not the number of elements in the row.
 """
-function update_widths!(row::DataRow{T}, new_lengths=length.(repr.(T(), row.data))) where {T}
+function update_widths!(
+    row::DataRow{T},
+    new_lengths=length.(repr.(T(), row.data)) .+ extra_cell_space(T())
+) where {T}
     #@assert length(row) == length(new_lengths) "Wrong number of lengths"
     render = T()
     if length(row.data) == length(new_lengths)

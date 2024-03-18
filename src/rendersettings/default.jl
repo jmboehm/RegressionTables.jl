@@ -35,6 +35,13 @@ RegressionTables.interaction_combine(render::AbstractLatex) = " \\& "
 interaction_combine(render::AbstractRenderType) = " & "
 
 """
+    extra_cell_space(render::AbstractRenderType)
+
+Used to add extra space to the cell and defaults to 0.
+"""
+extra_cell_space(::AbstractRenderType) = 0
+
+"""
     categorical_equal(render::AbstractRenderType)
 
 Used to separate the name and level of [`CategoricalCoefName`](@ref) and defaults to ": ".
