@@ -6,7 +6,7 @@ Setup for the following examples:
 ```@meta
 DocTestSetup = quote # hide
     using RegressionTables, DataFrames, RDatasets, FixedEffectModels, GLM, MixedModels;
-    df = dataset("datasets", "iris");
+    df = RDatasets.dataset("datasets", "iris");
     df[!,:isSmall] = df[!,:SepalWidth] .< 2.9;
     rr1 = reg(df, @formula(SepalLength ~ SepalWidth));
     rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(Species)));
@@ -1315,7 +1315,7 @@ Pseudo R2        0.006      0.006       0.297       0.297
 Displays whether or not the standard errors are clustered and in what ways.
 
 ```jldoctest
-df_cigar = dataset("plm", "Cigar");
+df_cigar = RDatasets.dataset("plm", "Cigar");
 
 rr_c1 = reg(df_cigar, @formula(Sales ~ NDI + fe(State) + fe(Year)), Vcov.cluster(:State));
 rr_c2 = reg(df_cigar, @formula(Sales ~ NDI + Price + fe(State) + fe(Year)), Vcov.cluster(:State, :Year));

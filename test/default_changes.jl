@@ -9,7 +9,7 @@ own test set
 using RegressionTables
 using FixedEffectModels, GLM, RDatasets, Test
 
-df = dataset("datasets", "iris")
+df = RDatasets.dataset("datasets", "iris")
 df[!, :isSmall] = df[!, :SepalWidth] .< 2.9
 df[!, :isWide] = df[!, :SepalWidth] .> 2.5
 
