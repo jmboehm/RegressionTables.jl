@@ -65,7 +65,8 @@ RegressionTables.default_print_estimator
 RegressionTables.default_regression_statistics
 RegressionTables.default_print_randomeffects
 RegressionTables.default_print_clusters
-
+RegressionTables.default_use_relabeled_values
+RegressionTables.default_confint_level
 ```
 
 ## Other Defaults

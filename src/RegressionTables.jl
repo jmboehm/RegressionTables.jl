@@ -1,5 +1,3 @@
-__precompile__(true)
-
 module RegressionTables
 
     ##############################################################################
@@ -30,7 +28,7 @@ module RegressionTables
     using StatsAPI
 
     using Distributions
-    using Formatting
+    using Format
     
     ##############################################################################
     ##
