@@ -73,6 +73,7 @@ RegressionTables.add_blank
 RegressionTables.missing_vars
 RegressionTables.add_element!
 RegressionTables.find_vertical_gaps
+RegressionTables.extra_cell_space
 ```
 
 ## How Types are Displayed

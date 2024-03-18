@@ -1430,3 +1430,87 @@ N                             1,789         1,789         1,789
 Log Likelihood          -14,685.198   -14,765.033   -14,711.866
 ---------------------------------------------------------------
 ```
+
+## Typst Support
+
+Similar to Latex, this package can produce Typst Tables. This requires Typst v0.11.
+
+
+```jldoctest
+regtable(rr1,rr2,rr3,rr4; render = TypstTable())
+
+# output
+
+#table( 
+  columns: (auto, auto, auto, auto, auto),
+  align: (left, right, right, right, right),
+  column-gutter: 1fr,
+  stroke: none,
+
+  table.hline(), 
+  []                              ,    table.cell(colspan: 3, align: center)[SepalLength]  , table.cell(colspan: 1, align: center)[SepalWidth],
+  table.hline(start: 1, end: 4, stroke: 0.5pt), table.hline(start: 4, end: 5, stroke: 0.5pt),
+  []                              ,             [(1)],             [(2)],             [(3)],                                             [(4)],
+  table.hline(stroke: 0.7pt),
+  [(Intercept)]                   , [6.526$""^(***)$],                [],                [],                                                [],
+  []                              ,         [(0.479)],                [],                [],                                                [],
+  [SepalWidth]                    ,          [-0.223], [0.432$""^(***)$], [0.516$""^(***)$],                                                [],
+  []                              ,         [(0.155)],         [(0.081)],         [(0.104)],                                                [],
+  [PetalLength]                   ,                [], [0.776$""^(***)$], [0.723$""^(***)$],                                  [-0.188$""^(*)$],
+  []                              ,                [],         [(0.064)],         [(0.129)],                                         [(0.083)],
+  [PetalWidth]                    ,                [],                [],          [-0.625],                                 [0.626$""^(***)$],
+  []                              ,                [],                [],         [(0.354)],                                         [(0.123)],
+  [PetalLength $times$ PetalWidth],                [],                [],           [0.066],                                                [],
+  []                              ,                [],                [],         [(0.067)],                                                [],
+  [SepalLength]                   ,                [],                [],                [],                                 [0.378$""^(***)$],
+  []                              ,                [],                [],                [],                                         [(0.066)],
+  table.hline(stroke: 0.7pt),
+  [Species Fixed Effects]         ,                [],             [Yes],             [Yes],                                             [Yes],
+  [isSmall Fixed Effects]         ,                [],                [],             [Yes],                                                [],
+  table.hline(stroke: 0.7pt),
+  [_N_]                           ,             [150],             [150],             [150],                                             [150],
+  [_R_$""^2$]                     ,           [0.014],           [0.863],           [0.868],                                           [0.635],
+  [Within-_R_$""^2$]              ,                [],           [0.642],           [0.598],                                           [0.391],
+  table.hline(),
+)
+```
+
+```jldoctest
+regtable(rr1, rr6, rr7; render = TypstTable())
+
+# output
+
+#table( 
+  columns: (auto, auto, auto, auto),
+  align: (left, right, right, right),
+  column-gutter: 1fr,
+  stroke: none,
+
+  table.hline(),
+  []                   , table.cell(colspan: 1, align: center)[SepalLength], table.cell(colspan: 2, align: center)[isSmall],
+  table.hline(start: 1, end: 2, stroke: 0.5pt), table.hline(start: 2, end: 4, stroke: 0.5pt),
+  []                   ,                                              [(1)],                  [(2)],                  [(3)],
+  table.hline(stroke: 0.7pt),
+  [(Intercept)]        ,                                  [6.526$""^(***)$],               [-1.917],     [10.189$""^(***)$],
+  []                   ,                                          [(0.479)],              [(1.242)],              [(2.607)],
+  [SepalWidth]         ,                                           [-0.223],                     [],                     [],
+  []                   ,                                          [(0.155)],                     [],                     [],
+  [PetalLength]        ,                                                 [],               [-0.773],      [3.580$""^(***)$],
+  []                   ,                                                 [],              [(0.554)],              [(0.708)],
+  [PetalWidth]         ,                                                 [],      [-3.782$""^(**)$],      [-3.637$""^(**)$],
+  []                   ,                                                 [],              [(1.256)],              [(1.127)],
+  [Species: versicolor],                                                 [],     [10.441$""^(***)$],                     [],
+  []                   ,                                                 [],              [(1.957)],                     [],
+  [Species: virginica] ,                                                 [],     [13.230$""^(***)$],                     [],
+  []                   ,                                                 [],              [(2.636)],                     [],
+  [SepalLength]        ,                                                 [],                     [],     [-3.519$""^(***)$],
+  []                   ,                                                 [],                     [],              [(0.697)],
+  table.hline(stroke: 0.7pt),
+  [Estimator]          ,                                              [OLS],             [Binomial],             [Binomial],
+  table.hline(stroke: 0.7pt),
+  [_N_]                ,                                              [150],                  [150],                  [150],
+  [_R_$""^2$]          ,                                            [0.014],                     [],                     [],
+  [Pseudo _R_$""^2$]   ,                                            [0.006],                [0.347],                [0.297],
+  table.hline(),
+)
+```

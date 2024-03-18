@@ -8,10 +8,10 @@ function tablestart(::AbstractTypst, align)
 
 """
 #table(
-    columns: ($cols),
-    align: ($cols_align),
-    column-gutter: 1fr,
-    stroke: none,
+  columns: ($cols),
+  align: ($cols_align),
+  column-gutter: 1fr,
+  stroke: none,
 """
 end
 
@@ -52,6 +52,8 @@ label(::AbstractTypst, x::Type{Nobs}) = "_N_"
 label(::AbstractTypst, x::Type{R2}) = "_R_\$\"\"^2\$"
 label(::AbstractTypst, x::Type{FStat}) = "_F_"
 label_p(::AbstractTypst, ) = "_p_"
+
+extra_cell_space(::AbstractTypst) = 2 # to account for "[]"
 
 interaction_combine(::AbstractTypst) = " \$times\$ "
 
