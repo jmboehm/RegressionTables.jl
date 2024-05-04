@@ -506,15 +506,11 @@ end
 
 function ConfInt(rr::RegressionModel, k::Int; level=0.95, standardize=false, vargs...)
     @assert 0 < level < 1 "Confidence level must be between 0 and 1"
-    se = _stderror(rr)[k]
-    coef = _coef(rr)[k]
-    dof = _dof_residual(rr)
+    c_int = confint(rr; level)[k, :] |> Tuple
     if standardize
-        se = standardize_coef_values(rr, se, k)
-        coef = standardize_coef_values(rr, coef, k)
+        c_int = standardize_coef_values.(Ref(rr), c_int, k)
     end
-    scale = quantile(TDist(dof), 1 - (1-level) / 2)
-    ConfInt((coef - scale * se, coef + scale * se))
+    ConfInt(c_int)
 end
 
 value(x::AbstractUnderStatistic) = x.val
