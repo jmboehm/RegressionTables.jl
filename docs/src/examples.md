@@ -259,7 +259,7 @@ Below statistics (including confidence intervals) are impacted by standardizing 
 ```jldoctest
 regtable(lm1,lm2,rr6,rr7; below_statistic = ConfInt, standardize_coef=true)
 
-#output
+# output
 
  
 -----------------------------------------------------------------------------------------------
