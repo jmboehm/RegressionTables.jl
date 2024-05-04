@@ -329,7 +329,7 @@ struct BIC <: AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 BIC(x::RegressionModel) = try
-    BIC(aicc(x))
+    BIC(bic(x))
 catch
     BIC(nothing)
 end
