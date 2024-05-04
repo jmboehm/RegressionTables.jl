@@ -15,6 +15,8 @@ DocTestSetup = quote # hide
     rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(Species)));
     rr6 = glm(@formula(isSmall ~ PetalLength + PetalWidth + Species), df, Binomial());
     rr7 = glm(@formula(isSmall ~ SepalLength + PetalLength + PetalWidth), df, Binomial());
+    lm1 = lm(@formula(SepalLength ~ SepalWidth), df);
+    lm2 = lm(@formula(SepalLength ~ SepalWidth + PetalLength + Species), df);
 end # hide
 ```
 ```julia
@@ -28,6 +30,8 @@ rr4 = reg(df, @formula(SepalWidth ~ SepalLength + PetalLength + PetalWidth + fe(
 rr5 = reg(df, @formula(SepalWidth ~ SepalLength + (PetalLength ~ PetalWidth) + fe(Species)));
 rr6 = glm(@formula(isSmall ~ PetalLength + PetalWidth + Species), df, Binomial());
 rr7 = glm(@formula(isSmall ~ SepalLength + PetalLength + PetalWidth), df, Binomial());
+lm1 = lm(@formula(SepalLength ~ SepalWidth), df);
+lm2 = lm(@formula(SepalLength ~ SepalWidth + PetalLength + Species), df);
 ```
 
 ## Default
@@ -179,36 +183,39 @@ Within-R2                                0.642      0.598        0.391
 Confidence level defaults to the 95th percentile:
 
 ```jldoctest
-regtable(rr1,rr2,rr3,rr4; below_statistic = ConfInt)
+regtable(rr1,rr2,rr3,rr4,lm1,rr7; below_statistic = ConfInt)
 
 # output
 
  
-------------------------------------------------------------------------------------------------
-                                               SepalLength                         SepalWidth
-                           --------------------------------------------------   ----------------
-                                       (1)              (2)               (3)                (4)
-------------------------------------------------------------------------------------------------
-(Intercept)                       6.526***
-                            (5.580, 7.473)
-SepalWidth                          -0.223         0.432***          0.516***
-                           (-0.530, 0.083)   (0.271, 0.593)    (0.311, 0.721)
-PetalLength                                        0.776***          0.723***            -0.188*
-                                             (0.649, 0.903)    (0.469, 0.978)   (-0.353, -0.023)
-PetalWidth                                                             -0.625           0.626***
-                                                              (-1.325, 0.076)     (0.382, 0.870)
+-------------------------------------------------------------------------------------------------------------------------------------
+                                               SepalLength                         SepalWidth        SepalLength          isSmall    
+                           --------------------------------------------------   ----------------   ---------------   ----------------
+                                       (1)              (2)               (3)                (4)               (5)                (6)
+-------------------------------------------------------------------------------------------------------------------------------------
+(Intercept)                       6.526***                                                                6.526***          10.189***
+                            (5.580, 7.473)                                                          (5.580, 7.473)    (5.080, 15.298)
+SepalWidth                          -0.223         0.432***          0.516***                               -0.223
+                           (-0.530, 0.083)   (0.271, 0.593)    (0.311, 0.721)                      (-0.530, 0.083)
+PetalLength                                        0.776***          0.723***            -0.188*                             3.580***
+                                             (0.649, 0.903)    (0.469, 0.978)   (-0.353, -0.023)                       (2.192, 4.968)
+PetalWidth                                                             -0.625           0.626***                             -3.637**
+                                                              (-1.325, 0.076)     (0.382, 0.870)                     (-5.847, -1.428)
 PetalLength & PetalWidth                                                0.066
                                                               (-0.067, 0.199)
-SepalLength                                                                             0.378***
-                                                                                  (0.248, 0.507)
-------------------------------------------------------------------------------------------------
+SepalLength                                                                             0.378***                            -3.519***
+                                                                                  (0.248, 0.507)                     (-4.884, -2.153)
+-------------------------------------------------------------------------------------------------------------------------------------
 Species Fixed Effects                                   Yes               Yes                Yes
 isSmall Fixed Effects                                                     Yes
-------------------------------------------------------------------------------------------------
-N                                      150              150               150                150
-R2                                   0.014            0.863             0.868              0.635
+-------------------------------------------------------------------------------------------------------------------------------------
+Estimator                              OLS              OLS               OLS                OLS               OLS           Binomial
+-------------------------------------------------------------------------------------------------------------------------------------
+N                                      150              150               150                150               150                150
+R2                                   0.014            0.863             0.868              0.635             0.014
 Within-R2                                             0.642             0.598              0.391
-------------------------------------------------------------------------------------------------
+Pseudo R2                            0.006            0.811             0.826              0.862             0.006              0.297
+-------------------------------------------------------------------------------------------------------------------------------------
 ```
 
 Set the Confidence Interval level either by setting [`RegressionTables.default_confint_level`](@ref) or by adjusting the `confint_level` keyword argument
@@ -244,6 +251,43 @@ N                                150               150               150        
 R2                              0.014             0.863             0.868              0.635
 Within-R2                                         0.642             0.598              0.391
 -------------------------------------------------------------------------------------------------
+```
+
+Below statistics (including confidence intervals) are impacted by standardizing the coefficients:
+
+
+```jldoctest
+regtable(lm1,lm2,rr6,rr7; below_statistic = ConfInt, standardize_coef=true)
+
+#output
+
+ 
+-----------------------------------------------------------------------------------------------
+                                  SepalLength                             isSmall
+                      ----------------------------------   ------------------------------------
+                                  (1)                (2)                 (3)                (4)
+-----------------------------------------------------------------------------------------------
+(Intercept)                  7.881***           2.887***              -4.119          21.894***
+                       (6.738, 9.024)     (2.261, 3.513)     (-9.350, 1.112)   (10.916, 32.871)
+SepalWidth                     -0.118           0.228***
+                      (-0.279, 0.044)     (0.143, 0.312)
+PetalLength                                     1.654***              -2.934          13.578***
+                                          (1.383, 1.924)     (-7.053, 1.185)    (8.313, 18.842)
+Species: versicolor                            -0.546***           10.611***
+                                        (-0.789, -0.303)     (6.713, 14.509)
+Species: virginica                             -0.796***           13.445***
+                                        (-1.119, -0.474)     (8.195, 18.696)
+PetalWidth                                                          -6.193**           -5.957**
+                                                           (-10.225, -2.162)   (-9.576, -2.339)
+SepalLength                                                                           -6.260***
+                                                                               (-8.690, -3.831)
+-----------------------------------------------------------------------------------------------
+Estimator                         OLS                OLS            Binomial           Binomial
+-----------------------------------------------------------------------------------------------
+N                                 150                150                 150                150
+R2                              0.014              0.863
+Pseudo R2                       0.006              0.811               0.347              0.297
+-----------------------------------------------------------------------------------------------
 ```
 
 ## Standard Errors on same line as coefficient
@@ -1242,8 +1286,6 @@ Pseudo R2                     0.006      0.811      0.826       0.297
 Standardizing coefficients adjusts each coefficient by its standard deviation and the standard deviation of the $Y$ variable, making the coefficients equivalent to a 1 standard deviation in $X$ leads to a (result) standard deviation change in $Y$. This is only possible for regressions that store enough information to calculate these standard deviations, currently [GLM.jl](https://github.com/JuliaStats/GLM.jl) and [MixedModels.jl](https://github.com/JuliaStats/MixedModels.jl). The intercept, lacking a standard deviation, is simply the number of standard deviations of $Y$.
 
 ```jldoctest
-lm1 = lm(@formula(SepalLength ~ SepalWidth), df);
-lm2 = lm(@formula(SepalLength ~ SepalWidth + PetalLength + Species), df);
 regtable(lm1, lm2, rr6, rr7; standardize_coef=true)
 
 # output
