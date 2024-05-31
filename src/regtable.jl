@@ -781,10 +781,18 @@ function combine_other_statistics(
     hcat(nms, mat)
 end
 
-display_val(x::Pair) = last(x)
+Format.format(x::Type{<:AbstractRegressionStatistic}; kwargs...) = (rr -> (isnothing(value(x(rr))) ? nothing : format(value(x(rr)); kwargs...)), x)
+Format.cfmt(fmtstr::String, x::Type{<:AbstractRegressionStatistic}) = (rr -> (isnothing(value(x(rr))) ? nothing : cfmt(fmtstr, value(x(rr)))), x)
+Format.cfmt(fspec::Format.FmtSpec, x::Type{<:AbstractRegressionStatistic}) = (rr -> (isnothing(value(x(rr))) ? nothing : cfmt(fspec, value(x(rr)))), x)
+
+display_val(x::Pair) = display_val(last(x))
 display_val(x::Type) = x
-f_val(x::Pair) = first(x)
+display_val(x::Tuple) = display_val(last(x))
+display_val(x) = x
+f_val(x::Pair) = f_val(first(x))
 f_val(x::Type) = x
+f_val(x::Tuple) = f_val(first(x))
+f_val(x) = x
 """
     combine_statistics(tables, stats)
 
