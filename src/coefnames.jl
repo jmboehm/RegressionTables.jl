@@ -146,7 +146,7 @@ Base.repr(render::AbstractRenderType, x::RegressionTables.CategoricalCoefName; a
 struct CategoricalCoefName <: AbstractCoefName
     name::String
     level::String
-    CategoricalCoefName(name::String, level::String) = new( string(name), string(level))
+    CategoricalCoefName(name::String, level::String) = new( String(name), String(level))
 end
 
 value(x::CategoricalCoefName) = x.name
