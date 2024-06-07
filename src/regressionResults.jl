@@ -21,26 +21,34 @@ _formula(x::RegressionModel) = formula(x)
     _responsename(x::RegressionModel)
 
 Returns the name of the dependent variable in the regression model.
-The default of this returns a `AbstractCoefName` object, but it can be
-a `String` or `Symbol` as well.
+The default  is to return a parsed version of the left hand side of formula ([`RegressionTables._formula`](@ref)),
+but if that is not available, then it will return the `StatsAPI.responsename` function.
 """
 function _responsename(x::RegressionModel)
-    x = get_coefname(_formula(x).lhs)
-    if isa(x, AbstractVector)
-        x = first(x)
+    try
+        out = get_coefname(_formula(x).lhs)
+    catch
+        out = get_coefname(responsename(x))
     end
-    x
+    if isa(x, AbstractVector)
+        out = first(x)
+    end
+    out
 end
 
 """
     _coefnames(x::RegressionModel)
 
 Returns a vector of the names of the coefficients in the regression model.
-The default of this returns a vector of `AbstractCoefName` objects, but it can be
-a vector of `String` or `Symbol` as well.
+The default  is to return a parsed version of the formula ([`RegressionTables._formula`](@ref)),
+but if that is not available, then it will return the `StatsAPI.coefnames` function.
 """
 function _coefnames(x::RegressionModel)
-    out = get_coefname(_formula(x).rhs)
+    try
+        out = get_coefname(_formula(x).lhs)
+    catch
+        out = get_coefname(coefnames(x))
+    end
     if !isa(out, AbstractVector)
         out = [out]
     end
@@ -80,6 +88,13 @@ function _pvalue(x::RegressionModel)
     tt = _coef(x) ./ _stderror(x)
     ccdf.(Ref(FDist(1, _dof_residual(x))), abs2.(tt))
 end
+
+"""
+    _islinear(x::RegressionModel)
+
+Returns a boolean indicating whether the regression model is linear.
+"""
+_islinear(x::RegressionModel) = islinear(x)
 
 """
     can_standardize(x::RegressionModel)
@@ -139,7 +154,7 @@ replace_name(s::Union{AbstractString, AbstractCoefName}, exact_dict, repl_dict) 
 replace_name(s::Tuple{<:AbstractCoefName, <:AbstractString}, exact_dict, repl_dict) = (replace_name(s[1], exact_dict, repl_dict), s[2])
 replace_name(s::Nothing, args...) = s
 
-RegressionType(x::RegressionModel) = islinear(x) ? RegressionType(Normal()) : RegressionType("NL")
+RegressionType(x::RegressionModel) = _islinear(x) ? RegressionType(Normal()) : RegressionType("NL")
 
 make_reg_stats(rr, stat::Type{<:AbstractRegressionStatistic}) = stat(rr)
 make_reg_stats(rr, stat) = stat
