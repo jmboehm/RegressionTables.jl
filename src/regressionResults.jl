@@ -30,8 +30,8 @@ function _responsename(x::RegressionModel)
     catch
         out = get_coefname(responsename(x))
     end
-    if isa(x, AbstractVector)
-        out = first(x)
+    if isa(out, AbstractVector)
+        out = first(out)
     end
     out
 end
