@@ -45,7 +45,7 @@ but if that is not available, then it will return the `StatsAPI.coefnames` funct
 """
 function _coefnames(x::RegressionModel)
     try
-        out = get_coefname(_formula(x).lhs)
+        out = get_coefname(_formula(x).rhs)
     catch
         out = get_coefname(coefnames(x))
     end
