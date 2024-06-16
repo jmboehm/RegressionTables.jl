@@ -450,18 +450,19 @@ function regtable(
             error("unrecognized below_statistic")
         end
     end
-    regression_statistics = replace(
-        regression_statistics,
-        :nobs => Nobs,
-        :r2 => R2,
-        :adjr2 => AdjR2,
-        :r2_within => R2Within,
-        :f => FStat,
-        :p => FStatPValue,
-        :f_kp => FStatIV,
-        :p_kp => FStatIVPValue,
-        :dof => DOF,
-    )
+    # regression_statistics = replace(
+    #     regression_statistics,
+    #     :nobs => Nobs,
+    #     :r2 => R2,
+    #     :adjr2 => AdjR2,
+    #     :r2_within => R2Within,
+    #     :f => FStat,
+    #     :p => FStatPValue,
+    #     :f_kp => FStatIV,
+    #     :p_kp => FStatIVPValue,
+    #     :dof => DOF,
+    # )
+    regression_statistics = make_statistics.(regression_statistics)
     sections = []
     for (i, s) in enumerate(section_order)
         if s == :depvar
@@ -781,35 +782,77 @@ function combine_other_statistics(
     hcat(nms, mat)
 end
 
-Format.format(x::Type{<:AbstractRegressionStatistic}; kwargs...) = (rr -> (isnothing(value(x(rr))) ? nothing : format(value(x(rr)); kwargs...)), x)
-Format.cfmt(fmtstr::String, x::Type{<:AbstractRegressionStatistic}) = (rr -> (isnothing(value(x(rr))) ? nothing : cfmt(fmtstr, value(x(rr)))), x)
-Format.cfmt(fspec::Format.FmtSpec, x::Type{<:AbstractRegressionStatistic}) = (rr -> (isnothing(value(x(rr))) ? nothing : cfmt(fspec, value(x(rr)))), x)
+macro fmt_str(fstr) Format.FmtSpec(unescape_string(fstr)) end
 
+edit_format(x) = x
+edit_format(x::Union{String, Format.FmtSpec}) = v -> cfmt(x, v)
+
+Format.cfmt(x::String, v::AbstractRegressionStatistic) = isnothing(value(v)) ? nothing : cfmt(x, value(v))
+Format.cfmt(x::Format.FmtSpec, v::AbstractRegressionStatistic) = isnothing(value(v)) ? nothing : cfmt(x, value(v))
+
+function make_statistics(x::Symbol, args...; symbol_matches = Dict(
+        :nobs => Nobs,
+        :r2 => R2,
+        :adjr2 => AdjR2,
+        :r2_within => R2Within,
+        :f => FStat,
+        :p => FStatPValue,
+        :f_kp => FStatIV,
+        :p_kp => FStatIVPValue,
+        :dof => DOF,
+    )
+)
+    if x in keys(symbol_matches)
+        return make_statistics(symbol_matches[x], args...)
+    else
+        throw(ArgumentError("Symbol $x not recognized as a regression statistic. Recognized symbols are $(keys(symbol_matches))"))
+    end
+end
+
+function make_statistics(x::Type{<:AbstractRegressionStatistic}, label=x, f=identity)
+    f = edit_format(f)
+    out = x => (format=f, label=label)
+    println(out)
+    out
+end
+
+make_statistics(x::Pair{<:Any, <:AbstractString}) = make_statistics(first(x), last(x))
+make_statistics(x::Pair{<:Any, <:Format.FmtSpec}) = make_statistics(first(x), first(x), last(x))
+make_statistics(x::Pair{<:Any, <:Function}) = make_statistics(first(x), first(x), last(x))
+function make_statistics(x::Pair{<:Any, <:NamedTuple})
+    l = get(last(x), :label, first(x))
+    f = get(last(x), :format, identity)
+    make_statistics(first(x), l, f)
+end
+
+
+
+display_val(x::NamedTuple) = x[:label]
 display_val(x::Pair) = display_val(last(x))
-display_val(x::Type) = x
-display_val(x::Tuple) = display_val(last(x))
-display_val(x) = x
-f_val(x::Pair) = f_val(first(x))
-f_val(x::Type) = x
-f_val(x::Tuple) = f_val(first(x))
-f_val(x) = x
+stat_fun(x::Pair) = first(x)
+format_fun(x::NamedTuple) = x[:format]
+format_fun(x::Pair) = format_fun(last(x))
+
 """
     combine_statistics(tables, stats)
 
 Takes a set of tables (`RegressionModel`s) and a vector of [`AbstractRegressionStatistic`](@ref).
-The `stats` argument can also be a pair of `AbstractRegressionStatistic => String`, which
-uses the second value as the name of the statistic in the final table.
+The `stats` argument expects a vector of pairs in the form `AbstractRegressionStatistic => (format=function, label=Any)`.
+
+The function will return a matrix where the first column is the name of the statistic and the rest of the columns
+are the values of the statistic for each regression. The format function can also be identity.
 """
 function combine_statistics(tables, stats)
-    types_strings = display_val.(stats)
-    type_f = f_val.(stats)
-    mat = Matrix{Any}(missing, length(types_strings), length(tables))
+    label_vals = display_val.(stats) |> collect
+    stat_funs = stat_fun.(stats)
+    format_funs = format_fun.(stats)
+    mat = Matrix{Any}(missing, length(label_vals), length(tables))
     for (i, t) in enumerate(tables)
-        for (j, s) in enumerate(type_f)
-            mat[j, i] = s(t)
+        for (j, (v, f)) in enumerate(zip(stat_funs, format_funs))
+            mat[j, i] = f(v(t))
         end
     end
-    hcat(types_strings, mat)
+    hcat(label_vals, mat)
 end
 
 push_DataRow!(data::Vector{<:DataRow}, ::Nothing, args...; vargs...) = data
