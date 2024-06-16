@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Custom Model Example · RegressionTables.jl</title><meta name="title" content="Custom Model Example · RegressionTables.jl"/><meta property="og:title" content="Custom Model Example · RegressionTables.jl"/><meta property="twitter:title" content="Custom Model Example · RegressionTables.jl"/><meta name="description" content="Documentation for RegressionTables.jl."/><meta property="og:description" content="Documentation for RegressionTables.jl."/><meta property="twitter:description" content="Documentation for RegressionTables.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">RegressionTables.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Introduction</a></li><li><a class="tocitem" href="../regression_statistics/">Regression Statistics</a></li><li><a class="tocitem" href="../examples/">Examples</a></li><li><a class="tocitem" href="../keep_drop_order/">Keep Drop and Order Arguments</a></li><li><a class="tocitem" href="../api/">API</a></li><li><a class="tocitem" href="../customization/">Customization and Defaults</a></li><li><a class="tocitem" href="../function_reference/">Function and Type Reference</a></li><li class="is-active"><a class="tocitem" href>Custom Model Example</a><ul class="internal"><li><a class="tocitem" href="#The-Model"><span>The Model</span></a></li><li><a class="tocitem" href="#Adding-a-Custom-Statistic"><span>Adding a Custom Statistic</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Custom Model Example</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Custom Model Example</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/jmboehm/RegressionTables.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/jmboehm/RegressionTables.jl/blob/master/docs/src/custom_model.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Using-RegressionTables-with-a-Custom-Model"><a class="docs-heading-anchor" href="#Using-RegressionTables-with-a-Custom-Model">Using RegressionTables with a Custom Model</a><a id="Using-RegressionTables-with-a-Custom-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Using-RegressionTables-with-a-Custom-Model" title="Permalink"></a></h1><p>RegressionTables.jl is designed to be used with any custom model you create. The easiest way for this to work is to copy the <a href="https://github.com/JuliaStats/StatsAPI.jl">StatsAPI.jl</a> API, if that API is fully implemented then RegressionTables.jl will work out of the box. This page will provide a simple example of this.</p><h2 id="The-Model"><a class="docs-heading-anchor" href="#The-Model">The Model</a><a id="The-Model-1"></a><a class="docs-heading-anchor-permalink" href="#The-Model" title="Permalink"></a></h2><p>This will setup a simple linear model:</p><pre><code class="language-julia hljs">using StatsAPI, RDatasets, RegressionTables, Statistics
+df = RDatasets.dataset(&quot;plm&quot;, &quot;Cigar&quot;)
+df[!, :intercept] = ones(nrow(df))
+
+struct MyStatsModel &lt;: StatsAPI.RegressionModel
+    coef::Vector{Float64}
+    vcov::Matrix{Float64}
+    dof::Int
+    dof_residual::Int
+    nobs::Int
+    rss::Float64
+    tss::Float64
+    coefnames::Vector{String}
+    responsename::String
+end
+
+function MyStatsModel(df::DataFrame, lhs::Symbol, rhs::Vector{Symbol})
+# an alternative using StatsAPI.fit would be:
+#function StatsAPI.fit(::Type{MyStatsModel}, lhs::Symbol, rhs::Vector{Symbol}, df::DataFrame)
+    df = dropmissing(df, vcat([lhs], rhs))
+
+    X = Matrix(select(df, rhs))
+    y = df[:, lhs]
+
+    n, p = size(X)
+    β = X \ y
+    ŷ = X * β
+    res = y - ŷ
+    rss = sum(abs2, res)
+    tss = sum(abs2, y .- mean(y))
+    dof = p
+    dof_residual = n - p
+    vcov = inv(X&#39;X) * rss / dof_residual
+    MyStatsModel(β, vcov, dof, dof_residual, n, rss, tss, string.(rhs), string(lhs))
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.MyStatsModel</code></pre><p>It is important to link the relevant components from StatsAPI to the model components. This allows RegressionTables to correctly interpret the model. The following is a basic set that allows this package to work, a complete list is available <a href="https://github.com/JuliaStats/StatsAPI.jl/blob/main/src/statisticalmodel.jl">here</a>:</p><pre><code class="language-julia hljs">StatsAPI.coef(m::MyStatsModel) = m.coef
+StatsAPI.coefnames(m::MyStatsModel) = m.coefnames
+StatsAPI.responsename(m::MyStatsModel) = m.responsename
+StatsAPI.vcov(m::MyStatsModel) = m.vcov
+StatsAPI.dof(m::MyStatsModel) = m.dof
+StatsAPI.dof_residual(m::MyStatsModel) = m.dof_residual
+StatsAPI.nobs(m::MyStatsModel) = m.nobs
+StatsAPI.rss(m::MyStatsModel) = m.rss
+StatsAPI.nulldeviance(m::MyStatsModel) = m.tss
+StatsAPI.islinear(m::MyStatsModel) = true # this will make the label default to &quot;OLS&quot;, set RegressionTables.RegressionType(rr::MyStatsModel) = &quot;My Model&quot;
+StatsAPI.deviance(m::MyStatsModel) = StatsAPI.rss(m)
+StatsAPI.mss(m::MyStatsModel) = StatsAPI.nulldeviance(m) - StatsAPI.rss(m)
+StatsAPI.r2(m::MyStatsModel) = StatsAPI.r2(m, :devianceratio);</code></pre><p>This will now work with RegressionTables:</p><pre><code class="language-julia hljs">rr1 = MyStatsModel(df, :Sales, [:intercept, :Price, :NDI])
+rr2 = MyStatsModel(df, :Sales, [:intercept, :Price])
+rr3 = MyStatsModel(df, :Sales, [:intercept, :NDI])
+regtable(rr1, rr2, rr3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">
+------------------------------------------------
+                            Sales               
+            ------------------------------------
+                   (1)          (2)          (3)
+------------------------------------------------
+intercept   138.480***   139.734***   132.981***
+               (1.427)      (1.521)      (1.538)
+Price        -0.938***    -0.230***             
+               (0.054)      (0.019)             
+NDI           0.007***                 -0.001***
+               (0.000)                   (0.000)
+------------------------------------------------
+N                1,380        1,380        1,380
+R2               0.209        0.097        0.034
+------------------------------------------------
+
+</code></pre><h2 id="Adding-a-Custom-Statistic"><a class="docs-heading-anchor" href="#Adding-a-Custom-Statistic">Adding a Custom Statistic</a><a id="Adding-a-Custom-Statistic-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-a-Custom-Statistic" title="Permalink"></a></h2><p>One reason to implement a custom regression model is the need for some kind of custom statistic. It is easy to implement these statistics in RegressionTables.</p><p>For example, say a custom statistic that is relevant is the sum of all coefficients in a model. First, create a statistic:</p><pre><code class="language-julia hljs">struct MyStatistic &lt;: RegressionTables.AbstractRegressionStatistic
+    val::Union{Float64, Nothing}
+end</code></pre><p>A few extra functions are necessary to make this work. First, if the statistic is called on a different model, it should return a blank line, second, when called on <code>MyStatsModel</code>, it should return the correct value:</p><pre><code class="language-julia hljs">MyStatistic(rr::StatsAPI.RegressionModel) = MyStatistic(nothing)
+MyStatistic(rr::MyStatsModel) = MyStatistic(sum(StatsAPI.coef(rr)));</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.MyStatistic</code></pre><p>It is also useful to provide some label to the statistic:</p><pre><code class="language-julia hljs">RegressionTables.label(render::AbstractRenderType, x::Type{MyStatistic}) = &quot;My Statistic&quot;;</code></pre><p>Now, when creating the table, add that to the list of regression statistics:</p><pre><code class="language-julia hljs">regtable(rr1, rr2, rr3; regression_statistics=[Nobs, R2, MyStatistic])</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">
+---------------------------------------------------
+                               Sales               
+               ------------------------------------
+                      (1)          (2)          (3)
+---------------------------------------------------
+intercept      138.480***   139.734***   132.981***
+                  (1.427)      (1.521)      (1.538)
+Price           -0.938***    -0.230***             
+                  (0.054)      (0.019)             
+NDI              0.007***                 -0.001***
+                  (0.000)                   (0.000)
+---------------------------------------------------
+N                   1,380        1,380        1,380
+R2                  0.209        0.097        0.034
+My Statistic      137.549      139.505      132.980
+---------------------------------------------------
+
+</code></pre><p>It can be inconvenient to constantly define <code>regression_statistics</code>, especially if you find yourself switching between models. RegressionTables provides the flexibility to link statistics to a model so that those statistics are always shown when that model is within a table, but not shown otherwise. To do so, set:</p><pre><code class="language-julia hljs">RegressionTables.default_regression_statistics(rr::MyStatsModel) = [Nobs, MyStatistic]
+regtable(rr1, rr2, rr3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">
+---------------------------------------------------
+                               Sales               
+               ------------------------------------
+                      (1)          (2)          (3)
+---------------------------------------------------
+intercept      138.480***   139.734***   132.981***
+                  (1.427)      (1.521)      (1.538)
+Price           -0.938***    -0.230***             
+                  (0.054)      (0.019)             
+NDI              0.007***                 -0.001***
+                  (0.000)                   (0.000)
+---------------------------------------------------
+N                   1,380        1,380        1,380
+My Statistic      137.549      139.505      132.980
+---------------------------------------------------
+
+</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../function_reference/">« Function and Type Reference</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.4.1 on <span class="colophon-date" title="Sunday 16 June 2024 21:23">Sunday 16 June 2024</span>. Using Julia version 1.10.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
