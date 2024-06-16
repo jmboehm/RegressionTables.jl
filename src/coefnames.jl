@@ -59,8 +59,8 @@ get_coefname(x::AbstractTerm) = CoefName(coefnames(x))
 get_coefname(x::Term) = CoefName(string(x.sym))
 Base.replace(x::CoefName, r::Pair) = CoefName(replace(value(x), r))
 
-get_coefname(x::AbstractString) = CoefName(x)
-get_coefname(x::AbstractVector{<:AbstractString}) = CoefName.(x)
+get_coefname(x::AbstractString) = CoefName(String(x))
+get_coefname(x::AbstractVector) = CoefName.(String.(x))
 
 
 """

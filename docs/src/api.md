@@ -100,6 +100,7 @@ RegressionTables._coef
 RegressionTables._stderror
 RegressionTables._dof_residual
 RegressionTables._pvalue
+RegressionTables._islinear
 RegressionTables.other_stats
 RegressionTables.default_regression_statistics(::RegressionModel)
 RegressionTables.can_standardize
