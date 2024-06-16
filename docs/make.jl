@@ -20,7 +20,8 @@ Documenter.makedocs(
         "Keep Drop and Order Arguments" => "keep_drop_order.md",
         "API" => "api.md",
         "Customization and Defaults" => "customization.md",
-        "Function and Type Reference" => "function_reference.md"
+        "Function and Type Reference" => "function_reference.md",
+        "Implementing a Custom Regression Model" => "custom_regression_model.md",
     ]
 )
 
