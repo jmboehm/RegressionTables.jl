@@ -43,7 +43,7 @@ Used to store the name of a coefficient. This is used for `Term`, `ContinuousTer
 """
 struct CoefName <: AbstractCoefName
     name::String
-    CoefName(name::String) = new(name)
+    CoefName(name::AbstractString) = new(String(name))
 end
 
 value(x::CoefName) = x.name
@@ -146,7 +146,7 @@ Base.repr(render::AbstractRenderType, x::RegressionTables.CategoricalCoefName; a
 struct CategoricalCoefName <: AbstractCoefName
     name::String
     level::String
-    CategoricalCoefName(name::String, level::String) = new(name, level)
+    CategoricalCoefName(name::AbstractString, level::AbstractString) = new(String(name), String(level))
 end
 
 value(x::CategoricalCoefName) = x.name
