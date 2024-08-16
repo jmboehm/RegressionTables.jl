@@ -19,9 +19,12 @@ function RegressionTables.other_stats(rr::GLFixedEffectModel, s::Symbol)
         if !isdefined(rr, :formula)
             return Dict{Symbol, Vector{Pair}}()
         end
-        for t in rr.formula.rhs
-            if has_fe(t)
-                push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(t)))
+        fe_set = has_fe.(rr.formula.rhs)
+        for (i, v) in enumerate(fe_set)
+            if v && !isa(fe_set, Bool)
+                push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(rr.formula.rhs[i])))
+            elseif v
+                push!(out, RegressionTables.FixedEffectCoefName(RegressionTables.get_coefname(rr.formula.rhs)))
             end
         end
         if length(out) > 0
