@@ -65,6 +65,10 @@ function checkfilesarethesame(file1::String, file2::String)
 end
 
 ##
+rr_short = reg(df, @formula(SepalLength ~ log1p(SepalWidth)))
+tab = regtable(rr_short)
+@test tab[4, 1] == "log1p(SepalWidth)"
+
 
 
 tab = regtable(rr4,rr5,lm1, lm2, gm1; renderSettings = asciiOutput(joinpath(dirname(@__FILE__), "tables", "ftest1.txt")), regression_statistics = [:nobs, :r2, :adjr2, :r2_within, :f, :p, :f_kp, :p_kp, :dof])
