@@ -22,7 +22,7 @@ It is also helpful to maintain consistency by defining the value as `val` within
 
 For example:
 ```julia
-struct YMean <: RegressionTable.AbstractRegressionStatistic
+struct YMean <: RegressionTables.AbstractRegressionStatistic
     val::Union{Float64, Nothing}
 end
 YMean(x::RegressionModel) = try
@@ -30,7 +30,7 @@ YMean(x::RegressionModel) = try
 catch
     YMean(nothing)
 end
-RegressionTable.label(render::AbstractRenderType, x::Type{YMean}) = "Mean of Y"
+RegressionTables.label(render::AbstractRenderType, x::Type{YMean}) = "Mean of Y"
 ```
 """
 abstract type AbstractRegressionStatistic <: AbstractRegressionData end
