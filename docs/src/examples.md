@@ -972,6 +972,153 @@ Adj. R2                       0.007      0.860      0.861        0.622
 ----------------------------------------------------------------------
 ```
 
+## Adding an extra row between coefficients
+
+Using the `extra_space` option allows for a default more like the Stargazer R package. This option adds an extra row after the below statistic and before the next coefficient (or simply between coefficients if there is no below statistic or the below statistic is on the same line as the coefficient).
+
+```jldoctest
+regtable(rr1,rr2,rr3,rr4; extra_space = true)
+
+# output
+
+ 
+----------------------------------------------------------------------
+                                     SepalLength            SepalWidth
+                           ------------------------------   ----------
+                                (1)        (2)        (3)          (4)
+----------------------------------------------------------------------
+(Intercept)                6.526***
+                            (0.479)
+
+SepalWidth                   -0.223   0.432***   0.516***
+                            (0.155)    (0.081)    (0.104)
+
+PetalLength                           0.776***   0.723***      -0.188*
+                                       (0.064)    (0.129)      (0.083)
+
+PetalWidth                                         -0.625     0.626***
+                                                  (0.354)      (0.123)
+
+PetalLength & PetalWidth                            0.066
+                                                  (0.067)
+
+SepalLength                                                   0.378***
+                                                               (0.066)
+----------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes          Yes
+isSmall Fixed Effects                                 Yes
+----------------------------------------------------------------------
+N                               150        150        150          150
+R2                            0.014      0.863      0.868        0.635
+Within-R2                                0.642      0.598        0.391
+----------------------------------------------------------------------
+```
+
+```jldoctest
+regtable(rr1,rr2,rr3,rr4; below_statistic = nothing, extra_space=true)
+
+# output
+
+ 
+----------------------------------------------------------------------
+                                     SepalLength            SepalWidth
+                           ------------------------------   ----------
+                                (1)        (2)        (3)          (4)
+----------------------------------------------------------------------
+(Intercept)                6.526***
+
+SepalWidth                   -0.223   0.432***   0.516***
+
+PetalLength                           0.776***   0.723***      -0.188*
+
+PetalWidth                                         -0.625     0.626***
+
+PetalLength & PetalWidth                            0.066
+
+SepalLength                                                   0.378***
+----------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes          Yes
+isSmall Fixed Effects                                 Yes
+----------------------------------------------------------------------
+N                               150        150        150          150
+R2                            0.014      0.863      0.868        0.635
+Within-R2                                0.642      0.598        0.391
+----------------------------------------------------------------------
+```
+
+```jldoctest
+regtable(rr1,rr2,rr3,rr4; stat_below=false, extra_space=true)
+
+# output
+
+ 
+----------------------------------------------------------------------------------------------------
+                                                 SepalLength                           SepalWidth
+                           ------------------------------------------------------   ----------------
+                                        (1)                (2)                (3)                (4)
+----------------------------------------------------------------------------------------------------
+(Intercept)                6.526*** (0.479)
+
+SepalWidth                   -0.223 (0.155)   0.432*** (0.081)   0.516*** (0.104)
+
+PetalLength                                   0.776*** (0.064)   0.723*** (0.129)    -0.188* (0.083)
+
+PetalWidth                                                         -0.625 (0.354)   0.626*** (0.123)
+
+PetalLength & PetalWidth                                            0.066 (0.067)
+
+SepalLength                                                                         0.378*** (0.066)
+----------------------------------------------------------------------------------------------------
+Species Fixed Effects                                      Yes                Yes                Yes
+isSmall Fixed Effects                                                         Yes
+----------------------------------------------------------------------------------------------------
+N                                       150                150                150                150
+R2                                    0.014              0.863              0.868              0.635
+Within-R2                                                0.642              0.598              0.391
+----------------------------------------------------------------------------------------------------
+```
+
+```jldoctest
+
+regtable(rr1,rr2,rr3,rr4; render = LatexTable(), extra_space=true)
+
+# output
+
+\begin{tabular}{lrrrr}
+\toprule
+                                & \multicolumn{3}{c}{SepalLength} & \multicolumn{1}{c}{SepalWidth} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-5}
+                                &      (1) &      (2) &       (3) &                            (4) \\
+\midrule
+(Intercept)                     & 6.526*** &          &           &                                \\
+                                &  (0.479) &          &           &                                \\
+                                &          &          &           &                                \\
+SepalWidth                      &   -0.223 & 0.432*** &  0.516*** &                                \\
+                                &  (0.155) &  (0.081) &   (0.104) &                                \\
+                                &          &          &           &                                \\
+PetalLength                     &          & 0.776*** &  0.723*** &                        -0.188* \\
+                                &          &  (0.064) &   (0.129) &                        (0.083) \\
+                                &          &          &           &                                \\
+PetalWidth                      &          &          &    -0.625 &                       0.626*** \\
+                                &          &          &   (0.354) &                        (0.123) \\
+                                &          &          &           &                                \\
+PetalLength $\times$ PetalWidth &          &          &     0.066 &                                \\
+                                &          &          &   (0.067) &                                \\
+                                &          &          &           &                                \\
+SepalLength                     &          &          &           &                       0.378*** \\
+                                &          &          &           &                        (0.066) \\
+\midrule
+Species Fixed Effects           &          &      Yes &       Yes &                            Yes \\
+isSmall Fixed Effects           &          &          &       Yes &                                \\
+\midrule
+$N$                             &      150 &      150 &       150 &                            150 \\
+$R^2$                           &    0.014 &    0.863 &     0.868 &                          0.635 \\
+Within-$R^2$                    &          &    0.642 &     0.598 &                          0.391 \\
+\bottomrule
+\end{tabular}
+```
+
+
 ## All Available Statistics
 
 ```jldoctest
