@@ -408,6 +408,7 @@ function regtable(
     regressors=nothing,
     use_relabeled_values=default_use_relabeled_values(render, rrs),
     confint_level=default_confint_level(render, rrs),
+    extra_space::Bool=false,
     kwargs...
 ) where {T<:AbstractRenderType}
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
@@ -634,18 +635,39 @@ function regtable(
             in_header = false
             if below_statistic === nothing
                 temp = hcat(nms, coefvalues)
-                push_DataRow!(out, temp, align, wdths, false, render)
+                if extra_space
+                    for i in 1:size(temp, 1)
+                        push_DataRow!(out, temp[i, :], align, wdths, false, render)
+                        if i != size(temp, 1)
+                            push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
+                        end
+                    end
+                else
+                    push_DataRow!(out, temp, align, wdths, false, render)
+                end
             else
                 if stat_below
                     temp = hcat(nms, coefvalues)
                     for i in 1:size(temp, 1)
                         push_DataRow!(out, temp[i, :], align, wdths, false, render)
                         push_DataRow!(out, coefbelow[i, :], align, wdths, false, render)
+                        if extra_space && i != size(temp, 1)
+                            push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
+                        end
                     end
                 else
                     x = [(x, y) for (x, y) in zip(coefvalues, coefbelow)]
                     temp = hcat(nms, x)
-                    push_DataRow!(out, temp, align, wdths, false, render)
+                    if extra_space
+                        for i in 1:size(temp, 1)
+                            push_DataRow!(out, temp[i, :], align, wdths, false, render)
+                            if i != size(temp, 1)
+                                push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
+                            end
+                        end
+                    else
+                        push_DataRow!(out, temp, align, wdths, false, render)
+                    end
                 end
             end
         elseif v == :regtype
