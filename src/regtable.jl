@@ -442,25 +442,39 @@ function regtable(
         end
         @warn(x)
     end
-    if isa(below_statistic, Symbol)
-        if below_statistic == :se
-            below_statistic = StdError
-        elseif below_statistic == :tstat
-            below_statistic = TStat
-        elseif below_statistic == :none
-            below_statistic = nothing
-        else
-            error("unrecognized below_statistic")
-        end
-    end
     
     # Normalize below_statistic to a vector for unified processing
     below_statistics_vec = if below_statistic === nothing
         DataType[]
     elseif isa(below_statistic, AbstractVector)
-        collect(DataType, below_statistic)
+        # Convert any symbols in the vector to types, then collect
+        below_vec = replace(
+            collect(below_statistic),
+            :se => StdError,
+            :tstat => TStat,
+            :none => nothing,
+        )
+        # Validate that all symbols were recognized
+        for (i, item) in enumerate(below_vec)
+            if isa(item, Symbol)
+                error("unrecognized below_statistic")
+            end
+        end
+        collect(DataType, below_vec)
     else
-        [below_statistic]
+        # Handle single value (could be Symbol or Type)
+        single_val = if below_statistic == :se
+            StdError
+        elseif below_statistic == :tstat
+            TStat
+        elseif below_statistic == :none
+            nothing
+        elseif isa(below_statistic, Symbol)
+            error("unrecognized below_statistic")
+        else
+            below_statistic
+        end
+        single_val === nothing ? DataType[] : [single_val]
     end
     regression_statistics = replace(
         regression_statistics,

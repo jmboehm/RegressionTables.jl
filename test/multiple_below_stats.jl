@@ -103,4 +103,40 @@ tab = regtable(rr1, rr2;
 @test occursin("(0.479)", tab[4, 2])    # StdError with parentheses
 @test occursin("[", tab[5, 2])          # ConfInt uses brackets
 
+##
 
+# Test 9: Invalid below_statistic symbols throw errors
+@test_throws ErrorException("unrecognized below_statistic") regtable(rr1; below_statistic=:invalid)
+@test_throws ErrorException("unrecognized below_statistic") regtable(rr1; below_statistic=[:se, :invalid])
+@test_throws ErrorException("unrecognized below_statistic") regtable(rr1; below_statistic=[:invalid, :se])
+
+##
+
+# Test 10: Valid symbol vectors work correctly
+tab = regtable(rr1; below_statistic=[:se, :tstat])
+# With [:se, :tstat], we should have coefficient, se, and tstat rows
+@test length(tab.data) > 0  # Verify table was created successfully
+
+##
+
+# Test 11: Custom below_decoration with digits_stats
+# This tests the code path where below_decoration is used WITH digits_stats
+tab = regtable(rr1, rr2; 
+    below_statistic = [StdError, TStat],
+    below_decoration = [s -> "($s)", s -> "{$s}"],
+    digits_stats = 4)
+
+@test occursin("(0.4789", tab[4, 2])    # StdError: custom decoration with digits_stats formatting
+@test occursin("{13.6276", tab[5, 2])   # TStat: custom decoration with digits_stats formatting
+
+##
+
+# Test 12: Custom below_decoration with statisticformat
+# This tests the code path where below_decoration is used WITH statisticformat
+tab = regtable(rr1, rr2; 
+    below_statistic = [StdError, TStat],
+    below_decoration = [s -> "($s)", s -> "{$s}"],
+    statisticformat = ["%0.2f", "%0.1f"])
+
+@test occursin("(0.48", tab[4, 2])     # StdError: custom decoration with statisticformat
+@test occursin("{13.6", tab[5, 2])     # TStat: custom decoration with statisticformat
