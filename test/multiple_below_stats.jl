@@ -112,6 +112,16 @@ tab = regtable(rr1, rr2;
 
 ##
 
+# Test 9b: Valid symbols as scalars work correctly
+# This tests the scalar symbol conversion path (:se -> StdError, :tstat -> TStat)
+tab_se = regtable(rr1; below_statistic=:se)
+@test length(tab_se.data) > 0  # Verify table was created successfully
+
+tab_tstat = regtable(rr1; below_statistic=:tstat)
+@test length(tab_tstat.data) > 0  # Verify table was created successfully
+
+##
+
 # Test 10: Valid symbol vectors work correctly
 tab = regtable(rr1; below_statistic=[:se, :tstat])
 # With [:se, :tstat], we should have coefficient, se, and tstat rows
