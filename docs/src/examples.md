@@ -290,6 +290,86 @@ Pseudo R2                       0.006              0.811               0.347    
 -----------------------------------------------------------------------------------------------
 ```
 
+### Multiple Below Statistics
+
+You can show more than one statistic beneath each coefficient by passing a vector to `below_statistic`.
+
+```jldoctest
+regtable(rr1, rr2, rr3, rr4; below_statistic = [StdError, TStat])
+
+# output
+
+ 
+----------------------------------------------------------------------
+                                     SepalLength            SepalWidth
+                           ------------------------------   ----------
+                                (1)        (2)        (3)          (4)
+----------------------------------------------------------------------
+(Intercept)                6.526***
+                            (0.479)
+                           (13.628)
+SepalWidth                   -0.223   0.432***   0.516***
+                            (0.155)    (0.081)    (0.104)
+                           (-1.440)    (5.310)    (4.982)
+PetalLength                           0.776***   0.723***      -0.188*
+                                       (0.064)    (0.129)      (0.083)
+                                      (12.073)    (5.615)     (-2.246)
+PetalWidth                                         -0.625     0.626***
+                                                  (0.354)      (0.123)
+                                                 (-1.763)      (5.072)
+PetalLength & PetalWidth                            0.066
+                                                  (0.067)
+                                                  (0.981)
+SepalLength                                                   0.378***
+                                                               (0.066)
+                                                               (5.761)
+----------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes          Yes
+isSmall Fixed Effects                                 Yes
+----------------------------------------------------------------------
+N                               150        150        150          150
+R2                            0.014      0.863      0.868        0.635
+Within-R2                                0.642      0.598        0.391
+----------------------------------------------------------------------
+```
+
+### Per-statistic formatting and decoration (Dict)
+
+```jldoctest
+regtable(rr1, rr2;
+    below_statistic = [StdError, TStat],
+    statisticformat = Dict(StdError => "%0.4f", TStat => "%0.1f"),
+    below_decoration = Dict(StdError => s -> "{" * s * "}", TStat => s -> "[" * s * "]"),
+)
+
+# output
+
+ 
+-------------------------------------------
+                            SepalLength
+                        -------------------
+                             (1)        (2)
+-------------------------------------------
+(Intercept)             6.526***
+                        {0.4789}
+                          [13.6]
+SepalWidth                -0.223   0.432***
+                        {0.1551}   {0.0814}
+                          [-1.4]      [5.3]
+PetalLength                        0.776***
+                                   {0.0642}
+                                     [12.1]
+-------------------------------------------
+Species Fixed Effects                   Yes
+-------------------------------------------
+N                            150        150
+R2                         0.014      0.863
+Within-R2                             0.642
+-------------------------------------------
+```
+
+Note: A Dict-based `statisticformat` applies only to below statistics by design; for regression statistics, use a String format (e.g., `"%0.5f"`) or `digits_stats`.
+
 ## Standard Errors on same line as coefficient
 
 ```jldoctest
