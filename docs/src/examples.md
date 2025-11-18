@@ -253,8 +253,44 @@ Within-R2                                         0.642             0.598       
 -------------------------------------------------------------------------------------------------
 ```
 
-Below statistics (including confidence intervals) are impacted by standardizing the coefficients:
+### PValue
 
+Display p-values beneath coefficients:
+
+```jldoctest
+regtable(rr1,rr2,rr3,rr4; below_statistic = PValue)
+
+# output
+
+ 
+----------------------------------------------------------------------
+                                     SepalLength            SepalWidth
+                           ------------------------------   ----------
+                                (1)        (2)        (3)          (4)
+----------------------------------------------------------------------
+(Intercept)                6.526***
+                            (0.000)
+SepalWidth                   -0.223   0.432***   0.516***
+                            (0.152)    (0.000)    (0.000)
+PetalLength                           0.776***   0.723***      -0.188*
+                                       (0.000)    (0.000)      (0.026)
+PetalWidth                                         -0.625     0.626***
+                                                  (0.080)      (0.000)
+PetalLength & PetalWidth                            0.066
+                                                  (0.328)
+SepalLength                                                   0.378***
+                                                               (0.000)
+----------------------------------------------------------------------
+Species Fixed Effects                      Yes        Yes          Yes
+isSmall Fixed Effects                                 Yes
+----------------------------------------------------------------------
+N                               150        150        150          150
+R2                            0.014      0.863      0.868        0.635
+Within-R2                                0.642      0.598        0.391
+----------------------------------------------------------------------
+```
+
+Below statistics (including confidence intervals) are impacted by standardizing the coefficients:
 
 ```jldoctest
 regtable(lm1,lm2,rr6,rr7; below_statistic = ConfInt, standardize_coef=true)
@@ -335,10 +371,15 @@ Within-R2                                0.642      0.598        0.391
 
 ### Per-statistic formatting and decoration (Dict)
 
+Format below statistics individually using Integer (precision), String (format), or Function (custom) values. Use either Type keys (`StdError`, `TStat`) or Symbol keys (`:se`, `:tstat`):
+
 ```jldoctest
 regtable(rr1, rr2;
     below_statistic = [StdError, TStat],
-    statisticformat = Dict(StdError => "%0.4f", TStat => "%0.1f"),
+    statisticformat = Dict(
+        StdError => "%0.4f",
+        TStat => x -> abs(x) > 10 ? ">10" : string(round(x, digits=1))
+    ),
     below_decoration = Dict(StdError => s -> "{" * s * "}", TStat => s -> "[" * s * "]"),
 )
 
@@ -352,13 +393,13 @@ regtable(rr1, rr2;
 -------------------------------------------
 (Intercept)             6.526***
                         {0.4789}
-                          [13.6]
+                           [>10]
 SepalWidth                -0.223   0.432***
                         {0.1551}   {0.0814}
                           [-1.4]      [5.3]
 PetalLength                        0.776***
                                    {0.0642}
-                                     [12.1]
+                                      [>10]
 -------------------------------------------
 Species Fixed Effects                   Yes
 -------------------------------------------
@@ -368,7 +409,7 @@ Within-R2                             0.642
 -------------------------------------------
 ```
 
-Note: A Dict-based `statisticformat` applies only to below statistics by design; for regression statistics, use a String format (e.g., `"%0.5f"`) or `digits_stats`.
+**Note:** For `ConfInt`, functions can take either 1 argument (applied to each bound separately) or 2 arguments (receives lower and upper bounds).
 
 ## Standard Errors on same line as coefficient
 
@@ -537,6 +578,41 @@ N                               150        150        150          150
 R2                           0.0138     0.8633     0.8682       0.6352
 Within-R2                               0.6415     0.5978       0.3911
 ----------------------------------------------------------------------
+```
+
+The `statisticformat` Dict can also format regression statistics individually:
+
+```jldoctest
+regtable(rr1, rr2;
+    below_statistic = [StdError, TStat],
+    regression_statistics = [Nobs, R2, AdjR2],
+    statisticformat = Dict(Nobs => 0, R2 => 4, AdjR2 => "%0.3f")
+)
+
+# output
+
+ 
+-------------------------------------------
+                            SepalLength
+                        -------------------
+                             (1)        (2)
+-------------------------------------------
+(Intercept)             6.526***
+                         (0.479)
+                        (13.628)
+SepalWidth                -0.223   0.432***
+                         (0.155)    (0.081)
+                        (-1.440)    (5.310)
+PetalLength                        0.776***
+                                    (0.064)
+                                   (12.073)
+-------------------------------------------
+Species Fixed Effects                   Yes
+-------------------------------------------
+N                            150        150
+R2                        0.0138     0.8633
+Adjusted R2                0.007      0.860
+-------------------------------------------
 ```
 
 ## Labeling Coefficients
