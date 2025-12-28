@@ -97,6 +97,19 @@ RegressionTables.below_decoration(render::AbstractRenderType, s) = "(\$s)"
 below_decoration(render::AbstractRenderType, s) = "($s)"
 
 """
+    below_decoration(render::AbstractRenderType, x::Type{<:AbstractUnderStatistic}, s)
+
+Used to decorate a specific type of under-statistic. Defaults to calling the generic `below_decoration`.
+Change this for specific statistics by running:
+```julia
+RegressionTables.below_decoration(render::AbstractRenderType, ::Type{StdError}, s) = "(\$s)"
+RegressionTables.below_decoration(render::AbstractRenderType, ::Type{ConfInt}, s) = "[\$s]"
+RegressionTables.below_decoration(render::AbstractRenderType, ::Type{TStat}, s) = "{\$s}"
+```
+"""
+below_decoration(render::AbstractRenderType, ::Type{<:AbstractUnderStatistic}, s) = below_decoration(render, s)
+
+"""
     number_regressions_decoration(render::AbstractRenderType, s)
 
 Used to decorate the regression number (e.g., "(1)") and defaults to `"(\$s)"`.
@@ -222,16 +235,24 @@ Base.repr(render::AbstractRenderType, x::AbstractR2; digits=default_digits(rende
 """
     Base.repr(render::AbstractRenderType, x::AbstractUnderStatistic; digits=default_digits(render, x), args...)
 
-By default, will render with the default number of digits and surrounded by parentheses `(1.234)`
+By default, will render with the default number of digits and surrounded by parentheses `(1.234)`.
+The decoration can be customized per-type using `below_decoration(render, Type, s)`.
 """
-Base.repr(render::AbstractRenderType, x::AbstractUnderStatistic; digits=default_digits(render, x), args...) = below_decoration(render, repr(render, value(x); digits, commas=false, args...))
+Base.repr(render::AbstractRenderType, x::T; digits=default_digits(render, x), args...) where {T<:AbstractUnderStatistic} = below_decoration(render, T, repr(render, value(x); digits, commas=false, args...))
 
 """
     Base.repr(render::AbstractRenderType, x::ConfInt; digits=default_digits(render, x), args...)
 
-By default, will render with the default number of digits and surrounded by parentheses `(1.234, 5.678)`
+By default, will render with the default number of digits and surrounded by parentheses `(1.234, 5.678)`.
+The decoration can be customized using `below_decoration(render, ConfInt, s)`.
 """
-Base.repr(render::AbstractRenderType, x::ConfInt; digits=default_digits(render, x), args...) = below_decoration(render, repr(render, value(x)[1]; digits) * ", " * Base.repr(render::AbstractRenderType, value(x)[2]; digits))
+function Base.repr(render::AbstractRenderType, x::ConfInt; digits=default_digits(render, x), str_format=nothing, args...)
+    if str_format !== nothing
+        below_decoration(render, ConfInt, cfmt(str_format, value(x)[1]) * ", " * cfmt(str_format, value(x)[2]))
+    else
+        below_decoration(render, ConfInt, repr(render, value(x)[1]; digits) * ", " * Base.repr(render::AbstractRenderType, value(x)[2]; digits))
+    end
+end
 
 """
     Base.repr(render::AbstractRenderType, x::CoefValue; digits=default_digits(render, x), args...)

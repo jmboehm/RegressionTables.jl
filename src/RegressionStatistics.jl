@@ -513,6 +513,19 @@ function ConfInt(rr::RegressionModel, k::Int; level=0.95, standardize=false, var
     ConfInt(c_int)
 end
 
+"""
+    struct PValue <: AbstractUnderStatistic
+        val::Float64
+    end
+    PValue(rr::RegressionModel, k::Int; vargs...)
+
+The p-value of a coefficient.
+"""
+struct PValue <: AbstractUnderStatistic
+    val::Float64
+end
+PValue(rr::RegressionModel, k::Int; vargs...) = PValue(_pvalue(rr)[k])
+
 value(x::AbstractUnderStatistic) = x.val
 
 

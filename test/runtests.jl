@@ -18,6 +18,7 @@ tests = [
         "RegressionTables.jl",
         "decorations.jl",
         "label_transforms.jl",
+        "multiple_below_stats.jl",
         "GLFixedEffectModels.jl",
         "MixedModels.jl"
     ]

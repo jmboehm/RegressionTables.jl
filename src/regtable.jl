@@ -215,6 +215,7 @@ default_labels(render::AbstractRenderType, rrs) = Dict{String, String}()
     default_below_statistic(render::AbstractRenderType)
 
 Defaults to `StdError`, which means the standard error is printed below the coefficient.
+Can also be a vector of types to display multiple statistics below each coefficient, e.g., `[StdError, ConfInt]`.
 See [`AbstractUnderStatistic`](@ref) for more information.
 """
 default_below_statistic(render::AbstractRenderType) = StdError
@@ -328,7 +329,48 @@ asciiOutput(file::String) = (AsciiTable(), file)
 latexOutput(file::String) = (LatexTable(), file)
 htmlOutput(file::String) = (HtmlTable(), file)
 
-#region
+# Helper function to convert symbols to statistic types
+const SYMBOL_TO_STATISTIC = Dict{Symbol, DataType}(
+    :se => StdError,
+    :tstat => TStat,
+    :confint => ConfInt,
+    :pvalue => PValue,
+    :nobs => Nobs,
+    :r2 => R2,
+    :adjr2 => AdjR2,
+    :r2_within => R2Within,
+    :f => FStat,
+    :p => FStatPValue,
+    :f_kp => FStatIV,
+    :p_kp => FStatIVPValue,
+    :dof => DOF
+)
+
+symbol_to_statistic_type(s::Symbol) = get(SYMBOL_TO_STATISTIC, s, nothing)
+symbol_to_statistic_type(x) = x  # Pass through non-symbols
+
+# Helper functions for custom stat formatting using multiple dispatch
+function custom_stat_format(render, stat, stat_format::AbstractString)
+    repr(render, stat; str_format=stat_format)
+end
+
+function custom_stat_format(render, stat, stat_format::Integer)
+    repr(render, stat; digits=stat_format)
+end
+
+function custom_stat_format(render, stat, stat_format::Function)
+    v = value(stat)
+    if v === nothing || ismissing(v)
+        repr(render, v)
+    else
+        repr(render, stat_format(v))
+    end
+end
+
+function custom_stat_format(render, stat, stat_format::Nothing)
+    stat
+end
+
 """
 Produces a publication-quality regression table, similar to Stata's `esttab` and R's `stargazer`.
 
@@ -343,9 +385,10 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `labels` is a `Dict` that contains displayed labels for variables (`String`s) and other text in the table. If no label for a variable is found, it default to variable names. See documentation for special values.
 * `estimformat` is a `String` that describes the format of the estimate.
 * `digits` is an `Int` that describes the precision to be shown in the estimate. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
-* `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
+* `statisticformat` is a `String` or `Dict` that describes the format of statistics. If a `String`, it applies to all statistics (both below statistics and regression statistics). If a `Dict`, it maps statistic types to format strings, integers, functions, or tuples (e.g., `Dict(StdError => "%0.4f", R2 => 5, TStat => x -> round(x, digits=2), ConfInt => (3, s -> "[\$s]"))`). Integer values are converted to format strings with that many decimal places (e.g., `3` becomes `"%0.3f"`). Function values receive the raw numeric value and return a transformed value. Tuple values like `(format, decoration_fn)` allow specifying both formatting and decoration in one place. The Dict can include both below statistics (StdError, TStat, ConfInt) and regression statistics (R2, Nobs, etc.).
 * `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
-* `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `StdError`.
+* `below_statistic` is a type or vector of types that describes statistics that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, `ConfInt`, and `PValue`. `nothing` suppresses the line. Can be a vector like `[StdError, ConfInt]` to show multiple statistics. Defaults to `StdError`.
+* `below_decoration` is a `Function`, `Dict`, or `Vector` to customize how each below statistic is decorated. If a `Function`, it applies to all statistics. If a `Dict`, it maps statistic types to decoration functions (e.g., `Dict(StdError => s -> "(\$s)", ConfInt => s -> "[\$s]")`). If a `Vector`, it must match the length of `below_statistic`. Defaults to `nothing`, which uses the global `below_decoration` function.
 * `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in recognized types are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
 * `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
@@ -401,8 +444,8 @@ function regtable(
     digits=nothing,
     digits_stats=nothing,
     estimformat=nothing,
-    statisticformat=nothing,
-    below_decoration::Union{Nothing, Function}=nothing,
+    statisticformat::Union{Nothing, AbstractString, Dict}=nothing,
+    below_decoration::Union{Nothing, Function, Dict, AbstractVector}=nothing,
     number_regressions_decoration::Union{Nothing, Function}=nothing,
     estim_decoration::Union{Nothing, Function}=nothing,
     regressors=nothing,
@@ -440,29 +483,25 @@ function regtable(
         end
         @warn(x)
     end
-    if isa(below_statistic, Symbol)
-        if below_statistic == :se
-            below_statistic = StdError
-        elseif below_statistic == :tstat
-            below_statistic = TStat
-        elseif below_statistic == :none
-            below_statistic = nothing
-        else
-            error("unrecognized below_statistic")
+    
+    # Normalize below_statistic to a vector for unified processing
+    below_statistics_vec = if below_statistic === nothing || below_statistic === :none
+        DataType[]
+    else
+        # Convert to vector if not already, then convert symbols to types
+        input_vec = isa(below_statistic, AbstractVector) ? below_statistic : [below_statistic]
+        converted = [symbol_to_statistic_type(s) for s in input_vec]
+        
+        # Validate that all symbols were recognized
+        for (i, item) in enumerate(converted)
+            if isnothing(item) && isa(input_vec[i], Symbol) && input_vec[i] !== :none
+                error("unrecognized below_statistic")
+            end
         end
+        
+        DataType[v for v in converted if !isnothing(v)]
     end
-    regression_statistics = replace(
-        regression_statistics,
-        :nobs => Nobs,
-        :r2 => R2,
-        :adjr2 => AdjR2,
-        :r2_within => R2Within,
-        :f => FStat,
-        :p => FStatPValue,
-        :f_kp => FStatIV,
-        :p_kp => FStatIVPValue,
-        :dof => DOF,
-    )
+    regression_statistics = [symbol_to_statistic_type(s) for s in regression_statistics]
     sections = []
     for (i, s) in enumerate(section_order)
         if s == :depvar
@@ -539,7 +578,9 @@ function regtable(
         # unique necessary to make sure only one of each coefficient is printed
     end
     coefvalues = Matrix{Any}(missing, length(nms), length(rrs))
-    coefbelow = Matrix{Any}(missing, length(nms), length(rrs))
+    # Create a vector of matrices, one for each below_statistic type
+    coefbelow_vec = [Matrix{Any}(missing, length(nms), length(rrs)) for _ in below_statistics_vec]
+    
     for (i, rr) in enumerate(rrs)
         cur_nms = replace_name.(_coefnames(rr), Ref(labels), Ref(transform_labels))
 
@@ -547,8 +588,8 @@ function regtable(
             k = findfirst(cur_nms .== nm)
             k === nothing && continue
             coefvalues[j, i] = CoefValue(rr, k; standardize=standardize_coef[i])
-            if below_statistic !== nothing
-                coefbelow[j, i] = below_statistic(rr, k; standardize=standardize_coef[i], level=confint_level[i])
+            for (stat_idx, stat_type) in enumerate(below_statistics_vec)
+                coefbelow_vec[stat_idx][j, i] = stat_type(rr, k; standardize=standardize_coef[i], level=confint_level[i])
             end
         end
     end
@@ -580,24 +621,133 @@ function regtable(
         end
     end
     
-    if digits !== nothing || statisticformat !== nothing || below_decoration !== nothing
-        if below_decoration === nothing
-            if digits_stats !== nothing
-                coefbelow = repr.(render, coefbelow; digits=digits_stats)
-            elseif statisticformat !== nothing
-                coefbelow = repr.(render, coefbelow; str_format=statisticformat)
-            end
-        else
-            # @warn("below_decoration is deprecated. Set the below decoration globally by running")
-            # @warn("RegressionTables.below_decoration(render::AbstractRenderType, s) = \"(\$s)\"")
-            if digits_stats !== nothing
-                temp_coef = repr.(render, value.(coefbelow); digits=digits_stats)
-            elseif statisticformat !== nothing
-                temp_coef = repr.(render, value.(coefbelow); str_format=statisticformat)
+    # Split statisticformat into separate variables for below statistics and regression statistics
+    # Convert to dictionaries for consistent handling
+    # Extract decoration information from tuples if present
+    statisticformat_decorations = Dict{DataType, Function}()
+    
+    if isa(statisticformat, Dict)
+        # Convert symbol keys to types for user convenience
+        statisticformat = Dict(symbol_to_statistic_type(k) => v for (k, v) in statisticformat)
+        
+        # Extract decorations from tuple values and convert tuples to just formats
+        statisticformat_processed = Dict{DataType, Any}()
+        for (k, v) in statisticformat
+            if isa(v, Tuple) && length(v) == 2
+                # Tuple format: (format, decoration_function)
+                statisticformat_processed[k] = v[1]
+                statisticformat_decorations[k] = v[2]
             else
-                temp_coef = repr.(render, value.(coefbelow); commas=false)
+                statisticformat_processed[k] = v
             end
-            coefbelow = [x == "" ? x : below_decoration(x) for x in temp_coef]
+        end
+        
+        # Separate Dict entries by category (below vs regression statistics)
+        statisticformat_below = filter(p -> first(p) in below_statistics_vec, statisticformat_processed)
+        statisticformat_regstats = filter(p -> first(p) in regression_statistics, statisticformat_processed)
+    elseif isa(statisticformat, AbstractString)
+        # Convert string to dictionary mapping all statistics to that format
+        statisticformat_below = Dict(stat_type => statisticformat for stat_type in below_statistics_vec)
+        statisticformat_regstats = Dict(stat_type => statisticformat for stat_type in regression_statistics)
+    else
+        # Nothing or other type - use empty dictionaries
+        statisticformat_below = Dict{DataType, Any}()
+        statisticformat_regstats = Dict{DataType, Any}()
+    end
+    
+    # If digits_stats is specified, use it as the default format for any statistics
+    # that don't already have an explicit format
+    if digits_stats !== nothing
+        for stat_type in below_statistics_vec
+            if !haskey(statisticformat_below, stat_type)
+                statisticformat_below[stat_type] = digits_stats
+            end
+        end
+        for stat_type in regression_statistics
+            if !haskey(statisticformat_regstats, stat_type)
+                statisticformat_regstats[stat_type] = digits_stats
+            end
+        end
+    end
+    
+    if !isempty(statisticformat_below) || below_decoration !== nothing
+        # Normalize below_decoration to a vector (one per below_statistic type)
+        # Merge with decorations from statisticformat (below_decoration takes priority)
+        below_decoration_vec = if below_decoration === nothing
+            if isempty(statisticformat_decorations)
+                nothing
+            else
+                # Use decorations from statisticformat
+                [get(statisticformat_decorations, stat_type, nothing) for stat_type in below_statistics_vec]
+            end
+        elseif isa(below_decoration, Function)
+            fill(below_decoration, length(below_statistics_vec))
+        elseif isa(below_decoration, Dict)
+            # Merge below_decoration Dict with statisticformat_decorations (below_decoration takes priority)
+            [get(below_decoration, stat_type, get(statisticformat_decorations, stat_type, s -> "($s)")) for stat_type in below_statistics_vec]
+        elseif isa(below_decoration, AbstractVector)
+            @assert length(below_decoration) == length(below_statistics_vec) "below_decoration vector must have same length as below_statistic vector"
+            collect(below_decoration)
+        end
+        
+        for stat_idx in eachindex(below_statistics_vec)
+            stat_type = below_statistics_vec[stat_idx]
+            stat_format = get(statisticformat_below, stat_type, nothing)
+            
+            # Apply formatting based on stat_format type
+            temp_coef = if isa(stat_format, Function)
+                # Apply custom function only to non-missing values
+                if stat_type == ConfInt
+                    # ConfInt: Support both 1-arg and 2-arg functions
+                    # Try 2-arg first (more natural for tuples), fall back to 1-arg
+                    [v === missing || v === nothing ? repr(render, v) : 
+                        try
+                            stat_format(v[1], v[2])  # Two-argument function
+                        catch MethodError
+                            stat_format(v[1]) * ", " * stat_format(v[2])  # One-argument function applied to each
+                        end
+                        for v in value.(coefbelow_vec[stat_idx])]
+                else
+                    # Other statistics: apply function to each value
+                    [v === missing || v === nothing ? repr(render, v) : repr(render, stat_format(v)) for v in value.(coefbelow_vec[stat_idx])]
+                end
+            else
+                # Non-function formatting (Integer, String, or default)
+                if below_decoration_vec === nothing || below_decoration_vec[stat_idx] === nothing
+                    # No custom decoration - use statistic objects with their default decorations
+                    data_to_format = coefbelow_vec[stat_idx]
+                    if stat_format !== nothing
+                        custom_stat_format.(Ref(render), data_to_format, Ref(stat_format))
+                    else
+                        repr.(render, data_to_format)
+                    end
+                elseif stat_type == ConfInt
+                    # ConfInt with custom decoration - format raw tuples manually to avoid double decoration
+                    raw_tuples = value.(coefbelow_vec[stat_idx])
+                    if isa(stat_format, Integer)
+                        [v === missing || v === nothing ? "" : repr(render, v[1]; digits=stat_format) * ", " * repr(render, v[2]; digits=stat_format) for v in raw_tuples]
+                    elseif isa(stat_format, AbstractString)
+                        [v === missing || v === nothing ? "" : cfmt(stat_format, v[1]) * ", " * cfmt(stat_format, v[2]) for v in raw_tuples]
+                    else
+                        [v === missing || v === nothing ? "" : repr(render, v[1]) * ", " * repr(render, v[2]) for v in raw_tuples]
+                    end
+                else
+                    # Other statistics with custom decoration - use raw values
+                    data_to_format = value.(coefbelow_vec[stat_idx])
+                    if stat_format !== nothing
+                        custom_stat_format.(Ref(render), data_to_format, Ref(stat_format))
+                    else
+                        repr.(render, data_to_format; commas=false)
+                    end
+                end
+            end
+            
+            # Apply decoration if specified
+            if below_decoration_vec === nothing || below_decoration_vec[stat_idx] === nothing
+                coefbelow_vec[stat_idx] = temp_coef
+            else
+                coefbelow_vec[stat_idx] = [x == "" ? x : below_decoration_vec[stat_idx](x) for x in temp_coef]
+            end
         end
     end
 
@@ -633,7 +783,7 @@ function regtable(
             end
         elseif v == :coef
             in_header = false
-            if below_statistic === nothing
+            if length(below_statistics_vec) == 0
                 temp = hcat(nms, coefvalues)
                 if extra_space
                     for i in 1:size(temp, 1)
@@ -650,13 +800,20 @@ function regtable(
                     temp = hcat(nms, coefvalues)
                     for i in 1:size(temp, 1)
                         push_DataRow!(out, temp[i, :], align, wdths, false, render)
-                        push_DataRow!(out, coefbelow[i, :], align, wdths, false, render)
+                        for stat_idx in eachindex(below_statistics_vec)
+                            push_DataRow!(out, coefbelow_vec[stat_idx][i, :], align, wdths, false, render)
+                        end
                         if extra_space && i != size(temp, 1)
                             push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
                         end
                     end
                 else
-                    x = [(x, y) for (x, y) in zip(coefvalues, coefbelow)]
+                    # Create tuples with coefficient and all below statistics for horizontal layout
+                    x = if length(below_statistics_vec) == 1
+                        [(x, y) for (x, y) in zip(coefvalues, coefbelow_vec[1])]
+                    else
+                        [tuple(coefval, [coefbelow_vec[stat_idx][idx] for stat_idx in eachindex(below_statistics_vec)]...) for (idx, coefval) in pairs(coefvalues)]
+                    end
                     temp = hcat(nms, x)
                     if extra_space
                         for i in 1:size(temp, 1)
@@ -675,10 +832,15 @@ function regtable(
             push_DataRow!(out, regressiontype, align, wdths, false, render)
         elseif v == :stats
             stats = combine_statistics(rrs, regression_statistics)
-            if digits_stats !== nothing
-                stats = repr.(render, stats; digits=digits_stats)
-            elseif statisticformat !== nothing
-                stats = repr.(render, stats; str_format=statisticformat)
+            if !isempty(statisticformat_regstats)
+                for row_idx in 1:size(stats, 1)
+                    stat_type = stats[row_idx, 1]
+                    stat_format = get(statisticformat_regstats, stat_type, nothing)
+                    
+                    if stat_format !== nothing
+                        stats[row_idx, 2:end] = custom_stat_format.(Ref(render), stats[row_idx, 2:end], Ref(stat_format))
+                    end
+                end
             end
             push_DataRow!(out, stats, align, wdths, false, render)
         elseif v == :controls
