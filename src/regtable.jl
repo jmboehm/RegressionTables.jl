@@ -346,7 +346,7 @@ Produces a publication-quality regression table, similar to Stata's `esttab` and
 * `statisticformat` is a `String` that describes the format of the number below the estimate (se/t).
 * `digits_stats` is an `Int` that describes the precision to be shown in the statistics. Defaults to `nothing`, which means the default (3) is used (default can be changed by setting `RegressionTables.default_digits(render::AbstractRenderType, x) = 3`).
 * `below_statistic` is a type that describes a statistic that should be shown below each point estimate. Recognized values are `nothing`, `StdError`, `TStat`, and `ConfInt`. `nothing` suppresses the line. Defaults to `StdError`.
-* `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in types are Recognized symbols are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
+* `regression_statistics` is a `Vector` of types that describe statistics to be shown at the bottom of the table. Built in recognized types are `Nobs`, `R2`, `PseudoR2`, `R2CoxSnell`, `R2Nagelkerke`, `R2Deviance`, `AdjR2`, `AdjPseudoR2`, `AdjR2Deviance`, `DOF`, `LogLikelihood`, `AIC`, `AICC`, `BIC`, `FStat`, `FStatPValue`, `FStatIV`, `FStatIVPValue`, R2Within. Defaults vary based on regression inputs (simple linear model is [Nobs, R2]).
 * `extralines` is a `Vector` or a `Vector{<:AbsractVector}` that will be added to the end of the table. A single vector will be its own row, a vector of vectors will each be a row. Defaults to `nothing`.
 * `number_regressions` is a `Bool` that governs whether regressions should be numbered. Defaults to `true`.
 * `groups` is a `Vector`, `Vector{<:AbstractVector}` or `Matrix` of labels used to group regressions. This can be useful if results are shown for different data sets or sample restrictions.
@@ -408,6 +408,7 @@ function regtable(
     regressors=nothing,
     use_relabeled_values=default_use_relabeled_values(render, rrs),
     confint_level=default_confint_level(render, rrs),
+    extra_space::Bool=false,
     kwargs...
 ) where {T<:AbstractRenderType}
     @assert align ∈ (:l, :r, :c) "align must be one of :l, :r, :c"
@@ -634,18 +635,39 @@ function regtable(
             in_header = false
             if below_statistic === nothing
                 temp = hcat(nms, coefvalues)
-                push_DataRow!(out, temp, align, wdths, false, render)
+                if extra_space
+                    for i in 1:size(temp, 1)
+                        push_DataRow!(out, temp[i, :], align, wdths, false, render)
+                        if i != size(temp, 1)
+                            push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
+                        end
+                    end
+                else
+                    push_DataRow!(out, temp, align, wdths, false, render)
+                end
             else
                 if stat_below
                     temp = hcat(nms, coefvalues)
                     for i in 1:size(temp, 1)
                         push_DataRow!(out, temp[i, :], align, wdths, false, render)
                         push_DataRow!(out, coefbelow[i, :], align, wdths, false, render)
+                        if extra_space && i != size(temp, 1)
+                            push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
+                        end
                     end
                 else
                     x = [(x, y) for (x, y) in zip(coefvalues, coefbelow)]
                     temp = hcat(nms, x)
-                    push_DataRow!(out, temp, align, wdths, false, render)
+                    if extra_space
+                        for i in 1:size(temp, 1)
+                            push_DataRow!(out, temp[i, :], align, wdths, false, render)
+                            if i != size(temp, 1)
+                                push_DataRow!(out, fill("", size(temp, 2)), align, wdths, false, render)
+                            end
+                        end
+                    else
+                        push_DataRow!(out, temp, align, wdths, false, render)
+                    end
                 end
             end
         elseif v == :regtype

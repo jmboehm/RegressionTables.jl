@@ -2,7 +2,7 @@
 DocTestSetup = quote # hide
     using RegressionTables, DataFrames, FixedEffectModels, RDatasets
 
-    df = dataset("datasets", "iris")
+    df = RDatasets.dataset("datasets", "iris")
     df[!,:SpeciesDummy] = df[!,:Species]
 
     rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(SpeciesDummy)))

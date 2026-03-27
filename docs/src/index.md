@@ -23,7 +23,7 @@ To install the package, type in the Julia command prompt
 ```@example main_data
 using RegressionTables, DataFrames, FixedEffectModels, RDatasets, GLM
 
-df = dataset("datasets", "iris")
+df = RDatasets.dataset("datasets", "iris")
 
 rr1 = reg(df, @formula(SepalLength ~ SepalWidth + fe(Species)))
 rr2 = reg(df, @formula(SepalLength ~ SepalWidth + PetalLength + fe(Species)))

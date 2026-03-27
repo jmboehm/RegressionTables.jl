@@ -43,7 +43,7 @@ Used to store the name of a coefficient. This is used for `Term`, `ContinuousTer
 """
 struct CoefName <: AbstractCoefName
     name::String
-    CoefName(name::String) = new(name)
+    CoefName(name::AbstractString) = new(String(name))
 end
 
 value(x::CoefName) = x.name
@@ -59,8 +59,8 @@ get_coefname(x::AbstractTerm) = CoefName(coefnames(x))
 get_coefname(x::Term) = CoefName(string(x.sym))
 Base.replace(x::CoefName, r::Pair) = CoefName(replace(value(x), r))
 
-get_coefname(x::AbstractString) = CoefName(x)
-get_coefname(x::AbstractVector{<:AbstractString}) = CoefName.(x)
+get_coefname(x::AbstractString) = CoefName(String(x))
+get_coefname(x::AbstractVector) = CoefName.(String.(x))
 
 
 """
@@ -146,7 +146,7 @@ Base.repr(render::AbstractRenderType, x::RegressionTables.CategoricalCoefName; a
 struct CategoricalCoefName <: AbstractCoefName
     name::String
     level::String
-    CategoricalCoefName(name::String, level::String) = new(name, level)
+    CategoricalCoefName(name::AbstractString, level::AbstractString) = new(String(name), String(level))
 end
 
 value(x::CategoricalCoefName) = x.name

@@ -72,6 +72,8 @@ RegressionTables.drop_names!
 RegressionTables.add_blank
 RegressionTables.missing_vars
 RegressionTables.add_element!
+RegressionTables.find_vertical_gaps
+RegressionTables.extra_cell_space
 ```
 
 ## How Types are Displayed
@@ -98,6 +100,7 @@ RegressionTables._coef
 RegressionTables._stderror
 RegressionTables._dof_residual
 RegressionTables._pvalue
+RegressionTables._islinear
 RegressionTables.other_stats
 RegressionTables.default_regression_statistics(::RegressionModel)
 RegressionTables.can_standardize
