@@ -1,7 +1,7 @@
 name = "RegressionTables"
 uuid = "d519eb52-b820-54da-95a6-98e1306fdade"
-authors = ["Johannes Boehm <johannes.boehm@gmail.com>"]
 version = "0.7.9"
+authors = ["Johannes Boehm <johannes.boehm@gmail.com>"]
 
 [deps]
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
@@ -17,6 +17,7 @@ GLFixedEffectModels = "bafb0ae5-e5f5-5100-81b6-6a55d777c812"
 GLM = "38e38edf-8417-5370-95a0-9cbb8c7f171a"
 MixedModels = "ff71e718-51f3-5ec2-a782-8ffcbfa3c316"
 Typstry = "f0ed7684-a786-439e-b1e3-3b82803b501e"
+XLSX = "fdbf4ff8-1666-58a4-91e7-1b58723a45e0"
 
 [extensions]
 RegressionTablesFixedEffectModelsExt = "FixedEffectModels"
@@ -24,6 +25,7 @@ RegressionTablesGLFixedEffectModelsExt = "GLFixedEffectModels"
 RegressionTablesGLMExt = "GLM"
 RegressionTablesMixedModelsExt = "MixedModels"
 RegressionTablesTypstryExt = "Typstry"
+RegressionTablesXLSXExt = "XLSX"
 
 [compat]
 Aqua = "0.8"
@@ -38,6 +40,7 @@ StatsAPI = "1.6"
 StatsBase = "0.32, 0.33, 0.34"
 StatsModels = "0.7.3"
 Typstry = "0.6.2"
+XLSX = "0.11"
 julia = "1.9"
 
 [extras]
